@@ -6,7 +6,6 @@ use Illuminate\Contracts\View\View as ViewView;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
 use Osiset\ShopifyApp\Exceptions\MissingAuthUrlException;
@@ -55,20 +54,8 @@ trait AuthController
                 throw new MissingAuthUrlException('Missing auth url');
             }
 
-            $shopDomain = $shopDomain->toNative();
-            $shopOrigin = $shopDomain ?? $request->user()->name;
-
-            return View::make(
-                'shopify-app::auth.fullpage_redirect',
-                [
-                    'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
-                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@' . config('shopify-app.appbridge_version') : '',
-                    'authUrl' => $result['url'],
-                    'host' => $request->host ?? base64_encode($shopOrigin . '/admin'),
-                    'shopDomain' => $shopDomain,
-                    'shopOrigin' => $shopOrigin,
-                ]
-            );
+            // Just return them straight to the OAUTH flow.
+            return Redirect::to($result['url']);
         } else {
             // Go to home route
             return Redirect::route(
