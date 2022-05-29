@@ -1,5 +1,5 @@
 {
-    "name": "osiset/laravel-shopify",
+    "name": "bolideai/laravel-shopify",
     "description": "Shopify package for Laravel to aide in app development",
     "keywords": [
         "api",
@@ -21,6 +21,10 @@
         {
             "name": "Tyler King",
             "email": "tyler@osiset.com"
+        },
+        {
+            "name": "Vitaly Dubov",
+            "email": "vitaliy.dubov@bolide.ai"
         }
     ],
     "require": {
