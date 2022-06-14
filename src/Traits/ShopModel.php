@@ -11,10 +11,12 @@ use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken as AccessTokenValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopId as ShopIdValue;
+use Osiset\ShopifyApp\Contracts\Objects\Values\ThemeSupportLevel as ThemeSupportLevelValue;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\SessionContext;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
+use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
 use Osiset\ShopifyApp\Storage\Models\Charge;
 use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Storage\Scopes\Namespacing;
@@ -75,6 +77,14 @@ trait ShopModel
     public function getAccessToken(): AccessTokenValue
     {
         return AccessToken::fromNative($this->password);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getThemeSupportLevel(): ThemeSupportLevelValue
+    {
+        return ThemeSupportLevel::fromNative($this->theme_support_level);
     }
 
     /**
