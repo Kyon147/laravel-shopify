@@ -17,19 +17,19 @@ class ThemeSupportLevel implements ValueObject
      *
      * @var int
      */
-    public const FULL = 1;
+    public const FULL = 0;
 
     /**
      * Support level: partial.
      *
      * @var int
      */
-    public const PARTIAL = 2;
+    public const PARTIAL = 1;
 
     /**
      * Support level: unsupported.
      *
      * @var int
      */
-    public const UNSUPPORTED = 3;
+    public const UNSUPPORTED = 2;
 }
