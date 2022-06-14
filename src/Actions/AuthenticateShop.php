@@ -27,13 +27,6 @@ class AuthenticateShop
     protected $installShopAction;
 
     /**
-     * The action for verify theme support
-     *
-     * @var VerifyThemeSupport
-     */
-    protected $verifyThemeSupport;
-
-    /**
      * The action for dispatching scripts.
      *
      * @var DispatchScripts
@@ -59,7 +52,6 @@ class AuthenticateShop
      *
      * @param IApiHelper            $apiHelper              The API helper.
      * @param InstallShop           $installShopAction      The action for installing a shop.
-     * @param VerifyThemeSupport    $verifyThemeSupport     The action for verify theme support
      * @param DispatchScripts       $dispatchScriptsAction  The action for dispatching scripts.
      * @param DispatchWebhooks      $dispatchWebhooksAction The action for dispatching webhooks.
      * @param AfterAuthorize        $afterAuthorizeAction   The action for after authorize actions.
@@ -69,14 +61,12 @@ class AuthenticateShop
     public function __construct(
         IApiHelper $apiHelper,
         InstallShop $installShopAction,
-        VerifyThemeSupport $verifyThemeSupport,
         DispatchScripts $dispatchScriptsAction,
         DispatchWebhooks $dispatchWebhooksAction,
         AfterAuthorize $afterAuthorizeAction
     ) {
         $this->apiHelper = $apiHelper;
         $this->installShopAction = $installShopAction;
-        $this->verifyThemeSupport = $verifyThemeSupport;
         $this->dispatchScriptsAction = $dispatchScriptsAction;
         $this->dispatchWebhooksAction = $dispatchWebhooksAction;
         $this->afterAuthorizeAction = $afterAuthorizeAction;
@@ -111,10 +101,7 @@ class AuthenticateShop
             return [$result, null];
         }
 
-        // Fire the post processing jobs
-        $themeSupportLevel = call_user_func($this->verifyThemeSupport, $result['shop_id']);
-
-        if (in_array($themeSupportLevel, Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
+        if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
             call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
         }
 
