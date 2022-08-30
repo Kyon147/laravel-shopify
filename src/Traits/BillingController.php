@@ -2,13 +2,10 @@
 
 namespace Osiset\ShopifyApp\Traits;
 
-use App\Models\Group;
 use Illuminate\Contracts\View\View as ViewView;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\ActivatePlan;
 use Osiset\ShopifyApp\Actions\ActivateUsageCharge;
@@ -19,7 +16,6 @@ use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
 use Osiset\ShopifyApp\Objects\Values\PlanId;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
-use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Storage\Queries\Shop as ShopQuery;
 use Osiset\ShopifyApp\Util;
 
@@ -31,35 +27,21 @@ trait BillingController
     /**
      * Redirects to billing screen for Shopify.
      *
-     * @param int|null    $plan        The plan's ID, if provided in route.
      * @param Request     $request     The request object.
      * @param ShopQuery    $shopQuery    The shop querier.
      * @param GetPlanUrl  $getPlanUrl  The action for getting the plan URL.
+     * @param int|null    $plan        The plan's ID, if provided in route.
      *
      * @return ViewView
      */
     public function index(
-        ?int $plan = null,
         Request $request,
         ShopQuery $shopQuery,
-        GetPlanUrl $getPlanUrl
-    ): JsonResponse {
+        GetPlanUrl $getPlanUrl,
+        ?int $plan = null
+    ): ViewView {
         // Get the shop
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->get('shop')));
-        $selectedPlan = Plan::findOrFail($plan);
-
-        if ($selectedPlan->price_per_month == 0) {
-            $freeGroup = Group::where('unique_key', 'free')->first();
-
-            $shop->plan()->associate($selectedPlan);
-            $shop->group()->associate($freeGroup);
-            $shop->shopify_freemium = true;
-            $shop->save();
-
-            return Response::json([
-                'url' => config('app.url') . '?' . http_build_query(['shop' => $shop->name])
-            ]);
-        }
 
         // Get the plan URL for redirect
         $url = $getPlanUrl(
@@ -68,7 +50,10 @@ trait BillingController
         );
 
         // Do a fullpage redirect
-        return Response::json(['url' => $url]);
+        return View::make(
+            'shopify-app::billing.fullpage_redirect',
+            ['url' => $url]
+        );
     }
 
     /**
