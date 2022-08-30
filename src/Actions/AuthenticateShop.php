@@ -101,6 +101,7 @@ class AuthenticateShop
             return [$result, null];
         }
 
+        // Fire the post processing jobs
         if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
             call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
         }

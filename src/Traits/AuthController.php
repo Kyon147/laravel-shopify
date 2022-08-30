@@ -54,8 +54,20 @@ trait AuthController
                 throw new MissingAuthUrlException('Missing auth url');
             }
 
-            // Just return them straight to the OAUTH flow.
-            return Redirect::to($result['url']);
+            $shopDomain = $shopDomain->toNative();
+            $shopOrigin = $shopDomain ?? $request->user()->name;
+
+            return View::make(
+                'shopify-app::auth.fullpage_redirect',
+                [
+                    'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
+                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@'.config('shopify-app.appbridge_version') : '',
+                    'authUrl' => $result['url'],
+                    'host' => $request->host ?? base64_encode($shopOrigin.'/admin'),
+                    'shopDomain' => $shopDomain,
+                    'shopOrigin' => $shopOrigin,
+                ]
+            );
         } else {
             // Go to home route
             return Redirect::route(
@@ -87,10 +99,10 @@ trait AuthController
             $params['shop'] = $params['shop'] ?? $shopDomain->toNative() ?? '';
             unset($params['token']);
 
-            $cleanTarget = trim(explode('?', $target)[0] . '?' . http_build_query($params), '?');
+            $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         } else {
             $params = ['shop' => $shopDomain->toNative() ?? ''];
-            $cleanTarget = trim(explode('?', $target)[0] . '?' . http_build_query($params), '?');
+            $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         }
 
         return View::make(

@@ -2,7 +2,6 @@
 
 namespace Osiset\ShopifyApp\Storage\Commands;
 
-use App\Models\Group;
 use Illuminate\Support\Carbon;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as ShopCommand;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken as AccessTokenValue;
@@ -62,12 +61,9 @@ class Shop implements ShopCommand
      */
     public function setToPlan(ShopIdValue $shopId, PlanIdValue $planId): bool
     {
-        $paidGroup = Group::where('unique_key', 'paid')->first();
-
         $shop = $this->getShop($shopId);
         $shop->plan_id = $planId->toNative();
         $shop->shopify_freemium = false;
-        $shop->group()->associate($paidGroup);
 
         return $shop->save();
     }
