@@ -372,6 +372,25 @@ return [
             ...
         */
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Shopify ScriptTags
+    |--------------------------------------------------------------------------
+    |
+    | This option is for defining scripttags that will be installed regardless of the OS 2.0 support level.
+    |
+    */
+
+    'force_scripttags' => [
+        /*
+            [
+                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
+                'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
+                'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
+            ],
+            ...
+        */
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -406,6 +425,7 @@ return [
     'job_queues' => [
         'webhooks'           => env('WEBHOOKS_JOB_QUEUE', null),
         'scripttags'         => env('SCRIPTTAGS_JOB_QUEUE', null),
+        'force_scripttags'   => env('FORCE_SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
 
@@ -502,7 +522,7 @@ return [
             Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel::UNSUPPORTED
         ]
     ],
-    
+
     /*
     | Determines whether the SPA is used
     |--------------------------------------------------------------------------

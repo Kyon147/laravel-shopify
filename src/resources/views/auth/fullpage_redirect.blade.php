@@ -5,7 +5,6 @@
         <base target="_top">
 
         <title>Redirecting...</title>
-
         <script src="https://unpkg.com/@shopify/app-bridge{!! $appBridgeVersion !!}"></script>
         <script src="https://unpkg.com/@shopify/app-bridge-utils{!! $appBridgeVersion !!}"></script>
         <script type="text/javascript">
@@ -22,10 +21,11 @@
                     var AppBridge = window['app-bridge'];
                     var createApp = AppBridge.default;
                     var Redirect = AppBridge.actions.Redirect;
+
                     var app = createApp({
-                        apiKey: "{{!! $apiKey !!}}",
-                        shopOrigin: "{{!! $shopOrigin !!}}",
-                        host: "{{!! $host !!}}",
+                        apiKey: "{!! $apiKey !!}",
+                        shopOrigin: "{!! $shopOrigin !!}",
+                        host: "{!! $host !!}",
                     });
 
                     var redirect = Redirect.create(app);
@@ -34,6 +34,4 @@
             });
         </script>
     </head>
-    <body>
-    </body>
 </html>

@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View as ViewView;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\ActivatePlan;
 use Osiset\ShopifyApp\Actions\ActivateUsageCharge;
@@ -48,6 +49,10 @@ trait BillingController
             $shop->getId(),
             NullablePlanId::fromNative($plan)
         );
+
+        if (Util::getShopifyConfig('spa_frontend_used')) {
+            return Response::json(['url' => $url]);
+        }
 
         // Do a fullpage redirect
         return View::make(
