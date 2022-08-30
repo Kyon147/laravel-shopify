@@ -43,17 +43,18 @@ class DispatchScripts
      * Execution.
      *
      * @param ShopIdValue $shopId   The shop ID.
+     * @param string $configKey     Shopify config key
      * @param bool        $inline   Fire the job inline (now) or queue.
      *
      * @return bool
      */
-    public function __invoke(ShopIdValue $shopId, bool $inline = false): bool
+    public function __invoke(ShopIdValue $shopId, string $configKey, bool $inline = false): bool
     {
         // Get the shop
         $shop = $this->shopQuery->getById($shopId);
 
         // Get the scripttags
-        $scripttags = Util::getShopifyConfig('scripttags');
+        $scripttags = Util::getShopifyConfig($configKey);
         if (count($scripttags) === 0) {
             // Nothing to do
             return false;
@@ -69,7 +70,7 @@ class DispatchScripts
             ($this->jobClass)::dispatch(
                 $shop->getId(),
                 $scripttags
-            )->onQueue(Util::getShopifyConfig('job_queues')['scripttags']);
+            )->onQueue(Util::getShopifyConfig('job_queues')[$configKey]);
         }
 
         return true;
