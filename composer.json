@@ -21,6 +21,10 @@
         {
             "name": "Tyler King",
             "email": "tyler@osiset.com"
+        },
+        {
+            "name": "Vitaliy Dubov",
+            "email": "vitaliy.dubov@bolide.ai"
         }
     ],
     "require": {
