@@ -197,7 +197,7 @@ return [
     |
     */
 
-    'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products,read_themes'),
+    'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products'),
 
     /*
     |--------------------------------------------------------------------------
@@ -372,25 +372,6 @@ return [
             ...
         */
     ],
-    /*
-    |--------------------------------------------------------------------------
-    | Shopify ScriptTags
-    |--------------------------------------------------------------------------
-    |
-    | This option is for defining scripttags that will be installed regardless of the OS 2.0 support level.
-    |
-    */
-
-    'force_scripttags' => [
-        /*
-            [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
-                'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
-                'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
-            ],
-            ...
-        */
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -425,7 +406,6 @@ return [
     'job_queues' => [
         'webhooks'           => env('WEBHOOKS_JOB_QUEUE', null),
         'scripttags'         => env('SCRIPTTAGS_JOB_QUEUE', null),
-        'force_scripttags'   => env('FORCE_SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
 
@@ -490,45 +470,24 @@ return [
         * The table name for Plan model.
         */
         'plans' => 'plans',
+
+        /*
+         * The table name for the Shop.
+         */
+        'shops' => 'users',
     ],
+
+    'session_token_refresh_interval' => env('SESSION_TOKEN_REFRESH_INTERVAL', 2000),
 
     /*
     |--------------------------------------------------------------------------
-    | Checking theme compatibility
+    | Frontend engine used
     |--------------------------------------------------------------------------
     |
-    | It is necessary to check if your application is compatible with the theme app blocks.
+    | Available engines: "BLADE", "VUE", or "REACT".
+    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
+    | No changes are made for Vue.js and Blade.
     |
     */
-    'theme_support' => [
-        /**
-         * Specify the name of the template the app will integrate with
-         */
-        'templates' => ['product', 'collection', 'index'],
-        /**
-         * Interval for caching the request: minutes, seconds, hours, days, etc.
-         */
-        'cache_interval' => 'hours',
-        /**
-         * Cache duration
-         */
-        'cache_duration' => '12',
-         /**
-         * At which levels of theme support the use of "theme app extension" is not available
-         * and script tags will be installed.
-         * Available levels: FULL, PARTIAL, UNSUPPORTED.
-         */
-        'unacceptable_levels' => [
-            Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel::UNSUPPORTED
-        ]
-    ],
-
-    /*
-    | Determines whether the SPA is used
-    |--------------------------------------------------------------------------
-    |
-    | If you use SPA (React or Vue), you don't need a redirect to the JWT token retrieval page
-    |
-    */
-    'spa_frontend_used' => (bool) env('SHOPIFY_SPA_FRONTEND_USED', false),
+    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
 ];

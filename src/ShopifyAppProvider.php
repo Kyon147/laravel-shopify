@@ -19,7 +19,6 @@ use Osiset\ShopifyApp\Actions\DispatchScripts as DispatchScriptsAction;
 use Osiset\ShopifyApp\Actions\DispatchWebhooks as DispatchWebhooksAction;
 use Osiset\ShopifyApp\Actions\GetPlanUrl as GetPlanUrlAction;
 use Osiset\ShopifyApp\Actions\InstallShop as InstallShopAction;
-use Osiset\ShopifyApp\Actions\VerifyThemeSupport as VerifyThemeSupportAction;
 use Osiset\ShopifyApp\Console\AddVariablesCommand;
 use Osiset\ShopifyApp\Console\WebhookJobMakeCommand;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
@@ -115,8 +114,7 @@ class ShopifyAppProvider extends ServiceProvider
         $this->app->bind(InstallShopAction::class, function ($app) {
             return new InstallShopAction(
                 $app->make(IShopQuery::class),
-                $app->make(IShopCommand::class),
-                $app->make(VerifyThemeSupportAction::class),
+                $app->make(IShopCommand::class)
             );
         });
 
@@ -171,13 +169,6 @@ class ShopifyAppProvider extends ServiceProvider
                 $app->make(IShopQuery::class),
                 $app->make(IPlanQuery::class),
                 $app->make(IChargeCommand::class),
-                $app->make(IShopCommand::class)
-            );
-        });
-
-        $this->app->bind(VerifyThemeSupportAction::class, function ($app) {
-            return new VerifyThemeSupportAction(
-                $app->make(IShopQuery::class),
                 $app->make(IShopCommand::class)
             );
         });

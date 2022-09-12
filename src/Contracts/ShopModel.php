@@ -10,7 +10,6 @@ use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken as AccessTokenValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopId as ShopIdValue;
-use Osiset\ShopifyApp\Contracts\Objects\Values\ThemeSupportLevel as ThemeSupportLevelValue;
 use Osiset\ShopifyApp\Objects\Values\SessionContext;
 
 /**
@@ -38,13 +37,6 @@ interface ShopModel extends Authenticatable
      * @return AccessTokenValue
      */
     public function getAccessToken(): AccessTokenValue;
-
-    /**
-     *  Get shop theme support level as a value object.
-     *
-     * @return ThemeSupportLevelValue
-     */
-    public function getThemeSupportLevel(): ThemeSupportLevelValue;
 
     /**
      * Gets charges belonging to the shop.

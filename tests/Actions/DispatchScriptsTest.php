@@ -34,7 +34,6 @@ class DispatchScriptsTest extends TestCase
         $result = call_user_func(
             $this->action,
             $shop->getId(),
-            'scripttags',
             false // async
         );
 
@@ -65,7 +64,6 @@ class DispatchScriptsTest extends TestCase
         $result = call_user_func(
             $this->action,
             $shop->getId(),
-            'scripttags',
             false // async
         );
 
@@ -96,7 +94,6 @@ class DispatchScriptsTest extends TestCase
         $result = call_user_func(
             $this->action,
             $shop->getId(),
-            'scripttags',
             true // sync
         );
 
