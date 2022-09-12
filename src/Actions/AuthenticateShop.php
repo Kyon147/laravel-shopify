@@ -103,7 +103,9 @@ class AuthenticateShop
 
         // Fire the post processing jobs
         if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
-            call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
+            call_user_func($this->dispatchScriptsAction, $result['shop_id'], ['scripttags', 'force_scripttags'], false);
+        } else {
+            call_user_func($this->dispatchScriptsAction, $result['shop_id'], ['force_scripttags'], false);
         }
 
         call_user_func($this->dispatchWebhooksAction, $result['shop_id'], false);
