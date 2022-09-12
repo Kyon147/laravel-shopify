@@ -470,5 +470,24 @@ return [
         * The table name for Plan model.
         */
         'plans' => 'plans',
-    ]
+
+        /*
+         * The table name for the Shop.
+         */
+        'shops' => 'users',
+    ],
+
+    'session_token_refresh_interval' => env('SESSION_TOKEN_REFRESH_INTERVAL', 2000),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend engine used
+    |--------------------------------------------------------------------------
+    |
+    | Available engines: "BLADE", "VUE", or "REACT".
+    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
+    | No changes are made for Vue.js and Blade.
+    |
+    */
+    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
 ];

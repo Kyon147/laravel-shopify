@@ -6,7 +6,6 @@ use Illuminate\Contracts\View\View as ViewView;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
 use Osiset\ShopifyApp\Exceptions\MissingAuthUrlException;
@@ -62,9 +61,9 @@ trait AuthController
                 'shopify-app::auth.fullpage_redirect',
                 [
                     'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
-                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@' . config('shopify-app.appbridge_version') : '',
+                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@'.config('shopify-app.appbridge_version') : '',
                     'authUrl' => $result['url'],
-                    'host' => $request->host ?? base64_encode($shopOrigin . '/admin'),
+                    'host' => $request->host ?? base64_encode($shopOrigin.'/admin'),
                     'shopDomain' => $shopDomain,
                     'shopOrigin' => $shopOrigin,
                 ]
@@ -100,10 +99,10 @@ trait AuthController
             $params['shop'] = $params['shop'] ?? $shopDomain->toNative() ?? '';
             unset($params['token']);
 
-            $cleanTarget = trim(explode('?', $target)[0] . '?' . http_build_query($params), '?');
+            $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         } else {
             $params = ['shop' => $shopDomain->toNative() ?? ''];
-            $cleanTarget = trim(explode('?', $target)[0] . '?' . http_build_query($params), '?');
+            $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         }
 
         return View::make(
