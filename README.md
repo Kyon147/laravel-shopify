@@ -6,7 +6,7 @@
 
 ----
 
-Please read [this announcement](https://github.com/osiset/laravel-shopify/
+This is a maintined version of the wonderful https://github.com/osiset/laravel-shopify/
 
 ----
 
