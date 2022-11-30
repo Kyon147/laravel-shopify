@@ -6,9 +6,7 @@
 
 ----
 
-**[Closing]**
-
-**Please read [this announcement](https://github.com/osiset/laravel-shopify/discussions/1276).**
+Please read [this announcement](https://github.com/osiset/laravel-shopify/
 
 ----
 
