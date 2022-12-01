@@ -51,7 +51,8 @@ class ActivatePlanTest extends TestCase
             $this->action,
             $shop->getId(),
             $plan->getId(),
-            ChargeReference::fromNative(12345)
+            ChargeReference::fromNative(12345),
+            'decoded_host'
         );
 
         $this->assertInstanceOf(ChargeId::class, $result);
@@ -83,7 +84,8 @@ class ActivatePlanTest extends TestCase
             $this->action,
             $shop->getId(),
             $plan->getId(),
-            ChargeReference::fromNative(12345)
+            ChargeReference::fromNative(12345),
+            'decoded_host'
         );
 
         $this->assertInstanceOf(ChargeId::class, $result);

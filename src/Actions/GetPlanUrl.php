@@ -58,10 +58,11 @@ class GetPlanUrl
      *
      * @param ShopId         $shopId The shop ID.
      * @param NullablePlanId $planId The plan to present.
+     * @param string         $host
      *
      * @return string
      */
-    public function __invoke(ShopId $shopId, NullablePlanId $planId): string
+    public function __invoke(ShopId $shopId, NullablePlanId $planId, string $host): string
     {
         // Get the shop
         $shop = $this->shopQuery->getById($shopId);
@@ -72,14 +73,14 @@ class GetPlanUrl
         // Confirmation URL
         if ($plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative()) {
             $api = $shop->apiHelper()
-                ->createChargeGraphQL($this->chargeHelper->details($plan, $shop));
+                ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
 
             $confirmationUrl = $api['confirmationUrl'];
         } else {
             $api = $shop->apiHelper()
                 ->createCharge(
                     ChargeType::fromNative($plan->getType()->toNative()),
-                    $this->chargeHelper->details($plan, $shop)
+                    $this->chargeHelper->details($plan, $shop, $host)
                 );
 
             $confirmationUrl = $api['confirmation_url'];
