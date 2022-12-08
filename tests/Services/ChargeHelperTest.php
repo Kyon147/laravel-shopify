@@ -136,12 +136,12 @@ class ChargeHelperTest extends TestCase
     {
         // Seed (trial)
         $seed = $this->seedData();
-        $result = $this->chargeHelper->details($seed['plan'], $seed['shop']);
+        $result = $this->chargeHelper->details($seed['plan'], $seed['shop'], $seed['host']);
         $this->assertInstanceOf(PlanDetails::class, $result);
 
         // Seed (no trial)
         $seed = $this->seedData([], ['trial_days' => 0]);
-        $result = $this->chargeHelper->details($seed['plan'], $seed['shop']);
+        $result = $this->chargeHelper->details($seed['plan'], $seed['shop'], $seed['host']);
         $this->assertInstanceOf(PlanDetails::class, $result);
     }
 
@@ -157,7 +157,9 @@ class ChargeHelperTest extends TestCase
             'plan_id' => $plan->getId()->toNative(),
         ]);
 
-        $result = $this->chargeHelper->details($plan, $shop);
+        $host = 'decoded_host';
+
+        $result = $this->chargeHelper->details($plan, $shop, $host);
         $this->assertInstanceOf(PlanDetails::class, $result);
     }
 
@@ -192,6 +194,7 @@ class ChargeHelperTest extends TestCase
             'plan' => $plan,
             'shop' => $shop,
             'charge' => $charge,
+            'host' => 'decoded_host',
         ];
     }
 }
