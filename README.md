@@ -32,16 +32,22 @@ For more information, tutorials, etc., please view the project's [wiki](https://
 
 ## Goals
 
-- [x] Provide assistance in developing Shopify apps with Laravel
-- [x] Integration with Shopify API (REST, async REST, GraphQL)
-- [x] Authentication & installation for shops (both per-user and offline types)
-- [x] Plan & billing integration for single, recurring, and usage-types
-- [x] Tracking charges to a shop (recurring, single, usage, etc) with trial support
-- [x] Auto install app webhooks and scripttags through background jobs
-- [x] Provide basic AppBridge views
-- [x] Handles and processes incoming webhooks
-- [x] Handles and verifies incoming app proxy requests
-- [x] Namespacing abilities to run multiple apps on the same database
+- [ ] Per User Auth Working
+- [ ] Better support for SPA apps using VueJS
+- [ ] Getting "Blade" templates working better with Shopify's new auth process???
+
+## Installing this fork.
+
+To use this fork (for as long as it remains a fork, tbd) you need to add this to your `composer.json` file otherwise you will always hit to parent.
+
+````
+"repositories": [{
+   "type": "vcs",
+   "url": "https://github.com/Kyon147/laravel-shopify"
+ }],
+ ````
+ 
+After you will be able to select the latest version from this package, which I have purposley kept on the same versioning as the parent to make transition easy.
 
 ## Documentation
 
