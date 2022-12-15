@@ -79,11 +79,11 @@ Maintainers are users who manage the repository itself, whether it's managing th
 
 Currently this repository is maintained by:
 
-- [@osiset](https://github.com/osiset)
 - [@kyon147](https://github.com/kyon147)
 - [@lucasmichot](https://github.com/lucasmichot)
+- ~[@gnikyt](https://github.com/gnikyt)~ Original author of the package. See [announcement](https://github.com/gnikyt/laravel-shopify/discussions/1276) for details.
 
-Looking to become a maintainer? E-mail @osiset directly.
+Looking to become a maintainer? E-mail @kyon147 directly.
 
 ### Special Note
 
