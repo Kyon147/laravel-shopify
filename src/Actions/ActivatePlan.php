@@ -99,11 +99,10 @@ class ActivatePlan
      * @param ShopId          $shopId    The shop ID.
      * @param PlanId          $planId    The plan to use.
      * @param ChargeReference $chargeRef The charge ID from Shopify.
-     * @param string          $host
      *
      * @return ChargeId
      */
-    public function __invoke(ShopId $shopId, PlanId $planId, ChargeReference $chargeRef, string $host): ChargeId
+    public function __invoke(ShopId $shopId, PlanId $planId, ChargeReference $chargeRef): ChargeId
     {
         // Get the shop
         $shop = $this->shopQuery->getById($shopId);
@@ -137,7 +136,7 @@ class ActivatePlan
             $transfer->billingOn = null;
             $transfer->trialEndsOn = null;
         }
-        $transfer->planDetails = $this->chargeHelper->details($plan, $shop, $host);
+        $transfer->planDetails = $this->chargeHelper->details($plan, $shop);
 
         // Create the charge
         $charge = $this->chargeCommand->make($transfer);

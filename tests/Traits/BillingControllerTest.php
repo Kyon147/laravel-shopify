@@ -44,7 +44,7 @@ class BillingControllerTest extends TestCase
         factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring', 'installable')->create();
 
         // Run the call
-        $response = $this->call('get', '/billing', ['shop' => $shop->getDomain()->toNative(), 'host' => 'decoded_host']);
+        $response = $this->call('get', '/billing', ['shop' => $shop->getDomain()->toNative()]);
         $response->assertViewHas(
             'url',
             'https://example.myshopify.com/admin/charges/1029266947/confirm_recurring_application_charge?signature=BAhpBANeWT0%3D--64de8739eb1e63a8f848382bb757b20343eb414f'
