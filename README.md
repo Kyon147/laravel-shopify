@@ -1,19 +1,19 @@
 # Laravel Shopify App
 
 ![Tests](https://github.com/kyon147/laravel-shopify/workflows/Package%20Test/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/kyon147/laravel-shopify/branch/master/graph/badge.svg?token=qqUuLItqJj)](https://codecov.io/gh/osiset/laravel-shopify)
+[![codecov](https://codecov.io/gh/kyon147/laravel-shopify/branch/master/graph/badge.svg?token=qqUuLItqJj)](https://codecov.io/gh/kyon147/laravel-shopify)
 [![License](https://poser.pugx.org/kyon147/laravel-shopify/license)](https://packagist.org/packages/osiset/laravel-shopify)
 
 ----
 
-This is a maintined version of the wonderful https://github.com/osiset/laravel-shopify/
+This is a maintined version of the wonderful but now depricated https://github.com/gnikyt/laravel-shopify/. To keep things clean, this has been detached from the original.
 
 ----
 
 A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 7 and up.
 
-![Screenshot](https://github.com/osiset/laravel-shopify/raw/master/screenshot.png)
-![Screenshot: Billable](https://github.com/osiset/laravel-shopify/raw/master/screenshot-billable.png)
+![Screenshot](screenshot.png)
+![Screenshot: Billable](screenshot-billable.png)
 
 ## Table of Contents
 
@@ -21,33 +21,24 @@ __*__ *Wiki pages*
 
 - [Goals](#goals)
 - [Documentation](#documentation)
-- [Installation](https://github.com/osiset/laravel-shopify/wiki/Installation)*
-- [Route List](https://github.com/osiset/laravel-shopify/wiki/Route-List)*
-- [Usage](https://github.com/osiset/laravel-shopify/wiki/Usage)*
-- [Changelog](https://github.com/osiset/laravel-shopify/wiki/Changelog)*
-- [Contributing Guide](https://github.com/osiset/laravel-shopify/blob/master/CONTRIBUTING.md)
+- [Installation](../../wiki/Installation)*
+- [Route List](../../wiki/Route-List)*
+- [Usage](../../wiki/Usage)*
+- [Changelog](../../wiki/Changelog)*
+- [Contributing Guide](CONTRIBUTING.md)
 - [LICENSE](#license)
 
-For more information, tutorials, etc., please view the project's [wiki](https://github.com/osiset/laravel-shopify/wiki).
+For more information, tutorials, etc., please view the project's [wiki](../../wiki).
 
 ## Goals
 
-- [x] Provide assistance in developing Shopify apps with Laravel
-- [x] Integration with Shopify API (REST, async REST, GraphQL)
-- [x] Authentication & installation for shops (both per-user and offline types)
-- [x] Plan & billing integration for single, recurring, and usage-types
-- [x] Tracking charges to a shop (recurring, single, usage, etc) with trial support
-- [x] Auto install app webhooks and scripttags through background jobs
-- [x] Provide basic AppBridge views
-- [x] Handles and processes incoming webhooks
-- [x] Handles and verifies incoming app proxy requests
-- [x] Namespacing abilities to run multiple apps on the same database
+- [ ] Per User Auth Working
+- [ ] Better support for SPA apps using VueJS
+- [ ] Getting "Blade" templates working better with Shopify's new auth process???
 
 ## Documentation
 
-For full resources on this package, see the [wiki](https://github.com/osiset/laravel-shopify/wiki).
-
-For internal documentation, it is [available here](https://osiset.com/laravel-shopify/) from phpDocumentor.
+For full resources on this package, see the [wiki](../..//wiki).
 
 ## Issue or request?
 
@@ -55,7 +46,7 @@ If you have found a bug or would like to request a feature for discussion, pleas
 
 ## License
 
-This project is released under the MIT [license](https://github.com/osiset/laravel-shopify/blob/master/LICENSE).
+This project is released under the MIT [license](LICENSE).
 
 ## Misc
 
@@ -63,9 +54,9 @@ This project is released under the MIT [license](https://github.com/osiset/larav
 
 #### Contributors
 
-Contributions are always welcome! Contibutors are updated each release, pulled from Github. See `CONTRIBUTORS.txt`.
+Contributions are always welcome! Contibutors are updated each release, pulled from Github. See [`CONTRIBUTORS.txt`](CONTRIBUTORS.txt).
 
-If you're looking to become a contributor, please see `CONTRIBUTING.md`.
+If you're looking to become a contributor, please see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 #### Maintainers
 
@@ -73,11 +64,10 @@ Maintainers are users who manage the repository itself, whether it's managing th
 
 Currently this repository is maintained by:
 
-- [@osiset](https://github.com/osiset)
 - [@kyon147](https://github.com/kyon147)
-- [@lucasmichot](https://github.com/lucasmichot)
+- ~[@gnikyt](https://github.com/gnikyt)~ Original author of the package. See [announcement](https://github.com/gnikyt/laravel-shopify/discussions/1276) for details.
 
-Looking to become a maintainer? E-mail @osiset directly.
+Looking to become a maintainer? E-mail @kyon147 directly.
 
 ### Special Note
 
