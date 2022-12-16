@@ -6,7 +6,7 @@
 
 ----
 
-This is a maintined version of the wonderful but now depricated https://github.com/gnikyt/laravel-shopify/
+This is a maintined version of the wonderful but now depricated https://github.com/gnikyt/laravel-shopify/. To keep things clean, this has been detached from the original.
 
 ----
 
@@ -35,19 +35,6 @@ For more information, tutorials, etc., please view the project's [wiki](../../wi
 - [ ] Per User Auth Working
 - [ ] Better support for SPA apps using VueJS
 - [ ] Getting "Blade" templates working better with Shopify's new auth process???
-
-## Installing this fork.
-
-To use this fork (for as long as it remains a fork, tbd) you need to add this to your `composer.json` file otherwise you will always hit to parent.
-
-````
-"repositories": [{
-   "type": "vcs",
-   "url": "https://github.com/Kyon147/laravel-shopify"
- }],
- ````
- 
-After you will be able to select the latest version from this package, which I have purposley kept on the same versioning as the parent to make transition easy.
 
 ## Documentation
 
