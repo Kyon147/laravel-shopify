@@ -6,7 +6,7 @@
 
 ----
 
-This is a maintined version of the wonderful but now depricated https://github.com/gnikyt/laravel-shopify/. To keep things clean, this has been detached from the original.
+This is a maintined version of the wonderful but now deprecated original [Laravel Shopify App](https://github.com/gnikyt/laravel-shopify/). To keep things clean, this has been detached from the original.
 
 ----
 
