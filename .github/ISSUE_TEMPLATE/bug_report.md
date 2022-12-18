@@ -7,25 +7,38 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+*For bug reporting only! If you're posting a feature request or discussion, please ignore.*
 
-**To Reproduce**
-Steps to reproduce the behaviour:
-1. Go to '...'
-2. Click on '....'
-4. See error
+## Expected Behavior
 
-**Expected behaviour**
-A clear and concise description of what you expected to happen.
+Please describe the behavior you are expecting.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Current Behavior
 
-**Environment Information:**
- - OS: [e.g. iOS]
- - Laravel Version [e.g. v8.1.1]
- - Package Version [e.g. v17.3.3]
+Please describe the current behavior?
 
-**Additional context**
-Add any other context about the problem here.
+## Failure Information
+
+Please help provide information about the failure if this is a bug.
+
+### Steps to Reproduce
+
+Please provide detailed steps for reproducing the issue.
+
+1. Step 1
+2. Step 2
+3. ...
+
+### Context
+
+Please provide any relevant information about your setup. This is important in case the issue is not reproducible except for under certain conditions.
+
+* Package Version: vX.Y.Z
+* Laravel Version: vX.Y.Z
+* PHP Version: vX.Y.Z
+* Template Engine: Blade or React
+* Using a toolset (Docker, Laradock, Vagrant, etc.):
+
+### Failure Logs
+
+Please include any relevant log snippets or files here.
