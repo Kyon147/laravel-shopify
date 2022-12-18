@@ -49,18 +49,18 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Kyon147\\ShopifyApp\\ShopifyAppProvider"
+                "Osiset\\ShopifyApp\\ShopifyAppProvider"
             ]
         }
     },
     "autoload": {
         "psr-4": {
-            "Kyon147\\ShopifyApp\\": "src/"
+            "Osiset\\ShopifyApp\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Kyon147\\ShopifyApp\\Test\\": "tests/"
+            "Osiset\\ShopifyApp\\Test\\": "tests/"
         }
     },
     "minimum-stability": "dev",
