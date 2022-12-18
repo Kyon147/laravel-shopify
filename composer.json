@@ -49,18 +49,18 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Osiset\\ShopifyApp\\ShopifyAppProvider"
+                "Kyon147\\ShopifyApp\\ShopifyAppProvider"
             ]
         }
     },
     "autoload": {
         "psr-4": {
-            "Osiset\\ShopifyApp\\": "src/"
+            "Kyon147\\ShopifyApp\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Osiset\\ShopifyApp\\Test\\": "tests/"
+            "Kyon147\\ShopifyApp\\Test\\": "tests/"
         }
     },
     "minimum-stability": "dev",
@@ -72,9 +72,9 @@
         "test-no-cov": "vendor/bin/phpunit --no-coverage"
     },
     "support": {
-        "issues": "https://github.com/osiset/laravel-shopify/issues",
-        "forum": "https://github.com/osiset/laravel-shopify/discussions",
-        "wiki": "https://github.com/osiset/laravel-shopify/wiki",
-        "source": "https://github.com/osiset/laravel-shopify"
+        "issues": "https://github.com/kyon147/laravel-shopify/issues",
+        "forum": "https://github.com/kyon147/laravel-shopify/discussions",
+        "wiki": "https://github.com/kyon147/laravel-shopify/wiki",
+        "source": "https://github.com/kyon147/laravel-shopify"
     }
 }
