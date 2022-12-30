@@ -89,7 +89,7 @@ trait BillingController
             $shop->getId(),
             PlanId::fromNative($plan),
             ChargeReference::fromNative((int) $request->query('charge_id')),
-            $request->host
+            $request->host ? $request->host : base64_encode($shop->getDomain()->toNative().'/admin')
         );
 
         // Go to homepage of app
@@ -98,7 +98,7 @@ trait BillingController
         ], Util::useNativeAppBridge() ? [
             'host' => $request->host ? $request->host : base64_encode($shop->getDomain()->toNative().'/admin')
             ] : [
-            'host' => base64_encode($shop->getDomain()->toNative().'/admin'),
+            'host' => $request->host ? $request->host : base64_encode($shop->getDomain()->toNative().'/admin'),
             'billing' => $result ? 'success' : 'failure',
         ]))->with(
             $result ? 'success' : 'failure',
