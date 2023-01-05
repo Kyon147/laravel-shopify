@@ -21,8 +21,9 @@ class Billable
      * @param Request $request The request object.
      * @param Closure $next The next action.
      *
+     *@throws Exception
+     *
      * @return mixed
-     * @throws Exception
      */
     public function handle(Request $request, Closure $next)
     {

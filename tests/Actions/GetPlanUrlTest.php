@@ -2,7 +2,6 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
-use Illuminate\Support\Str;
 use Osiset\ShopifyApp\Actions\GetPlanUrl;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
 use Osiset\ShopifyApp\Storage\Models\Plan;
