@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Str;
 use Osiset\ShopifyApp\Actions\GetPlanUrl;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
 use Osiset\ShopifyApp\Storage\Models\Plan;
@@ -30,7 +31,7 @@ class GetPlanUrlTest extends TestCase
 
         // Create the shop with no plan
         $shop = factory($this->model)->create();
-
+        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Setup API stub
         $this->setApiStub();
         ApiStub::stubResponses(['post_recurring_application_charges']);
@@ -38,7 +39,8 @@ class GetPlanUrlTest extends TestCase
         $result = call_user_func(
             $this->action,
             $shop->getId(),
-            NullablePlanId::fromNative(null)
+            NullablePlanId::fromNative(null),
+            $hostValue
         );
 
         $this->assertNotEmpty($result);
@@ -51,7 +53,7 @@ class GetPlanUrlTest extends TestCase
 
         // Create the shop with no plan
         $shop = factory($this->model)->create();
-
+        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Setup API stub
         $this->setApiStub();
         ApiStub::stubResponses(['graphql_app_subscription_create']);
@@ -59,7 +61,8 @@ class GetPlanUrlTest extends TestCase
         $result = call_user_func(
             $this->action,
             $shop->getId(),
-            NullablePlanId::fromNative(null)
+            NullablePlanId::fromNative(null),
+            $hostValue
         );
 
         $this->assertNotEmpty($result);
