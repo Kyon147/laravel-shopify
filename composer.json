@@ -32,6 +32,7 @@
         "osiset/basic-shopify-api": "^9.0 || <=10.0.5"
     },
     "require-dev": {
+        "laravel/legacy-factories": "^v1.3.0",
         "ergebnis/composer-normalize": "^2.8",
         "friendsofphp/php-cs-fixer": "^3.0",
         "mockery/mockery": "^1.0",

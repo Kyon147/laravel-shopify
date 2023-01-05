@@ -48,31 +48,6 @@ class ChargeHelper
     }
 
     /**
-     * Set the charge in context.
-     *
-     * @param ChargeReference $chargeRef The charge ID.
-     *
-     * @return self
-     */
-    public function useCharge(ChargeReference $chargeRef): self
-    {
-        // Get the charge
-        $this->charge = $this->chargeQuery->getByReference($chargeRef);
-
-        return $this;
-    }
-
-    /**
-     * Get the charge in context.
-     *
-     * @return ChargeModel
-     */
-    public function getCharge(): ChargeModel
-    {
-        return $this->charge;
-    }
-
-    /**
      * Gets the charge's data from Shopify.
      *
      * @param IShopModel $shop The shop.
@@ -88,53 +63,23 @@ class ChargeHelper
     }
 
     /**
-     * Checks if the charge is currently in trial.
+     * Get the charge in context.
      *
-     * @return bool
+     * @return ChargeModel
      */
-    public function isActiveTrial(): bool
+    public function getCharge(): ChargeModel
     {
-        return $this->charge->isTrial() &&
-            Carbon::today()->lte(Carbon::parse($this->charge->trial_ends_on));
+        return $this->charge;
     }
 
     /**
-     * Returns the remaining trial days.
+     * Return the end date of the current period.
      *
-     * @return ?int
+     * @return string
      */
-    public function remainingTrialDays(): ?int
+    public function periodEndDate(): string
     {
-        if (! $this->charge->isTrial()) {
-            return null;
-        }
-
-        return $this->isActiveTrial() ?
-            Carbon::today()->diffInDays($this->charge->trial_ends_on) :
-            0;
-    }
-
-    /**
-     * Returns the remaining trial days from cancellation date.
-     *
-     * @return int|null
-     */
-    public function remainingTrialDaysFromCancel(): ?int
-    {
-        if (! $this->charge->isTrial()) {
-            return null;
-        }
-
-        $cancelledDate = Carbon::parse($this->charge->cancelled_on);
-        $trialEndsDate = Carbon::parse($this->charge->trial_ends_on);
-
-        // Ensure cancelled date happened before the trial was supposed to end
-        if ($this->charge->isCancelled() && $cancelledDate->lte($trialEndsDate)) {
-            // Diffeence the two dates and subtract from the total trial days to get whats remaining
-            return $this->charge->trial_days - ($this->charge->trial_days - $cancelledDate->diffInDays($trialEndsDate));
-        }
-
-        return 0;
+        return Carbon::parse($this->periodBeginDate())->addDays(30)->toDateString();
     }
 
     /**
@@ -148,16 +93,6 @@ class ChargeHelper
         $periodBeginDate = Carbon::parse($this->charge->activated_on)->addDays(30 * $pastPeriods)->toDateString();
 
         return $periodBeginDate;
-    }
-
-    /**
-     * Return the end date of the current period.
-     *
-     * @return string
-     */
-    public function periodEndDate(): string
-    {
-        return Carbon::parse($this->periodBeginDate())->addDays(30)->toDateString();
     }
 
     /**
@@ -216,7 +151,7 @@ class ChargeHelper
      */
     public function usedTrialDays(): ?int
     {
-        if (! $this->charge->isTrial()) {
+        if (!$this->charge->isTrial()) {
             return null;
         }
 
@@ -224,33 +159,41 @@ class ChargeHelper
     }
 
     /**
-     * Gets the last single or recurring charge for the shop.
+     * Returns the remaining trial days.
      *
-     * @param PlanId     $planId The plan ID to check with.
-     * @param IShopModel $shop   The shop the plan is for.
-     *
-     * @return ChargeModel
+     * @return ?int
      */
-    public function chargeForPlan(PlanId $planId, IShopModel $shop): ?ChargeModel
+    public function remainingTrialDays(): ?int
     {
-        return $shop
-            ->charges()
-            ->withTrashed()
-            ->whereIn('type', [ChargeType::RECURRING()->toNative(), ChargeType::CHARGE()->toNative()])
-            ->where('plan_id', $planId->toNative())
-            ->orderBy('created_at', 'desc')
-            ->first();
+        if (!$this->charge->isTrial()) {
+            return null;
+        }
+
+        return $this->isActiveTrial() ?
+            Carbon::today()->diffInDays($this->charge->trial_ends_on) :
+            0;
+    }
+
+    /**
+     * Checks if the charge is currently in trial.
+     *
+     * @return bool
+     */
+    public function isActiveTrial(): bool
+    {
+        return $this->charge->isTrial() &&
+            Carbon::today()->lte(Carbon::parse($this->charge->trial_ends_on));
     }
 
     /**
      * Returns the charge params used with the create request.
      *
-     * @param Plan       $plan The plan.
+     * @param Plan $plan The plan.
      * @param IShopModel $shop The shop the plan is for.
      *
      * @return PlanDetailsTransfer
      */
-    public function details(Plan $plan, IShopModel $shop): PlanDetailsTransfer
+    public function details(Plan $plan, IShopModel $shop, string $host): PlanDetailsTransfer
     {
         // Handle capped amounts for UsageCharge API
         $isCapped = isset($plan->capped_amount) && $plan->capped_amount > 0;
@@ -267,7 +210,10 @@ class ChargeHelper
         $transfer->returnUrl = URL::secure(
             Util::getShopifyConfig('billing_redirect'),
             ['plan' => $plan->getId()->toNative()]
-        ).'?'.http_build_query(['shop' => $shop->getDomain()->toNative()]);
+        ).'?'.http_build_query([
+            'shop' => $shop->getDomain()->toNative(),
+            'host' => $host,
+        ]);
 
         return $transfer;
     }
@@ -276,14 +222,14 @@ class ChargeHelper
      * Determines the trial days for the plan.
      * Detects if reinstall is happening and properly adjusts.
      *
-     * @param Plan       $plan The plan.
+     * @param Plan $plan The plan.
      * @param IShopModel $shop The shop the plan is for.
      *
      * @return int
      */
     protected function determineTrialDaysRemaining(Plan $plan, IShopModel $shop): ?int
     {
-        if (! $plan->hasTrial()) {
+        if (!$plan->hasTrial()) {
             // Not a trial-type plan, return none
             return 0;
         }
@@ -300,5 +246,62 @@ class ChargeHelper
         }
 
         return $result;
+    }
+
+    /**
+     * Gets the last single or recurring charge for the shop.
+     *
+     * @param PlanId $planId The plan ID to check with.
+     * @param IShopModel $shop The shop the plan is for.
+     *
+     * @return ChargeModel
+     */
+    public function chargeForPlan(PlanId $planId, IShopModel $shop): ?ChargeModel
+    {
+        return $shop
+            ->charges()
+            ->withTrashed()
+            ->whereIn('type', [ChargeType::RECURRING()->toNative(), ChargeType::CHARGE()->toNative()])
+            ->where('plan_id', $planId->toNative())
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
+    /**
+     * Set the charge in context.
+     *
+     * @param ChargeReference $chargeRef The charge ID.
+     *
+     * @return self
+     */
+    public function useCharge(ChargeReference $chargeRef): self
+    {
+        // Get the charge
+        $this->charge = $this->chargeQuery->getByReference($chargeRef);
+
+        return $this;
+    }
+
+    /**
+     * Returns the remaining trial days from cancellation date.
+     *
+     * @return int|null
+     */
+    public function remainingTrialDaysFromCancel(): ?int
+    {
+        if (!$this->charge->isTrial()) {
+            return null;
+        }
+
+        $cancelledDate = Carbon::parse($this->charge->cancelled_on);
+        $trialEndsDate = Carbon::parse($this->charge->trial_ends_on);
+
+        // Ensure cancelled date happened before the trial was supposed to end
+        if ($this->charge->isCancelled() && $cancelledDate->lte($trialEndsDate)) {
+            // Diffeence the two dates and subtract from the total trial days to get whats remaining
+            return $this->charge->trial_days - ($this->charge->trial_days - $cancelledDate->diffInDays($trialEndsDate));
+        }
+
+        return 0;
     }
 }
