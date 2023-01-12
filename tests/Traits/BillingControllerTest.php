@@ -121,10 +121,9 @@ class BillingControllerTest extends TestCase
         // Refresh the model
         $shop->refresh();
 
-
         // Assert we've redirected and shop has been updated
         $response->assertRedirect();
-        $this->assertFalse(Str::contains($response->headers->get('Location'), '&host='.$hostValue));
+        $this->assertTrue(Str::contains($response->headers->get('Location'), '&host='.$hostValue));
         $this->assertFalse(Str::contains($response->headers->get('Location'), '&billing=success'));
         $this->assertNotNull($shop->plan);
     }

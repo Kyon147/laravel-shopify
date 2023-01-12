@@ -103,6 +103,7 @@ trait BillingController
             Util::getShopifyConfig('route_names.home'),
             array_merge([
                 'shop' => $shop->getDomain()->toNative(),
+                'host' => $host,
             ], Util::useNativeAppBridge() ? [] : [
                 'host' => $host,
                 'billing' => $result ? 'success' : 'failure',
