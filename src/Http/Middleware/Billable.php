@@ -38,7 +38,10 @@ class Billable
                 // They're not grandfathered in, and there is no charge or charge was declined... redirect to billing
                 return Redirect::route(
                     Util::getShopifyConfig('route_names.billing'),
-                    array_merge($request->input(), ['shop' => $shop->getDomain()->toNative()])
+                    array_merge($request->input(), [
+                        'shop' => $shop->getDomain()->toNative(),
+                        'host' => $request->get('host'),
+                    ])
                 );
             }
         }
