@@ -34,6 +34,63 @@
                     host: "{{ \Request::get('host') }}",
                     forceRedirect: true,
                 });
+
+                function domReady(fn) {
+                    document.addEventListener("DOMContentLoaded", fn);
+
+                    if (document.readyState === "interactive" || document.readyState === "complete") {
+                        document.removeEventListener("DOMContentLoaded", fn);
+                        fn();
+                    }
+                }
+
+                function addHostParameter(link) {
+                    var host = "{{ \Request::get('host') }}";
+
+                    var url = new URL(link);
+                    url.searchParams.set('host', host);
+                    return url.href;
+                }
+
+                function addHostParameterToAllLinksOnPage() {
+                    var links = document.getElementsByTagName("a");
+
+                    for (var i = 0; i < links.length; i++) {
+                        var link = links[i];
+                        /** Uninterpreted attribute */
+                        var hrefAttribute = link.getAttribute("href");
+                        if (
+                            (
+                                link.href.indexOf("https://" + window.location.host) === 0
+                                || link.href.indexOf("http://" + window.location.host) === 0
+                            )
+                            // Ignore links such as <a href="#billing">
+                            && hrefAttribute && hrefAttribute.charAt(0) !== "#") {
+                            var currentUrl = new URL(link.href);
+
+                            if (!currentUrl.searchParams.has("host"))
+                                link.href = addHostParameter(link.href);
+                        }
+                    }
+                }
+
+                function monitorSiteChanges(callback) {
+                    var mutationObserver = new MutationObserver(callback);
+
+                    mutationObserver.observe(document.body, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['href'],
+                    });
+                }
+
+                domReady(function () {
+                    addHostParameterToAllLinksOnPage();
+
+                    monitorSiteChanges(addHostParameterToAllLinksOnPage);
+                });
+
             </script>
 
             @include('shopify-app::partials.token_handler')
