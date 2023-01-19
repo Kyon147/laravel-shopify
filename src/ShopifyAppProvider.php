@@ -309,7 +309,9 @@ class ShopifyAppProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('billable', Billable::class);
         $this->app['router']->aliasMiddleware('verify.shopify', VerifyShopify::class);
 
-        $this->app['router']->pushMiddlewareToGroup('web', IframeProtection::class);
+        $this->app->booted(function () {
+            $this->app['router']->pushMiddlewareToGroup('web', IframeProtection::class);
+        });
     }
 
     /**
