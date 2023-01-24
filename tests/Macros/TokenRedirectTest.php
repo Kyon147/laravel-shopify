@@ -17,7 +17,7 @@ class TokenRedirectTest extends TestCase
             // Query Params
             [
                 'shop' => 'example.myshopify.com',
-                'host' => $host
+                'host' => $host,
             ]
         );
         Request::swap($newRequest);
