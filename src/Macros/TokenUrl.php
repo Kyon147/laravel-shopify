@@ -28,7 +28,7 @@ abstract class TokenUrl
             [
                 'shop' => ShopDomain::fromRequest(Request::instance())->toNative(),
                 'target' => URL::route($route, $params, $absolute),
-                'host' => $params['host'],
+                'host' => Request::instance()->get('host'),
             ],
         ];
     }
