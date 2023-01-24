@@ -11,7 +11,8 @@
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
                 var redirectUrl = "{!! $authUrl !!}";
-                if (window.top == window.self) {
+                var normalizedLink;
+                if (window.top === window.self) {
                     // If the current window is the 'parent', change the URL by setting location.href
                     window.top.location.href = redirectUrl;
                 } else {

@@ -12,10 +12,12 @@ class TokenRedirectTest extends TestCase
     {
         // Setup request
         $currentRequest = Request::instance();
+        $host = base64_encode('example.myshopify.com');
         $newRequest = $currentRequest->duplicate(
             // Query Params
             [
                 'shop' => 'example.myshopify.com',
+                'host' => $host,
             ]
         );
         Request::swap($newRequest);
@@ -25,7 +27,7 @@ class TokenRedirectTest extends TestCase
         $location = $response->headers->get('location');
 
         $this->assertSame(
-            'http://localhost/authenticate/token?shop=example.myshopify.com&target=http%3A%2F%2Flocalhost',
+            'http://localhost/authenticate/token?shop=example.myshopify.com&target=http%3A%2F%2Flocalhost&host=ZXhhbXBsZS5teXNob3BpZnkuY29t',
             $location
         );
     }
