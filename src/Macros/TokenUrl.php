@@ -15,19 +15,20 @@ abstract class TokenUrl
     /**
      * Return a URL to token path with shop and target.
      *
-     * @param string $route    The route name.
-     * @param array  $params   Additional route params.
-     * @param bool   $absolute Absolute or relative?
+     * @param string $route The route name.
+     * @param array $params Additional route params.
+     * @param bool $absolute Absolute or relative?
      *
      * @return array
      */
-    public function generateParams(string $route, $params = [], bool $absolute = true): array
+    public function generateParams(string $route, array $params = [], bool $absolute = true): array
     {
         return [
             Util::getShopifyConfig('route_names.authenticate.token'),
             [
                 'shop' => ShopDomain::fromRequest(Request::instance())->toNative(),
                 'target' => URL::route($route, $params, $absolute),
+                'host' => Request::instance()->get('host'),
             ],
         ];
     }

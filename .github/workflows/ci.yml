@@ -10,7 +10,6 @@ jobs:
       max-parallel: 3
       matrix:
         php:
-          - '7.2'
           - '7.3'
           - '7.4'
           - '8.0'
@@ -37,7 +36,7 @@ jobs:
             laravel: '9.0'
         include:
           - php: '8.0'
-            laravel: '9.0'
+            laravel: '9.39.0'
             analysis: true
             coverage: 'xdebug'
             normalize: true
