@@ -5,23 +5,15 @@ namespace Osiset\ShopifyApp\Http\Middleware;
 use Assert\AssertionFailedException;
 use Closure;
 use Illuminate\Auth\AuthManager;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
+use Illuminate\Http\{RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Str;
-use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
+use Illuminate\Support\{Collection, Str};
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
-use Osiset\ShopifyApp\Contracts\ShopModel;
-use Osiset\ShopifyApp\Exceptions\HttpException;
-use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
+use Osiset\ShopifyApp\Contracts\{ApiHelper as IApiHelper, ShopModel};
+use Osiset\ShopifyApp\Exceptions\{HttpException, SignatureVerificationException};
 use Osiset\ShopifyApp\Objects\Enums\DataSource;
-use Osiset\ShopifyApp\Objects\Values\NullableSessionId;
-use Osiset\ShopifyApp\Objects\Values\SessionContext;
-use Osiset\ShopifyApp\Objects\Values\SessionToken;
-use Osiset\ShopifyApp\Objects\Values\ShopDomain;
+use Osiset\ShopifyApp\Objects\Values\{NullableSessionId, SessionContext, SessionToken, ShopDomain};
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -101,9 +93,8 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
-            $storeResult = !$this->isApiRequest($request) && $this->checkPreviousInstallation($request);
-
+        if (! Util::useNativeAppBridge()) {
+            $storeResult = ! $this->isApiRequest($request) && $this->checkPreviousInstallation($request);
             if ($storeResult) {
                 return $next($request);
             }
@@ -205,7 +196,7 @@ class VerifyShopify
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(ShopDomain::fromRequest($request));
+        return $this->installRedirect(ShopDomain::fromRequest($request), $request->get('host'));
     }
 
     /**
@@ -310,14 +301,15 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
+     * @param string $host The shop host.
      *
      * @return RedirectResponse
      */
-    protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
+    protected function installRedirect(ShopDomainValue $shopDomain, string $host): RedirectResponse
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative()]
+            ['shop' => $shopDomain->toNative(), 'host' => $host]
         );
     }
 
