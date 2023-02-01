@@ -39,7 +39,7 @@
         <script>
             const host = new URLSearchParams(location.search).get("host")
             utils.getSessionToken(app).then((token) => {
-                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}`;
+                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}&host=${host}`;
             });
         </script>
     @endif
