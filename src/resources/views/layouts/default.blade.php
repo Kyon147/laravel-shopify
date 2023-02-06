@@ -31,7 +31,7 @@
                 var createApp = AppBridge.default;
                 var app = createApp({
                     apiKey: "{{ \Osiset\ShopifyApp\Util::getShopifyConfig('api_key', $shopDomain ?? Auth::user()->name ) }}",
-                    host: "{{ \Request::get('host') }}",
+                    host: "{{ \Request::get('host', $host) }}",
                     forceRedirect: true,
                 });
             </script>
