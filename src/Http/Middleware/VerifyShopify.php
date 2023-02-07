@@ -191,8 +191,7 @@ class VerifyShopify
      */
     protected function handleInvalidShop(Request $request)
     {
-        if ($this->isApiRequest($request)) {
-            // AJAX, return HTTP exception
+        if ($this->isApiRequest($request) || $request->missing('host')) {
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
