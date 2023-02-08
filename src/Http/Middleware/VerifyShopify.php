@@ -101,9 +101,8 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
-            $storeResult = !$this->isApiRequest($request) && $this->checkPreviousInstallation($request);
-
+        if (! Util::useNativeAppBridge()) {
+            $storeResult = ! $this->isApiRequest($request) && $this->checkPreviousInstallation($request);
             if ($storeResult) {
                 return $next($request);
             }
@@ -200,12 +199,11 @@ class VerifyShopify
      */
     protected function handleInvalidShop(Request $request)
     {
-        if ($this->isApiRequest($request)) {
-            // AJAX, return HTTP exception
+        if ($this->isApiRequest($request) || $request->missing('host')) {
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(ShopDomain::fromRequest($request));
+        return $this->installRedirect(ShopDomain::fromRequest($request), $request->get('host'));
     }
 
     /**
@@ -310,14 +308,15 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
+     * @param string $host The shop host.
      *
      * @return RedirectResponse
      */
-    protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
+    protected function installRedirect(ShopDomainValue $shopDomain, string $host): RedirectResponse
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative()]
+            ['shop' => $shopDomain->toNative(), 'host' => $host]
         );
     }
 
