@@ -18,8 +18,6 @@
                 host: "{{ $host }}",
             });
 
-            console.log( 'app', app );
-
             const redirect = Redirect.create(app);
             redirect.dispatch(Redirect.Action.REMOTE, redirectUrl);
         </script>
