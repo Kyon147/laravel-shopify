@@ -1,5 +1,5 @@
 {
-    "name": "bolideai/laravel-shopify",
+    "name": "bolideai/bolide-shopify",
     "description": "Shopify package for Laravel to aide in app development",
     "keywords": [
         "api",
