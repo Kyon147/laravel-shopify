@@ -10,7 +10,6 @@ jobs:
       max-parallel: 3
       matrix:
         php:
-          - '7.3'
           - '7.4'
           - '8.0'
         analysis: [ false ]
@@ -21,12 +20,6 @@ jobs:
           - '8.22'
           - '9.0'
         exclude:
-          - php: '7.2'
-            laravel: '8.22'
-          - php: '7.2'
-            laravel: '9.0'
-          - php: '7.3'
-            laravel: '9.0'
           - php: '7.4'
             laravel: '9.0'
           - php: '8.0'
