@@ -55,8 +55,8 @@ jobs:
         if: matrix.laravel != '7.0'
         run: composer require "laravel/legacy-factories:^1.1" --dev --no-interaction --no-update
 
-      - name: Install Laravel and Orchestra Testbench
-        run: composer require "illuminate/contracts:${{ matrix.laravel }}" --no-interaction --no-update
+#      - name: Install Laravel and Orchestra Testbench
+#        run: composer require "illuminate/contracts:${{ matrix.laravel }}" --no-interaction --no-update
 
       - name: Allow composer-normalize plugin
         run: composer config allow-plugins.ergebnis/composer-normalize true
