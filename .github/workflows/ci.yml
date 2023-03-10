@@ -28,7 +28,7 @@ jobs:
             laravel: '9.0'
         include:
           - php: '8.0'
-            laravel: '9.52.4'
+            laravel: '9.0'
             analysis: true
             coverage: 'xdebug'
             normalize: true
