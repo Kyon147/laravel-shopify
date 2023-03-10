@@ -64,6 +64,7 @@
             "Osiset\\ShopifyApp\\Test\\": "tests/"
         }
     },
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
         "lint": "vendor/bin/php-cs-fixer fix",
