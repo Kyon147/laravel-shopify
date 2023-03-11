@@ -24,7 +24,7 @@
         }
     ],
     "require": {
-        "php": "^7.3 || ^8.0 || 8.1",
+        "php": "^8.0 || 8.1",
         "ext-json": "*",
         "funeralzone/valueobjects": "^0.5",
         "jenssegers/agent": "^2.6",
