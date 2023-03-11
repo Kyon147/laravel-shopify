@@ -10,7 +10,7 @@ This is a maintined version of the wonderful but now deprecated original [Larave
 
 ----
 
-A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 7 and up.
+A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 8 and up.
 
 ![Screenshot](screenshot.png)
 ![Screenshot: Billable](screenshot-billable.png)
