@@ -22,10 +22,6 @@ jobs:
           - '8.22'
           - '9.0'
         exclude:
-          - php: '7.2'
-            laravel: '8.22'
-          - php: '7.2'
-            laravel: '9.0'
           - php: '7.3'
             laravel: '9.0'
           - php: '7.4'
@@ -63,8 +59,8 @@ jobs:
         if: matrix.laravel != '7.0'
         run: composer require "laravel/legacy-factories:^1.1" --dev --no-interaction --no-update
 
-      - name: Install Laravel and Orchestra Testbench
-        run: composer require "illuminate/contracts:${{ matrix.laravel }}" --no-interaction --no-update
+      #- name: Install Laravel and Orchestra Testbench
+      # run: composer require "illuminate/contracts:${{ matrix.laravel }}" --no-interaction --no-update
 
       - name: Allow composer-normalize plugin
         run: composer config allow-plugins.ergebnis/composer-normalize true
