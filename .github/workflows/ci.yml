@@ -18,7 +18,6 @@ jobs:
         normalize: [ false ]
         validate: [ false ]
         laravel:
-          - '7.0'
           - '8.22'
           - '9.0'
         exclude:
