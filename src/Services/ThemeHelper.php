@@ -207,7 +207,7 @@ class ThemeHelper
             $assetResponse = $this->fetchAsset($file);
             $asset = $assetResponse['body']['asset']->toArray();
 
-            preg_match('/\{\%\s+schema\s+\%\}([\s\S]*?)\{\%\s+endschema\s+\%\}/m', $asset['value'], $matches);
+            preg_match('/\{\%-?\s+schema\s+-?\%\}([\s\S]*?)\{\%-?\s+endschema\s+-?\%\}/m', $asset['value'], $matches);
             $schema = json_decode($matches[1], true);
 
             if ($schema && isset($schema['blocks'])) {
