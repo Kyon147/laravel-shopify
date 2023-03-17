@@ -47,7 +47,7 @@ final class SessionToken implements SessionTokenValue
 
     /**
      * Time added to the expiration time, extends the validity period of a session token
-     * 
+     *
      * @var int
      */
     public const LEEWAY_SECONDS = 10;
@@ -228,7 +228,7 @@ final class SessionToken implements SessionTokenValue
 
     /**
      * Get the extended expiration time with leeway of the token.
-     * 
+     *
      * @return Carbon
      */
     public function getLeewayExpiration(): Carbon
