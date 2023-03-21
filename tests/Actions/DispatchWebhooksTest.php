@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Queue;
 use Osiset\ShopifyApp\Actions\DispatchWebhooks;
 use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
@@ -79,7 +80,7 @@ class DispatchWebhooksTest extends TestCase
     public function testRunDispatchNow(): void
     {
         // Fake the queue
-        Queue::fake();
+        Bus::fake([WebhookInstaller::class]);
 
         // Create the config
         $this->app['config']->set('shopify-app.webhooks', [
@@ -107,7 +108,7 @@ class DispatchWebhooksTest extends TestCase
             true // sync
         );
 
-        Queue::assertNotPushed(WebhookInstaller::class);
+        Bus::assertDispatchedSync(WebhookInstaller::class);
         $this->assertTrue($result);
     }
 }
