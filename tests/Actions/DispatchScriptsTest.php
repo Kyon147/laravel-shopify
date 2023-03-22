@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Queue;
 use Osiset\ShopifyApp\Actions\DispatchScripts;
 use Osiset\ShopifyApp\Messaging\Jobs\ScripttagInstaller;
@@ -74,7 +75,7 @@ class DispatchScriptsTest extends TestCase
     public function testRunDispatchNow(): void
     {
         // Fake the queue
-        Queue::fake();
+        Bus::fake([ScripttagInstaller::class]);
 
         // Create the config
         $this->app['config']->set('shopify-app.scripttags', [
@@ -97,7 +98,7 @@ class DispatchScriptsTest extends TestCase
             true // sync
         );
 
-        Queue::assertNotPushed(ScripttagInstaller::class);
+        Bus::assertDispatchedSync(ScripttagInstaller::class);
         $this->assertTrue($result);
     }
 }
