@@ -26,6 +26,12 @@ trait WebhookController
         $jobClass = Util::getShopifyConfig('job_namespace').str_replace('-', '', ucwords($type, '-')).'Job';
         $jobData = json_decode($request->getContent());
 
+        // If we have manually mapped a class, use that instead
+        $config = Util::getShopifyConfig('webhooks');
+        if (!empty($config[$type]['class'])) {
+            $jobClass = $config[$type]['class'];
+        }
+
         $jobClass::dispatch(
             $request->header('x-shopify-shop-domain'),
             $jobData
