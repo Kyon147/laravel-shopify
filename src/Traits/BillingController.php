@@ -60,6 +60,7 @@ trait BillingController
             [
                 'url' => $url,
                 'host' => $host,
+                'apiKey' => Util::getShopifyConfig('api_key', ShopDomain::fromNative($request->get('shop'))),
             ]
         );
     }

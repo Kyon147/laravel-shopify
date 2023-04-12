@@ -14,6 +14,8 @@ composer.lock
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/git_toolbox_prj.xml
+.idea/php-test-framework.xml
 
 # Generated files
 .idea/**/contentModel.xml

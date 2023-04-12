@@ -6,11 +6,11 @@
 
 ----
 
-This is a maintined version of the wonderful but now deprecated original [Laravel Shopify App](https://github.com/gnikyt/laravel-shopify/). To keep things clean, this has been detached from the original.
+This is a maintained version of the wonderful but now deprecated original [Laravel Shopify App](https://github.com/gnikyt/laravel-shopify/). To keep things clean, this has been detached from the original.
 
 ----
 
-A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 7 and up.
+A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 8 and up.
 
 ![Screenshot](screenshot.png)
 ![Screenshot: Billable](screenshot-billable.png)

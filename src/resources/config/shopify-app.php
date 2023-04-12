@@ -88,11 +88,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Namespace
+    | App Namespace
     |--------------------------------------------------------------------------
     |
-    | This option allows you to set a namespace.
-    | Useful for multiple apps using the same database instance.
+    | This option allows you to set a namespace for the users in the DB.
+    | Useful for running multiple apps using the same database instance.
     | Meaning, one shop can be part of many apps on the same database.
     |
     */

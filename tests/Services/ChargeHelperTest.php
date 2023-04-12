@@ -172,7 +172,7 @@ class ChargeHelperTest extends TestCase
     protected function seedData($extraCharge = [], $extraPlan = [], $type = 'onetime'): array
     {
         // Create a plan
-        $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states("type_${type}")->create(
+        $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states("type_{$type}")->create(
             array_merge(
                 ['trial_days' => 7],
                 $extraPlan
@@ -185,7 +185,7 @@ class ChargeHelperTest extends TestCase
         ]);
 
         // Create a charge for the plan and shop
-        $charge = factory(Util::getShopifyConfig('models.charge', Charge::class))->states("type_${type}")->create(
+        $charge = factory(Util::getShopifyConfig('models.charge', Charge::class))->states("type_{$type}")->create(
             array_merge(
                 [
                     'charge_id' => 12345,

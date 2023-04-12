@@ -46,6 +46,13 @@ final class SessionToken implements SessionTokenValue
     public const EXCEPTION_EXPIRED = 'Session token has expired.';
 
     /**
+     * Time added to the expiration time, extends the validity period of a session token
+     *
+     * @var int
+     */
+    public const LEEWAY_SECONDS = 10;
+
+    /**
      * Token parts.
      *
      * @var array
@@ -220,6 +227,16 @@ final class SessionToken implements SessionTokenValue
     }
 
     /**
+     * Get the extended expiration time with leeway of the token.
+     *
+     * @return Carbon
+     */
+    public function getLeewayExpiration(): Carbon
+    {
+        return (new Carbon($this->exp))->addSeconds(self::LEEWAY_SECONDS);
+    }
+
+    /**
      * Checks the validity of the signature sent with the token.
      *
      * @throws AssertionFailedException If signature does not match.
@@ -265,7 +282,7 @@ final class SessionToken implements SessionTokenValue
     {
         $now = Carbon::now();
         Assert::thatAll([
-            $now->greaterThan($this->exp),
+            $now->greaterThan($this->getLeewayExpiration()),
             $now->lessThan($this->nbf),
             $now->lessThan($this->iat),
         ])->false(self::EXCEPTION_EXPIRED);

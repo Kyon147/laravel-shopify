@@ -29,7 +29,7 @@ class DispatchScripts
      * Setup.
      *
      * @param IShopQuery $shopQuery The querier for the shop.
-     * @param string     $jobClass  The job to dispatch.
+     * @param string $jobClass The job to dispatch.
      *
      * @return void
      */
@@ -42,8 +42,8 @@ class DispatchScripts
     /**
      * Execution.
      *
-     * @param ShopIdValue $shopId   The shop ID.
-     * @param bool        $inline   Fire the job inline (now) or queue.
+     * @param ShopIdValue $shopId The shop ID.
+     * @param bool $inline Fire the job inline (now) or queue.
      *
      * @return bool
      */
@@ -61,7 +61,7 @@ class DispatchScripts
 
         // Run the installer job
         if ($inline) {
-            ($this->jobClass)::dispatchNow(
+            ($this->jobClass)::dispatchSync(
                 $shop->getId(),
                 $scripttags
             );
