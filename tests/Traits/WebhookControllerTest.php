@@ -103,7 +103,6 @@ class WebhookControllerTest extends TestCase
      * Allow config change to persist when using $this->call()
      *
      * @param $app
-     * @see testHandleWithCustomClassMapping This test uses the config change
      *
      * @return void
      */
