@@ -184,8 +184,8 @@ final class SessionToken implements SessionTokenValue
         $this->iss = $body['iss'];
         $this->dest = $body['dest'];
         $this->aud = $body['aud'];
-        $this->sub = $body['dest'];
-        $this->jti = $body['dest'];
+        $this->sub = $body['sub'];
+        $this->jti = $body['jti'];
         $this->sid = SessionId::fromNative($body['sid']);
         $this->exp = new Carbon($body['exp']);
         $this->nbf = new Carbon($body['nbf']);
@@ -224,6 +224,76 @@ final class SessionToken implements SessionTokenValue
     public function getExpiration(): Carbon
     {
         return $this->exp;
+    }
+
+    /**
+     * Get the time before which the token must not be accepted for processing.
+     *
+     * @return \Illuminate\Support\Carbon
+     */
+    public function getNotBefore(): Carbon
+    {
+        return $this->nbf;
+    }
+
+    /**
+     * Get the time at which the token was issued.
+     *
+     * @return \Illuminate\Support\Carbon
+     */
+    public function getIssuedAt(): Carbon
+    {
+        return $this->iat;
+    }
+
+    /**
+     * Get the issuer of the token.
+     *
+     * @return string
+     */
+    public function getIssuer(): string
+    {
+        return $this->iss;
+    }
+
+    /**
+     * Get the destination identity string of the token.
+     *
+     * @return string
+     */
+    public function getDestination(): string
+    {
+        return $this->dest;
+    }
+
+    /**
+     * Get the audience of the token.
+     *
+     * @return string
+     */
+    public function getAudience(): string
+    {
+        return $this->aud;
+    }
+
+    /**
+     * Get the subject of the token.
+     *
+     * @return string
+     */
+    public function getSubject(): string
+    {
+        return $this->sub;
+    }
+
+    /**
+     * Get the JWT id of the token.
+     *
+     * @return string
+     */
+    public function getTokenId(): string
+    {
+        return $this->jti;
     }
 
     /**
