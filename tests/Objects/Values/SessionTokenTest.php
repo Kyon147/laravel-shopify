@@ -25,6 +25,18 @@ class SessionTokenTest extends TestCase
 
         $this->assertInstanceOf(Carbon::class, $st->getExpiration());
         $this->assertSame($this->tokenDefaults['exp'], $st->getExpiration()->unix());
+
+        $this->assertInstanceOf(Carbon::class, $st->getIssuedAt());
+        $this->assertSame($this->tokenDefaults['iat'], $st->getIssuedAt()->unix());
+
+        $this->assertInstanceOf(Carbon::class, $st->getNotBefore());
+        $this->assertSame($this->tokenDefaults['nbf'], $st->getNotBefore()->unix());
+
+        $this->assertSame($this->tokenDefaults['iss'], $st->getIssuer());
+        $this->assertSame($this->tokenDefaults['dest'], $st->getDestination());
+        $this->assertSame($this->tokenDefaults['aud'], $st->getAudience());
+        $this->assertSame($this->tokenDefaults['sub'], $st->getSubject());
+        $this->assertSame($this->tokenDefaults['jti'], $st->getTokenId());
     }
 
     public function testShouldProcessForExpiredTokenStillInLeewayPeriod(): void
