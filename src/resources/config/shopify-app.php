@@ -88,11 +88,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Namespace
+    | App Namespace
     |--------------------------------------------------------------------------
     |
-    | This option allows you to set a namespace.
-    | Useful for multiple apps using the same database instance.
+    | This option allows you to set a namespace for the users in the DB.
+    | Useful for running multiple apps using the same database instance.
     | Meaning, one shop can be part of many apps on the same database.
     |
     */
@@ -164,7 +164,7 @@ return [
     |
     */
 
-    'api_version' => env('SHOPIFY_API_VERSION', '2022-01'),
+    'api_version' => env('SHOPIFY_API_VERSION', '2023-04'),
 
     /*
     |--------------------------------------------------------------------------
@@ -349,7 +349,13 @@ return [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
                 'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
             ]
-            ...
+            // In certain situations you may wish to map the webhook to a specific class
+            // To do this, change the array to an associative array with a 'class' key
+            'orders-create' => [
+                'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                'class' => \App\Shopify\Actions\ExampleAppJob::class
+            ],
         */
     ],
 
