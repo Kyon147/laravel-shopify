@@ -24,18 +24,18 @@ trait WebhookController
     {
         // Get the job class and dispatch
         $jobClass = Util::getShopifyConfig('job_namespace').str_replace('-', '', ucwords($type, '-')).'Job';
-        $jobData = json_decode($request->getContent());
+        $jobQueue = Util::getShopifyConfig('job_queues')['webhooks'];
 
-        // If we have manually mapped a class, use that instead
-        $config = Util::getShopifyConfig('webhooks');
-        if (!empty($config[$type]['class'])) {
-            $jobClass = $config[$type]['class'];
+        if (isset(Util::getShopifyConfig('job_queues')[$type])) {
+            $jobQueue = Util::getShopifyConfig('job_queues')[$type];
         }
+
+        $jobData = json_decode($request->getContent());
 
         $jobClass::dispatch(
             $request->header('x-shopify-shop-domain'),
             $jobData
-        )->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
+        )->onQueue($jobQueue);
 
         return Response::make('', ResponseResponse::HTTP_CREATED);
     }
