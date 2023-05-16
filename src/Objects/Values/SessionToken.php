@@ -307,6 +307,26 @@ final class SessionToken implements SessionTokenValue
     }
 
     /**
+     * Get the extended not before time with leeway of the token.
+     *
+     * @return Carbon
+     */
+    public function getLeewayNotBefore(): Carbon
+    {
+        return (new Carbon($this->nbf))->subSeconds(self::LEEWAY_SECONDS);
+    }
+
+    /**
+     * Get the extended issued at time with leeway of the token.
+     *
+     * @return Carbon
+     */
+    public function getLeewayIssuedAt(): Carbon
+    {
+        return (new Carbon($this->iat))->subSeconds(self::LEEWAY_SECONDS);
+    }
+
+    /**
      * Checks the validity of the signature sent with the token.
      *
      * @throws AssertionFailedException If signature does not match.
@@ -353,8 +373,8 @@ final class SessionToken implements SessionTokenValue
         $now = Carbon::now();
         Assert::thatAll([
             $now->greaterThan($this->getLeewayExpiration()),
-            $now->lessThan($this->nbf),
-            $now->lessThan($this->iat),
+            $now->lessThan($this->getLeewayNotBefore()),
+            $now->lessThan($this->getLeewayIssuedAt()),
         ])->false(self::EXCEPTION_EXPIRED);
     }
 }

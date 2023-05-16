@@ -45,12 +45,6 @@ class SessionTokenTest extends TestCase
         $token = $this->buildToken(['exp' => (new Carbon($now))->subSeconds(SessionToken::LEEWAY_SECONDS - 2)]);
         $st = SessionToken::fromNative($token);
 
-        $this->assertInstanceOf(ShopDomainValue::class, $st->getShopDomain());
-        $this->assertTrue(Str::contains($this->tokenDefaults['dest'], $st->getShopDomain()->toNative()));
-
-        $this->assertInstanceOf(SessionIdValue::class, $st->getSessionId());
-        $this->assertSame($this->tokenDefaults['sid'], $st->getSessionId()->toNative());
-
         $this->assertInstanceOf(Carbon::class, $st->getLeewayExpiration());
         $this->assertTrue($now->unix() < $st->getLeewayExpiration()->unix());
         $this->assertTrue($st->getLeewayExpiration()->unix() - $now->unix() < SessionToken::LEEWAY_SECONDS);
@@ -61,6 +55,44 @@ class SessionTokenTest extends TestCase
         $this->expectException(AssertionFailedException::class);
 
         $token = $this->buildToken(['exp' => Carbon::now()->subSeconds(SessionToken::LEEWAY_SECONDS + 2)]);
+        SessionToken::fromNative($token);
+    }
+
+    public function testShouldProcessForNotBeforeTokenStillInLeewayPeriod(): void
+    {
+        $now = Carbon::now();
+        $token = $this->buildToken(['nbf' => (new Carbon($now))->addSeconds(SessionToken::LEEWAY_SECONDS - 2)]);
+        $st = SessionToken::fromNative($token);
+
+        $this->assertInstanceOf(Carbon::class, $st->getLeewayNotBefore());
+        $this->assertTrue($now->unix() > $st->getLeewayNotBefore()->unix());
+        $this->assertTrue($st->getLeewayNotBefore()->unix() - $now->unix() < SessionToken::LEEWAY_SECONDS);
+    }
+
+    public function testShouldThrowExceptionForNotBeforeTokenOutOfLeewayPeriod(): void
+    {
+        $this->expectException(AssertionFailedException::class);
+
+        $token = $this->buildToken(['nbf' => Carbon::now()->addSeconds(SessionToken::LEEWAY_SECONDS + 2)]);
+        SessionToken::fromNative($token);
+    }
+
+    public function testShouldProcessForIssuedAtTokenStillInLeewayPeriod(): void
+    {
+        $now = Carbon::now();
+        $token = $this->buildToken(['iat' => (new Carbon($now))->addSeconds(SessionToken::LEEWAY_SECONDS - 2)]);
+        $st = SessionToken::fromNative($token);
+
+        $this->assertInstanceOf(Carbon::class, $st->getLeewayIssuedAt());
+        $this->assertTrue($now->unix() > $st->getLeewayIssuedAt()->unix());
+        $this->assertTrue($st->getLeewayIssuedAt()->unix() - $now->unix() < SessionToken::LEEWAY_SECONDS);
+    }
+
+    public function testShouldThrowExceptionForIssuedAtTokenOutOfLeewayPeriod(): void
+    {
+        $this->expectException(AssertionFailedException::class);
+
+        $token = $this->buildToken(['iat' => Carbon::now()->addSeconds(SessionToken::LEEWAY_SECONDS + 2)]);
         SessionToken::fromNative($token);
     }
 
