@@ -23,8 +23,9 @@ final class ShopDomain implements ShopDomainValue
      *
      * @param string $domain The shop's domain.
      *
-     * @return void
      * @throws InvalidShopDomainException
+     *
+     * @return void
      */
     public function __construct(string $domain)
     {
