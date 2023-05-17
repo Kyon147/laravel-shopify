@@ -7,6 +7,7 @@ use Funeralzone\ValueObjects\Scalars\StringTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
+use Osiset\ShopifyApp\Exceptions\InvalidShopDomainException;
 use Osiset\ShopifyApp\Objects\Enums\DataSource;
 use Osiset\ShopifyApp\Util;
 
@@ -23,10 +24,15 @@ final class ShopDomain implements ShopDomainValue
      * @param string $domain The shop's domain.
      *
      * @return void
+     * @throws InvalidShopDomainException
      */
     public function __construct(string $domain)
     {
         $this->string = $this->sanitizeShopDomain($domain);
+
+        if ($this->string === '') {
+            throw new InvalidShopDomainException("Invalid shop domain [{$domain}]");
+        }
     }
 
     /**
@@ -101,17 +107,22 @@ final class ShopDomain implements ShopDomainValue
      *
      * @return string
      */
-    protected function sanitizeShopDomain(string $domain): ?string
+    protected function sanitizeShopDomain(string $domain): string
     {
         $configEndDomain = Util::getShopifyConfig('myshopify_domain');
-        $domain = strtolower(preg_replace('/https?:\/\//i', '', trim($domain)));
+        $domain = strtolower(preg_replace('/^https?:\/\//i', '', trim($domain)));
 
         if (strpos($domain, $configEndDomain) === false && strpos($domain, '.') === false) {
             // No myshopify.com ($configEndDomain) in shop's name
             $domain .= ".{$configEndDomain}";
         }
 
-        // Return the host after cleaned up
-        return parse_url("https://{$domain}", PHP_URL_HOST);
+        $hostname = parse_url("https://{$domain}", PHP_URL_HOST);
+
+        if (! preg_match('/^[a-zA-Z0-9][a-zA-Z0-9\-]*\.'.preg_quote($configEndDomain, '/').'$/', $hostname)) {
+            return '';
+        }
+
+        return $hostname;
     }
 }
