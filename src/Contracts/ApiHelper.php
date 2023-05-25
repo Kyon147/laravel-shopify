@@ -3,9 +3,9 @@
 namespace Osiset\ShopifyApp\Contracts;
 
 use GuzzleHttp\Exception\RequestException;
-use Osiset\BasicShopifyAPI\BasicShopifyAPI;
-use Osiset\BasicShopifyAPI\ResponseAccess;
-use Osiset\BasicShopifyAPI\Session;
+use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
+use Gnikyt\BasicShopifyAPI\ResponseAccess;
+use Gnikyt\BasicShopifyAPI\Session;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails;

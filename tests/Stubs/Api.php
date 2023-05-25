@@ -5,8 +5,8 @@ namespace Osiset\ShopifyApp\Test\Stubs;
 use ErrorException;
 use Exception;
 use Illuminate\Http\Response;
-use Osiset\BasicShopifyAPI\BasicShopifyAPI;
-use Osiset\BasicShopifyAPI\ResponseAccess;
+use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
+use Gnikyt\BasicShopifyAPI\ResponseAccess;
 
 class Api extends BasicShopifyAPI
 {

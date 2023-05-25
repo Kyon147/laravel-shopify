@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Contracts;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Osiset\BasicShopifyAPI\BasicShopifyAPI;
+use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken as AccessTokenValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
