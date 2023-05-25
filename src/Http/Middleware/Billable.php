@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Util;
-use RuntimeException;
 
 /**
  * Responsible for ensuring the shop is being billed.
