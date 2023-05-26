@@ -4,14 +4,14 @@ namespace Osiset\ShopifyApp\Services;
 
 use Closure;
 use Exception;
-use GuzzleHttp\Exception\RequestException;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\URL;
 use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Gnikyt\BasicShopifyAPI\Options;
 use Gnikyt\BasicShopifyAPI\ResponseAccess;
 use Gnikyt\BasicShopifyAPI\Session;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\URL;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Objects\Enums\ApiMethod;
