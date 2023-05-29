@@ -18,11 +18,11 @@ class Billable
      * Checks if a shop has paid for access.
      *
      * @param Request $request The request object.
-     * @param Closure $next The next action.
-     *
-     *@throws Exception
+     * @param Closure $next    The next action.
      *
      * @return mixed
+     * @throws Exception
+     *
      */
     public function handle(Request $request, Closure $next)
     {
@@ -38,27 +38,26 @@ class Billable
         /** @var $shop IShopModel */
         $shop = auth()->user();
 
-        if (! $shop->plan && ! $shop->isFreemium() && ! $shop->isGrandfathered()) {
-            $args = [
-                Util::getShopifyConfig('route_names.billing'),
-                array_merge($request->input(), [
-                    'shop' => $shop->getDomain()->toNative(),
-                    'host' => $request->get('host'),
-                ]),
-            ];
-
-            if ($request->ajax()) {
-                return response()->json(
-                    ['forceRedirectUrl' => route(...$args)],
-                    403
-                );
-            }
-
-            // They're not grandfathered in, and there is no charge or charge was declined... redirect to billing
-            return Redirect::route(...$args);
+        // if shop has plan or is on freemium or is grandfathered then move on with request
+        if (! $shop || $shop->plan || $shop->isFreemium() || $shop->isGrandfathered()) {
+            return $next($request);
         }
 
-        // Move on, everything's fine
-        return $next($request);
+        $args = [
+            Util::getShopifyConfig('route_names.billing'),
+            array_merge($request->input(), [
+                'shop' => $shop->getDomain()->toNative(),
+                'host' => $request->get('host'),
+            ]),
+        ];
+
+        if ($request->ajax()) {
+            return response()->json(
+                ['forceRedirectUrl' => route(...$args)],
+                403
+            );
+        }
+
+        return Redirect::route(...$args);
     }
 }
