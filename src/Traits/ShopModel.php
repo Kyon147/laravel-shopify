@@ -82,7 +82,11 @@ trait ShopModel
      */
     public function charges(): HasMany
     {
-        return $this->hasMany(Util::getShopifyConfig('models.charge', Charge::class));
+        return $this->hasMany(
+            Util::getShopifyConfig('models.charge', Charge::class),
+            Util::getShopsTableForeignKey(),
+            'id'
+        );
     }
 
     /**
