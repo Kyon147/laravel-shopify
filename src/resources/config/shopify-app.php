@@ -237,7 +237,7 @@ return [
     |
     */
 
-    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -249,7 +249,7 @@ return [
     |
     */
 
-    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -261,7 +261,7 @@ return [
     |
     */
 
-    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Osiset\BasicShopifyAPI\Deferrers\Sleep::class),
+    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Gnikyt\BasicShopifyAPI\Deferrers\Sleep::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -270,9 +270,9 @@ return [
     |
     | This option is for initializing the BasicShopifyAPI package yourself.
     | The first param injected in is the current options.
-    |    (\Osiset\BasicShopifyAPI\Options)
+    |    (\Gnikyt\BasicShopifyAPI\Options)
     | The second param injected in is the session (if available) .
-    |    (\Osiset\BasicShopifyAPI\Session)
+    |    (\Gnikyt\BasicShopifyAPI\Session)
     | The third param injected in is the current request input/query array.
         (\Illuminate\Http\Request::all())
     | With all this, you can customize the options, change params, and more.
