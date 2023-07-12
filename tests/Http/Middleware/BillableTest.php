@@ -143,7 +143,7 @@ class BillableTest extends TestCase
         $response = $this->runMiddleware(BillableMiddleware::class, $request);
 
         $this->assertFalse($response[0]);
-        $this->assertEquals(403, $response[1]->getStatusCode());
+        $this->assertEquals(402, $response[1]->getStatusCode());
         $this->assertArrayHasKey('forceRedirectUrl', $response[1]->getData(true));
     }
 }

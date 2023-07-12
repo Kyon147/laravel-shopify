@@ -54,7 +54,7 @@ class Billable
         if ($request->ajax()) {
             return response()->json(
                 ['forceRedirectUrl' => route(...$args)],
-                403
+                402
             );
         }
 
