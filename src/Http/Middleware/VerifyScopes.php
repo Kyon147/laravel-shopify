@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Http\Middleware;
-
-use App\Models\User;
 use Closure;
+namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Util;
 
@@ -18,11 +16,10 @@ class VerifyScopes
      */
     public function handle(Request $request, Closure $next)
     {
-        $user        = User::where('name', $request->get('shop'))->first();
-        $scopesResponse = $user->api()->rest('GET', '/admin/oauth/access_scopes.json');
+        $shop = auth()->user();
+        $scopesResponse = $shop->api()->rest('GET', '/admin/oauth/access_scopes.json');
 
-        if ($scopesResponse["errors"]) {
-          //  \Log::debug("Error in fetching scope");
+        if ($scopesResponse["errors"]) {          
             return $next($request);
         }
 
@@ -46,7 +43,7 @@ class VerifyScopes
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
             [
-                'shop' => $user->name,
+                'shop' => $shop->getDomain()->toNative(),
                 'host' => $request->get('host')
             ]
         );
