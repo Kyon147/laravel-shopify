@@ -37,12 +37,12 @@ class VerifyScopes
 
         $requiredScopes = explode(',', env('SHOPIFY_API_SCOPES'));
         $missingScopes = array_diff($requiredScopes, $scopes);
-        if (count($missingScopes) == 0) {                        
+        if (count($missingScopes) == 0) {
             return $next($request);
         }        
 
         return redirect()->route(
-            Util::getShopifyConfig('route_names.authenticate'), 
+            Util::getShopifyConfig('route_names.authenticate'),
             [
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $request->get('host'),
