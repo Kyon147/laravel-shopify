@@ -9,7 +9,7 @@ use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 
 class VerifyScopes
 {
-     /**
+    /**
      * Checks if a shop has all required access scopes.
      * If a required access scope is missing, it will redirect the app
      * for re-authentication
@@ -39,8 +39,8 @@ class VerifyScopes
         $missingScopes = array_diff($requiredScopes, $scopes);
         if (count($missingScopes) == 0) {
             return $next($request);
-        }        
-
+        }
+        
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
             [
