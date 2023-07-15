@@ -26,7 +26,7 @@ class VerifyScopes
         /** @var $shop IShopModel */
         $shop = auth()->user();
         $scopesResponse = $shop->api()->rest('GET', '/admin/oauth/access_scopes.json');
-        if ($scopesResponse['errors']) {          
+        if ($scopesResponse['errors']) {
             return $next($request);
         }
         
