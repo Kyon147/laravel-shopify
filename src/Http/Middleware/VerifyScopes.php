@@ -19,15 +19,15 @@ class VerifyScopes
     public function handle(Request $request, Closure $next)
     {
         $user        = User::where('name', $request->get('shop'))->first();
-        $scopes_resp = $user->api()->rest('GET', '/admin/oauth/access_scopes.json');
+        $scopesResponse = $user->api()->rest('GET', '/admin/oauth/access_scopes.json');
 
-        if ($scopes_resp["errors"]) {
+        if ($scopesResponse["errors"]) {
           //  \Log::debug("Error in fetching scope");
             return $next($request);
         }
 
 
-        $scopes = json_decode(json_encode($scopes_resp["body"]["access_scopes"]));
+        $scopes = json_decode(json_encode($scopesResponse["body"]["access_scopes"]));
         $scopes = array_map(function ($scope)
         {
             return $scope->handle;
