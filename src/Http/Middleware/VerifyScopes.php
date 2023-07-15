@@ -1,7 +1,8 @@
 <?php
 
+namespace Osiset\ShopifyApp\Http\Middleware;
+
 use Closure;
-namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Util;
 
