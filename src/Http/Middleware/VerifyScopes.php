@@ -39,6 +39,7 @@ class VerifyScopes
         if (count($missingScopes) == 0) {
             return $next($request);
         }
+
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
             [
