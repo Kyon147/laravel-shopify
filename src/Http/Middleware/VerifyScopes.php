@@ -22,7 +22,7 @@ class VerifyScopes
         $scopes_resp = $user->api()->rest('GET', '/admin/oauth/access_scopes.json');
 
         if ($scopes_resp["errors"]) {
-            \Log::debug("Error in fetching scope");
+          //  \Log::debug("Error in fetching scope");
             return $next($request);
         }
 
@@ -36,13 +36,12 @@ class VerifyScopes
         $requiredScopes = explode(',', env('SHOPIFY_API_SCOPES'));
 
         $missingScopes = array_diff($requiredScopes, $scopes);
-        if (count($missingScopes) == 0) {
-            \Log::debug(serialize($missingScopes));
-            \Log::debug("Scopes Verified");
+        if (count($missingScopes) == 0) {            
+            //Log::debug("all required scopes available");
             return $next($request);
         }
 
-        \Log::debug("Scope missing. Reauthenticate the App");
+        //Log::debug("Scope missing. Reauthenticate the App");
 
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
