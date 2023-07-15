@@ -18,12 +18,10 @@ class VerifyScopes
     {
         $shop = auth()->user();
         $scopesResponse = $shop->api()->rest('GET', '/admin/oauth/access_scopes.json');
-
         if ($scopesResponse["errors"]) {          
             return $next($request);
         }
-
-
+        
         $scopes = json_decode(json_encode($scopesResponse["body"]["access_scopes"]));
         $scopes = array_map(function ($scope)
         {
@@ -31,14 +29,10 @@ class VerifyScopes
         }, $scopes);
 
         $requiredScopes = explode(',', env('SHOPIFY_API_SCOPES'));
-
         $missingScopes = array_diff($requiredScopes, $scopes);
-        if (count($missingScopes) == 0) {            
-            //Log::debug("all required scopes available");
+        if (count($missingScopes) == 0) {                        
             return $next($request);
-        }
-
-        //Log::debug("Scope missing. Reauthenticate the App");
+        }        
 
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
