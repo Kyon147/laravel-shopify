@@ -4,8 +4,8 @@ namespace Osiset\ShopifyApp\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Osiset\ShopifyApp\Util;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
+use Osiset\ShopifyApp\Util;
 
 class VerifyScopes
 {
