@@ -5,18 +5,25 @@ namespace Osiset\ShopifyApp\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Util;
+use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 
 class VerifyScopes
 {
-    /**
-     * Handle an incoming request.
+      /**
+     * Checks if a shop has all required access scopes.
+     * If a required access scope is missing, it will redirect the app
+     * for re-authentication
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     * @param Request $request The request object.
+     * @param Closure $next The next action.
+     *
+     * @throws Exception
+     *
+     * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
+          /** @var $shop IShopModel */
         $shop = auth()->user();
         $scopesResponse = $shop->api()->rest('GET', '/admin/oauth/access_scopes.json');
         if ($scopesResponse["errors"]) {          
@@ -36,11 +43,9 @@ class VerifyScopes
         }        
 
         return redirect()->route(
-            Util::getShopifyConfig('route_names.authenticate'),
-            [
+            Util::getShopifyConfig('route_names.authenticate'), [
                 'shop' => $shop->getDomain()->toNative(),
-                'host' => $request->get('host')
-            ]
-        );
+                'host' => $request->get('host'),
+            ]);
     }
 }
