@@ -29,7 +29,6 @@ class VerifyScopes
         if ($scopesResponse['errors']) {
             return $next($request);
         }
-        
         $scopes = json_decode(json_encode($scopesResponse['body']['access_scopes']));
         $scopes = array_map(function ($scope) {
             return $scope->handle;
@@ -40,7 +39,6 @@ class VerifyScopes
         if (count($missingScopes) == 0) {
             return $next($request);
         }
-        
         return redirect()->route(
             Util::getShopifyConfig('route_names.authenticate'),
             [
