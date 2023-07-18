@@ -5,7 +5,6 @@ namespace Osiset\ShopifyApp\Test\Http\Middleware;
 use Illuminate\Auth\AuthManager;
 use Osiset\ShopifyApp\Http\Middleware\VerifyScopes as VerifyScopesMiddleware;
 use Osiset\ShopifyApp\Test\TestCase;
-use Osiset\ShopifyApp\Util;
 
 class VerifyScopesTest extends TestCase
 {
