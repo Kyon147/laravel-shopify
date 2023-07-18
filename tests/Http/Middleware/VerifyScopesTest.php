@@ -29,9 +29,8 @@ class VerifyScopesTest extends TestCase
         unset($scopes[0]);
         $newScopes = implode(',', $scopes);
         $this->app['config']->set('shopify-app.access_scopes', $newScopes);
-        
         // Run the middleware
         $result = $this->runMiddleware(VerifyScopesMiddleware::class);
         $this->assertStatus(302);
-     }
+    }
 }
