@@ -8,7 +8,7 @@ use Osiset\ShopifyApp\Util;
 use Osiset\ShopifyApp\Http\Middleware\VerifyScopes as VerifyScopesMiddleware;
 
 class VerifyScopesTest extends TestCase{
-  /**
+    /**
      * @var AuthManager
      */
     protected $auth;
@@ -16,7 +16,6 @@ class VerifyScopesTest extends TestCase{
     public function setUp(): void
     {
         parent::setUp();
-
         $this->auth = $this->app->make(AuthManager::class);
     }
      public function testMissingScopes(): void
@@ -29,7 +28,7 @@ class VerifyScopesTest extends TestCase{
         unset($scopes[0]); 
         $newScopes = implode(',',$scopes);
         $this->app['config']->set('shopify-app.access_scopes',$newScopes);
-
+        
         // Run the middleware
         $result = $this->runMiddleware(VerifyScopesMiddleware::class);
        $this->assertStatus(302);
