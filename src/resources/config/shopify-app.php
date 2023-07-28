@@ -56,13 +56,13 @@ return [
     */
 
     'route_names' => [
-        'home'                 => env('SHOPIFY_ROUTE_NAME_HOME', 'home'),
-        'authenticate'         => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE', 'authenticate'),
-        'authenticate.token'   => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE_TOKEN', 'authenticate.token'),
-        'billing'              => env('SHOPIFY_ROUTE_NAME_BILLING', 'billing'),
-        'billing.process'      => env('SHOPIFY_ROUTE_NAME_BILLING_PROCESS', 'billing.process'),
+        'home' => env('SHOPIFY_ROUTE_NAME_HOME', 'home'),
+        'authenticate' => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE', 'authenticate'),
+        'authenticate.token' => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE_TOKEN', 'authenticate.token'),
+        'billing' => env('SHOPIFY_ROUTE_NAME_BILLING', 'billing'),
+        'billing.process' => env('SHOPIFY_ROUTE_NAME_BILLING_PROCESS', 'billing.process'),
         'billing.usage_charge' => env('SHOPIFY_ROUTE_NAME_BILLING_USAGE_CHARGE', 'billing.usage_charge'),
-        'webhook'              => env('SHOPIFY_ROUTE_NAME_WEBHOOK', 'webhook'),
+        'webhook' => env('SHOPIFY_ROUTE_NAME_WEBHOOK', 'webhook'),
     ],
 
     /*
@@ -140,6 +140,10 @@ return [
     // Use semver range to link to a major or minor version number.
     // Leaving empty will use the latest version - not recommended in production.
     'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', 'latest'),
+
+    // Set a new CDN URL if you want to host the AppBridge JS yourself or unpkg goes down.
+    // DO NOT include a trailing slash.
+    'appbridge_cdn_url' => env('SHOPIFY_APPBRIDGE_CDN_URL', 'https://unpkg.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -233,7 +237,7 @@ return [
     |
     */
 
-    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -245,7 +249,7 @@ return [
     |
     */
 
-    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -257,7 +261,7 @@ return [
     |
     */
 
-    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Osiset\BasicShopifyAPI\Deferrers\Sleep::class),
+    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Gnikyt\BasicShopifyAPI\Deferrers\Sleep::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -266,9 +270,9 @@ return [
     |
     | This option is for initializing the BasicShopifyAPI package yourself.
     | The first param injected in is the current options.
-    |    (\Osiset\BasicShopifyAPI\Options)
+    |    (\Gnikyt\BasicShopifyAPI\Options)
     | The second param injected in is the session (if available) .
-    |    (\Osiset\BasicShopifyAPI\Session)
+    |    (\Gnikyt\BasicShopifyAPI\Session)
     | The third param injected in is the current request input/query array.
         (\Illuminate\Http\Request::all())
     | With all this, you can customize the options, change params, and more.
@@ -410,8 +414,8 @@ return [
     */
 
     'job_queues' => [
-        'webhooks'           => env('WEBHOOKS_JOB_QUEUE', null),
-        'scripttags'         => env('SCRIPTTAGS_JOB_QUEUE', null),
+        'webhooks' => env('WEBHOOKS_JOB_QUEUE', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
 
