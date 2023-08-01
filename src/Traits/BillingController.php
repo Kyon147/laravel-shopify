@@ -3,23 +3,13 @@
 namespace Osiset\ShopifyApp\Traits;
 
 use Illuminate\Contracts\View\View as ViewView;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\View;
-use Osiset\ShopifyApp\Actions\ActivatePlan;
-use Osiset\ShopifyApp\Actions\ActivateUsageCharge;
-use Osiset\ShopifyApp\Actions\GetPlanUrl;
-use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
-use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
+use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
+use Illuminate\Support\Facades\{Redirect, Response, View};
+use Osiset\ShopifyApp\Actions\{ActivatePlan, ActivateUsageCharge, GetPlanUrl};
+use Osiset\ShopifyApp\Exceptions\{ChargeNotRecurringException, MissingShopDomainException};
 use Osiset\ShopifyApp\Http\Requests\StoreUsageCharge;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
-use Osiset\ShopifyApp\Objects\Values\ChargeReference;
-use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
-use Osiset\ShopifyApp\Objects\Values\NullableShopDomain;
-use Osiset\ShopifyApp\Objects\Values\PlanId;
-use Osiset\ShopifyApp\Objects\Values\ShopDomain;
+use Osiset\ShopifyApp\Objects\Values\{ChargeReference, NullablePlanId, NullableShopDomain, PlanId, ShopDomain};
 use Osiset\ShopifyApp\Storage\Queries\Shop as ShopQuery;
 use Osiset\ShopifyApp\Util;
 
@@ -43,7 +33,7 @@ trait BillingController
         ShopQuery  $shopQuery,
         GetPlanUrl $getPlanUrl,
         ?int       $plan = null
-    ): ViewView {
+    ): ViewView|JsonResponse {
         // Get the shop
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->get('shop')));
         $host = urldecode($request->get('host'));
@@ -55,7 +45,7 @@ trait BillingController
             $host
         );
 
-        if (!Util::useNativeAppBridge()) {
+        if (! Util::useNativeAppBridge()) {
             return Response::json(['url' => $url]);
         }
 
@@ -90,7 +80,7 @@ trait BillingController
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->query('shop')));
         // If we have the host we need to pass it along.
         $host = urldecode($request->get('host'));
-        if (!$request->has('charge_id')) {
+        if (! $request->has('charge_id')) {
             return Redirect::route(Util::getShopifyConfig('route_names.home'), [
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $host,

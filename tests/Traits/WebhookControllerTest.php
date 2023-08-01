@@ -81,7 +81,7 @@ class WebhookControllerTest extends TestCase
         // Create a webhook call and pass in our own headers and data
         $response = $this->call(
             'post',
-            '/webhook/orders-create-example',
+            '/webhook/orders-create',
             [],
             [],
             [],

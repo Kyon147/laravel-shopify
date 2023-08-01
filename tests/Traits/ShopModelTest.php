@@ -2,7 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Traits;
 
-use Osiset\BasicShopifyAPI\BasicShopifyAPI;
+use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain;

@@ -162,6 +162,7 @@ class VerifyShopifyTest extends TestCase
             [
                 'token' => $this->buildToken(),
                 'shop' => 'non-existent.myshopify.com',
+                'host' => base64_encode('non-existent.myshopify.com'),
             ],
             // Request Params
             null,
