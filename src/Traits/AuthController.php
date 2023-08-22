@@ -51,7 +51,8 @@ trait AuthController
             throw new SignatureVerificationException('Invalid HMAC verification');
         } elseif ($status === false) {
             if (!$result['url']) {
-                throw new MissingAuthUrlException('Missing auth url');
+                $url = '/dashboard?shop='.$shopDomain->toNative().'&host='.$request->get('host');
+                return redirect($url);
             }
 
             $shopDomain = $shopDomain->toNative();
