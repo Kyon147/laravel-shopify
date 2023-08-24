@@ -3,6 +3,7 @@
 namespace Osiset\ShopifyApp\Http\Middleware;
 
 use Closure;
+use Exception;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Util;
