@@ -26,17 +26,17 @@ class VerifyScopes
         /** @var $shop IShopModel */
         $shop = auth()->user();
         $scopesResponse = $shop->api()->rest('GET', '/admin/oauth/access_scopes.json');
-        if ($scopesResponse['errors']) {
+        if ($scopesResponse && $scopesResponse['errors']) {
             return $next($request);
         }
-        $scopes = json_decode(json_encode($scopesResponse['body']['access_scopes']));
-        $scopes = array_map(function ($scope) {
+        $scopes = json_decode(json_encode($scopesResponse['body']['access_scopes']), false);
+        $scopes = array_map(static function ($scope) {
             return $scope->handle;
         }, $scopes);
 
-        $requiredScopes = explode(',', env('SHOPIFY_API_SCOPES'));
+        $requiredScopes = explode(',', Util::getShopifyConfig('api_scopes'));
         $missingScopes = array_diff($requiredScopes, $scopes);
-        if (count($missingScopes) == 0) {
+        if (count($missingScopes) === 0) {
             return $next($request);
         }
 
