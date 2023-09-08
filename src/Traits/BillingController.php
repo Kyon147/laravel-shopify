@@ -54,6 +54,18 @@ trait BillingController
             $host
         );
 
+        if (false !== strpos(base64_decode($request['host']), 'admin.shopify.com/store')) {
+            $parsedUrl= parse_url($url);
+            $shopName = str_replace('.myshopify.com', '' ,$shop->name);
+
+            $parsedUrl['host'] = 'admin.shopify.com';
+            $parsedUrl['path'] = str_replace('admin', 'store/'.$shopName, $parsedUrl['path']);
+
+            $urlForNewAdminUrl = 'https://' . $parsedUrl['host'] . $parsedUrl['path'] . '?' . $parsedUrl['query'];
+
+            $url = $urlForNewAdminUrl;
+        }
+
         // Do a fullpage redirect
         return View::make(
             'shopify-app::billing.fullpage_redirect',

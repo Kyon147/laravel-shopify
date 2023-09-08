@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
+use Osiset\ShopifyApp\Actions\AuthorizeShop;
 use Osiset\ShopifyApp\Exceptions\MissingAuthUrlException;
 use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
 use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
@@ -54,19 +55,8 @@ trait AuthController
                 throw new MissingAuthUrlException('Missing auth url');
             }
 
-            $shopDomain = $shopDomain->toNative();
-            $shopOrigin = $shopDomain ?? $request->user()->name;
-
-            return View::make(
-                'shopify-app::auth.fullpage_redirect',
-                [
-                    'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
-                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@'.config('shopify-app.appbridge_version') : '',
-                    'authUrl' => $result['url'],
-                    'host' => $request->get('host'),
-                    'shopDomain' => $shopDomain,
-                ]
-            );
+            // Just return them straight to the OAUTH flow.
+            return Redirect::to($result['url']);
         } else {
             // Go to home route
             return Redirect::route(
@@ -89,6 +79,13 @@ trait AuthController
         $request->session()->reflash();
         $shopDomain = ShopDomain::fromRequest($request);
         $target = $request->query('target');
+
+        if ($target && !$request->get('host')) {
+            parse_str(trim($target,'/?'),$parsedTarget);
+            $host = $parsedTarget['host'] ?? '';
+            request()->merge(['host' => $host]);
+        }
+
         $query = parse_url($target, PHP_URL_QUERY);
 
         $cleanTarget = $target;
@@ -110,6 +107,43 @@ trait AuthController
             [
                 'shopDomain' => $shopDomain->toNative(),
                 'target' => $cleanTarget,
+            ]
+        );
+    }
+
+    /**
+     * Simply redirects to Shopify's Oauth screen.
+     *
+     * @param Request       $request  The request object.
+     * @param AuthorizeShop $authShop The action for authenticating a shop.
+     *
+     * @return ViewView
+     */
+    public function oauth(Request $request, AuthorizeShop $authShop): ViewView
+    {
+        // Setup
+        $shopDomain = ShopDomain::fromNative($request->get('shop'));
+        $result = $authShop($shopDomain, null);
+
+        // Redirect
+        return $this->oauthFailure($result->url, $shopDomain);
+    }
+
+    /**
+     * Handles when authentication is unsuccessful or new.
+     *
+     * @param string     $authUrl    The auth URl to redirect the user to get the code.
+     * @param ShopDomain $shopDomain The shop's domain.
+     *
+     * @return ViewView
+     */
+    private function oauthFailure(string $authUrl, ShopDomain $shopDomain): ViewView
+    {
+        return View::make(
+            'shopify-app::auth.fullpage_redirect',
+            [
+                'authUrl'    => $authUrl,
+                'shopDomain' => $shopDomain->toNative(),
             ]
         );
     }
