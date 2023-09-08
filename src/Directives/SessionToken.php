@@ -2,7 +2,7 @@
 
 namespace Osiset\ShopifyApp\Directives;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request;
 
 /**
  * Provides a Blade directive for session tokens.
