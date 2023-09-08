@@ -2,8 +2,6 @@
 
 namespace Osiset\ShopifyApp\Directives;
 
-use Illuminate\Support\Facades\Request;
-
 /**
  * Provides a Blade directive for session tokens.
  */
@@ -16,6 +14,6 @@ class SessionToken
      */
     public function __invoke(): string
     {
-        return '<input type="hidden" class="session-token" name="token" value="" /><input type="hidden" name="host" value="'.str_replace('"', htmlentities('"'), e(Request::get('host'))).'">';
+        return '<input type="hidden" class="session-token" name="token" value="" /><input type="hidden" name="host" value="'.str_replace('"', htmlentities('"'), e(request('host'))).'">';
     }
 }
