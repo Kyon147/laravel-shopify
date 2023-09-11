@@ -8,8 +8,6 @@
 
 This is a maintained version of the wonderful but now deprecated original [Laravel Shopify App](https://github.com/gnikyt/laravel-shopify/). To keep things clean, this has been detached from the original.
 
-@kyon147 is going to maintain a version which you can find here https://github.com/Kyon147/laravel-shopify 
-
 ----
 
 A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 8 and up.
