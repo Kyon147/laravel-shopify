@@ -3,8 +3,8 @@
 namespace Osiset\ShopifyApp\Test\Services;
 
 use Exception;
-use Osiset\BasicShopifyAPI\BasicShopifyAPI;
-use Osiset\BasicShopifyAPI\ResponseAccess;
+use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
+use Gnikyt\BasicShopifyAPI\ResponseAccess;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
@@ -42,7 +42,7 @@ class ApiHelperTest extends TestCase
         $this->assertInstanceOf(BasicShopifyAPI::class, $api);
         $this->assertSame(Util::getShopifyConfig('api_secret'), $this->app['config']->get('shopify-app.api_secret'));
         $this->assertSame(Util::getShopifyConfig('api_key'), $this->app['config']->get('shopify-app.api_key'));
-        $this->assertSame($this->app['config']->get('shopify-app.api_version'), '2022-01');
+        $this->assertSame($this->app['config']->get('shopify-app.api_version'), '2023-04');
     }
 
     public function testSetAndGetApi(): void

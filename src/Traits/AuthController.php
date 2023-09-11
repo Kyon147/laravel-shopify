@@ -66,9 +66,8 @@ trait AuthController
                     'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
                     'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@'.config('shopify-app.appbridge_version') : '',
                     'authUrl' => $result['url'],
-                    'host' => $request->host ?? base64_encode($shopOrigin.'/admin'),
+                    'host' => $request->get('host'),
                     'shopDomain' => $shopDomain,
-                    'shopOrigin' => $shopOrigin,
                 ]
             );
         } else {
@@ -77,7 +76,7 @@ trait AuthController
                 Util::getShopifyConfig('route_names.home'),
                 [
                     'shop' => $shopDomain->toNative(),
-                    'host' => $request->host,
+                    'host' => $request->get('host'),
                 ]
             );
         }
@@ -100,11 +99,12 @@ trait AuthController
             // remove "token" from the target's query string
             $params = Util::parseQueryString($query);
             $params['shop'] = $params['shop'] ?? $shopDomain->toNative() ?? '';
+            $params['host'] = $request->get('host');
             unset($params['token']);
 
             $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         } else {
-            $params = ['shop' => $shopDomain->toNative() ?? ''];
+            $params = ['shop' => $shopDomain->toNative() ?? '', 'host' => $request->get('host')];
             $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         }
 

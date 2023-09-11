@@ -303,6 +303,7 @@ class VerifyShopify
             [
                 'shop' => ShopDomain::fromRequest($request)->toNative(),
                 'target' => $target,
+                'host' => $request->get('host'),
             ]
         );
     }

@@ -3,7 +3,7 @@
 # Data taken from https://github.com/osiset/laravel-shopify/graphs/contributors
 # Using `[...document.getElementsByClassName('contrib-person')].map(n => n.getElementsByClassName('avatar')[0].alt).sort().join('\n');`
 
-EClaraLeigh
+ClaraLeigh
 ImgBotApp
 ItsGageH
 Jamesking56

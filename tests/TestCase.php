@@ -4,6 +4,7 @@ namespace Osiset\ShopifyApp\Test;
 
 use Carbon\CarbonImmutable;
 use Closure;
+use Gnikyt\BasicShopifyAPI\Options;
 use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request as FacadesRequest;
 use Orchestra\Database\ConsoleServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use Osiset\BasicShopifyAPI\Options;
 use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 use Osiset\ShopifyApp\ShopifyAppProvider;

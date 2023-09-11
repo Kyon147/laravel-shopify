@@ -2,7 +2,8 @@
 
 namespace Osiset\ShopifyApp\Test\Services;
 
-use Osiset\BasicShopifyAPI\ResponseAccess;
+use Gnikyt\BasicShopifyAPI\ResponseAccess;
+use Illuminate\Support\Str;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails;
 use Osiset\ShopifyApp\Services\ChargeHelper;
@@ -136,13 +137,19 @@ class ChargeHelperTest extends TestCase
     {
         // Seed (trial)
         $seed = $this->seedData();
-        $result = $this->chargeHelper->details($seed['plan'], $seed['shop']);
+        $hostValue = base64_encode('cool-shop-example.myshopify.com/admin');
+        $result = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
         $this->assertInstanceOf(PlanDetails::class, $result);
+        $this->assertTrue(Str::contains($result->returnUrl, '&host='.urlencode($hostValue)));
+
+
 
         // Seed (no trial)
+        $hostValue = base64_encode('example.myshopify.com/admin');
         $seed = $this->seedData([], ['trial_days' => 0]);
-        $result = $this->chargeHelper->details($seed['plan'], $seed['shop']);
+        $result = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
         $this->assertInstanceOf(PlanDetails::class, $result);
+        $this->assertTrue(Str::contains($result->returnUrl, '&host='.urlencode($hostValue)));
     }
 
     public function testDetails2(): void
@@ -156,15 +163,16 @@ class ChargeHelperTest extends TestCase
         $shop = factory($this->model)->create([
             'plan_id' => $plan->getId()->toNative(),
         ]);
-
-        $result = $this->chargeHelper->details($plan, $shop);
+        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
+        $result = $this->chargeHelper->details($plan, $shop, $hostValue);
         $this->assertInstanceOf(PlanDetails::class, $result);
+        $this->assertTrue(Str::contains($result->returnUrl, '&host='.urlencode($hostValue)));
     }
 
     protected function seedData($extraCharge = [], $extraPlan = [], $type = 'onetime'): array
     {
         // Create a plan
-        $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states("type_${type}")->create(
+        $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states("type_{$type}")->create(
             array_merge(
                 ['trial_days' => 7],
                 $extraPlan
@@ -177,7 +185,7 @@ class ChargeHelperTest extends TestCase
         ]);
 
         // Create a charge for the plan and shop
-        $charge = factory(Util::getShopifyConfig('models.charge', Charge::class))->states("type_${type}")->create(
+        $charge = factory(Util::getShopifyConfig('models.charge', Charge::class))->states("type_{$type}")->create(
             array_merge(
                 [
                     'charge_id' => 12345,

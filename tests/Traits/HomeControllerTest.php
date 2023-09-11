@@ -24,9 +24,21 @@ class HomeControllerTest extends TestCase
     {
         $shop = factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
 
-        $this->call('get', '/', ['token' => $this->buildToken()])
+        $host = base64_encode($shop->getDomain()->toNative().'/admin');
+        $this->call('get', '/', ['token' => $this->buildToken(), 'host' => $host])
             ->assertOk()
             ->assertSee('apiKey: "'.Util::getShopifyConfig('api_key').'"', false)
-            ->assertSee("shopOrigin: \"{$shop->name}\"", false);
+            ->assertSee("host: \"{$host}\"", false);
+    }
+
+    public function testHomeRouteHostAdmin(): void
+    {
+        $shop = factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+
+        $host = base64_encode('admin.shopify.com/store/shop-name');
+        $this->call('get', '/', ['token' => $this->buildToken(), 'host' => $host])
+            ->assertOk()
+            ->assertSee('apiKey: "'.Util::getShopifyConfig('api_key').'"', false)
+            ->assertSee("host: \"{$host}\"", false);
     }
 }

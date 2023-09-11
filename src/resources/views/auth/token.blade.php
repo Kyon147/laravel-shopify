@@ -37,8 +37,9 @@
 
     @if(config('shopify-app.appbridge_enabled'))
         <script>
+            const host = new URLSearchParams(location.search).get("host")
             utils.getSessionToken(app).then((token) => {
-                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}`;
+                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}{{ Str::contains($target, 'host')? '' : '&host=${host}'}}`;
             });
         </script>
     @endif
