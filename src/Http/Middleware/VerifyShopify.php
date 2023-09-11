@@ -83,7 +83,7 @@ class VerifyShopify
      * @param Request $request The request object.
      * @param Closure $next    The next action.
      *
-     * @throws SignatureVerificationException If HMAC verification fails.
+     * @throws SignatureVerificationException|HttpException If HMAC verification fails.
      *
      * @return mixed
      */
@@ -107,6 +107,7 @@ class VerifyShopify
 
             if ($storeResult) {
                 $this->loginFromShop($shop);
+
                 return $next($request);
             }
         }
@@ -533,6 +534,7 @@ class VerifyShopify
      * Login and validate store
      *
      * @param ShopModel $shop
+     *
      * @return void
      */
     protected function loginFromShop(ShopModel $shop): void

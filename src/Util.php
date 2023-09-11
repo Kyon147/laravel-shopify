@@ -36,7 +36,7 @@ class Util
             ksort($data);
             $queryCompiled = [];
             foreach ($data as $key => $value) {
-                $queryCompiled[] = "{$key}=" . (is_array($value) ? implode(',', $value) : $value);
+                $queryCompiled[] = "{$key}=".(is_array($value) ? implode(',', $value) : $value);
             }
             $data = implode(
                 $buildQueryWithJoin ? '&' : '',
@@ -72,7 +72,7 @@ class Util
 
         $params = [];
         $split = preg_split(
-            $delimiter ? $commonSeparator[$delimiter] || '/[' . $delimiter . ']\s*/' : $defaultSeparator,
+            $delimiter ? $commonSeparator[$delimiter] || '/['.$delimiter.']\s*/' : $defaultSeparator,
             $queryString ?? ''
         );
 
@@ -229,7 +229,7 @@ class Util
      */
     public static function getShopsTableForeignKey(): string
     {
-        return Str::singular(self::getShopsTable()) . '_id';
+        return Str::singular(self::getShopsTable()).'_id';
     }
 
     /**
@@ -251,6 +251,6 @@ class Util
     {
         $legacySupports = self::getShopifyConfig('app_legacy_supports') ?? [];
 
-        return (bool)Arr::get($legacySupports, $feature, true);
+        return (bool) Arr::get($legacySupports, $feature, true);
     }
 }

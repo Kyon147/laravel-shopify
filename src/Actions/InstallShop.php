@@ -66,7 +66,6 @@ class InstallShop
      */
     public function __invoke(ShopDomain $shopDomain, ?string $code): array
     {
-
         if (!$this->isValidShop($shopDomain)) {
             return [
                 'completed' => false,
@@ -135,5 +134,4 @@ class InstallShop
 
         return $isMatched === 1;
     }
-
 }
