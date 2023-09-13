@@ -66,13 +66,6 @@ class InstallShop
      */
     public function __invoke(ShopDomain $shopDomain, ?string $code): array
     {
-        if (!$this->isValidShop($shopDomain)) {
-            return [
-                'completed' => false,
-                'url' => null,
-                'shop_id' => null,
-            ];
-        }
         // Get the shop
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
 
@@ -125,13 +118,5 @@ class InstallShop
                 'theme_support_level' => null,
             ];
         }
-    }
-
-    public function isValidShop(ShopDomain $shopDomain): bool
-    {
-        $regex = '/^[a-zA-Z0-9][a-zA-Z0-9\-]*.myshopify.com/';
-        $isMatched = preg_match($regex, $shopDomain->toNative(), $matches, PREG_OFFSET_CAPTURE);
-
-        return $isMatched === 1;
     }
 }

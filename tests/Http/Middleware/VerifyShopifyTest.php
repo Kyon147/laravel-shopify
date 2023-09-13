@@ -317,4 +317,36 @@ class VerifyShopifyTest extends TestCase
         $this->expectException(HttpException::class);
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
+
+    public function testNotNativeAppbridgeWithTokenProcessingAndLoginShop(): void
+    {
+        // Create a shop that matches the token from buildToken
+        factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+
+        // Setup the request
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            // Query Params
+            [
+                'shop' => 'shop-name.myshopify.com',
+            ],
+            // Request Params
+            null,
+            // Attributes
+            null,
+            // Cookies
+            null,
+            // Files
+            null,
+            // Server vars
+            [
+                'HTTP_Authorization' => "Bearer {$this->buildToken()}",
+            ]
+        );
+
+        // Run the middleware
+        $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
+        $this->assertTrue($result[0]);
+    }
 }
