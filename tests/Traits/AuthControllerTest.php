@@ -2,15 +2,13 @@
 
 namespace Osiset\ShopifyApp\Test\Traits;
 
-use Illuminate\Support\Facades\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
-use Osiset\ShopifyApp\Actions\AuthenticateShop;
+use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
 use Osiset\ShopifyApp\Messaging\Events\ShopAuthenticatedEvent;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
-use Osiset\ShopifyApp\Traits\AuthController;
 use Osiset\ShopifyApp\Util;
 
 class AuthControllerTest extends TestCase
