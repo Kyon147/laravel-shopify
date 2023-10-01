@@ -127,6 +127,7 @@ class UtilTest extends TestCase
     public function testHasAppLegacySupport(): void
     {
         $supportedFeatures = $this->app['config']->get('shopify-app.app_legacy_supports', []);
+        
         foreach ($supportedFeatures as $feature => $val) {
             $this->assertSame(
                 $val,

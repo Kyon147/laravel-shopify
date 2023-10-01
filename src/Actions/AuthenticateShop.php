@@ -112,7 +112,6 @@ class AuthenticateShop
 
         event(new AppInstalledEvent($result['shop_id']));
 
-
         return [$result, true];
     }
 }

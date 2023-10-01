@@ -28,8 +28,8 @@ class ShopAuthenticatedEvent
      *
      * @return void
      */
-    public function __construct(ShopId $shop_id)
+    public function __construct(ShopId $shopId)
     {
-        $this->shopId = $shop_id;
+        $this->shopId = $shopId;
     }
 }
