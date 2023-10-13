@@ -206,7 +206,7 @@ class ApiHelperTest extends TestCase
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
 
-         $data = $shop->apiHelper()->createWebhook([
+        $data = $shop->apiHelper()->createWebhook([
             'topic' => 'ORDERS_CREATE',
             'address' => 'arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource',
         ]);
