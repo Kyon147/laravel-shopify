@@ -366,34 +366,58 @@ class ApiHelper implements IApiHelper
      */
     public function createWebhook(array $payload): ResponseAccess
     {
-        $query = '
-        mutation webhookSubscriptionCreate(
-            $topic: WebhookSubscriptionTopic!,
-            $webhookSubscription: WebhookSubscriptionInput!
-        ) {
-            webhookSubscriptionCreate(
-                topic: $topic
-                webhookSubscription: $webhookSubscription
+        $addressType = str_starts_with($payload['address'], 'arn:') ? 'arn' : 'callbackUrl';
+        if($addressType === 'arn'){
+         $query = '
+            mutation eventBridgeWebhookSubscriptionCreate(
+                $topic: WebhookSubscriptionTopic!, 
+                $webhookSubscription: EventBridgeWebhookSubscriptionInput!
             ) {
-                userErrors {
-                    field
-                    message
-                }
-                webhookSubscription {
-                    id
-                    topic
+                eventBridgeWebhookSubscriptionCreate(
+                    topic: $topic, 
+                    webhookSubscription: $webhookSubscription
+                ) {
+                    userErrors {
+                      field
+                      message
+                    }
+                    webhookSubscription {
+                      id
+                      topic
+                    }
                 }
             }
+            ';
         }
-        ';
-
+        else{
+            $query = '
+            mutation webhookSubscriptionCreate(
+                $topic: WebhookSubscriptionTopic!,
+                $webhookSubscription: WebhookSubscriptionInput!
+            ) {
+                webhookSubscriptionCreate(
+                    topic: $topic
+                    webhookSubscription: $webhookSubscription
+                ) {
+                    userErrors {
+                        field
+                        message
+                    }
+                    webhookSubscription {
+                        id
+                        topic
+                    }
+                }
+            }
+            ';
+        }
         // Change REST-format topics ("resource/event")
         // to GraphQL-format topics ("RESOURCE_EVENT"), for pre-v17 compatibility
         $topic = Util::getGraphQLWebhookTopic($payload['topic']);
         $variables = [
             'topic' => $topic,
             'webhookSubscription' => [
-                'callbackUrl' => $payload['address'],
+                 $addressType => $payload['address'],
                 'format' => 'JSON',
             ],
         ];
