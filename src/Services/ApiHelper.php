@@ -367,7 +367,7 @@ class ApiHelper implements IApiHelper
     public function createWebhook(array $payload): ResponseAccess
     {
         $addressType = str_starts_with($payload['address'], 'arn:') ? 'arn' : 'callbackUrl';
-        if($addressType === 'arn') {
+        if ($addressType === 'arn') {
             $query = '
             mutation eventBridgeWebhookSubscriptionCreate(
                 $topic: WebhookSubscriptionTopic!, 
