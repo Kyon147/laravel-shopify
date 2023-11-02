@@ -205,15 +205,14 @@ class ApiHelperTest extends TestCase
         ]);
 
         $dataArn = $shop->apiHelper()->createWebhook([
-            'topic' => 'ORDERS_UPDATE',
+            'topic' => 'ORDERS_CREATE',
             'address' => 'arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource',
         ]);
-        $this->assertInstanceOf(ResponseAccess::class, $dataArn);
 
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertInstanceOf(ResponseAccess::class, $dataArn);
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
-        $this->assertSame('ORDERS_UPDATE', $dataArn['data']['webhookSubscriptionCreate']['topic']);
+        $this->assertSame('ORDERS_CREATE', $dataArn['data']['webhookSubscriptionCreate']['topic']);
     }
 
     public function testDeleteWebhook(): void
