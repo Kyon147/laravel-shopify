@@ -202,7 +202,7 @@ class ApiHelperTest extends TestCase
         $data = $shop->apiHelper()->createWebhook([
             'topic' => 'ORDERS_CREATE',
             'address' => 'https://localhost/webhook/orders-create',
-        ]);       
+        ]);
 
         $dataArn = $shop->apiHelper()->createWebhook([
             'topic' => 'ORDERS_UPDATE',
