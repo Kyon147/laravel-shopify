@@ -14,6 +14,6 @@ class SessionToken
      */
     public function __invoke(): string
     {
-        return '<input type="hidden" class="session-token" name="token" value="" /><input type="hidden" name="host" value="'.str_replace('"', htmlentities('"'), e(request('host'))).'">';
+        return '<input type="hidden" class="session-token" name="token" value="" /><input type="hidden" name="host" value="'.str_replace('"', htmlentities('"'), e(request('host'))).'"><input type="hidden" name="shop" value="'.str_replace('"', htmlentities('"'), e(request('shop'))).'">';
     }
 }
