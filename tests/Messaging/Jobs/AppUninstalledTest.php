@@ -2,6 +2,8 @@
 
 namespace Osiset\ShopifyApp\Test\Messaging\Jobs;
 
+use Illuminate\Support\Facades\Event;
+use Osiset\ShopifyApp\Messaging\Events\AppUninstalledEvent;
 use Osiset\ShopifyApp\Messaging\Jobs\AppUninstalledJob;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Storage\Models\Charge;
@@ -32,6 +34,7 @@ class AppUninstalledTest extends TestCase
         $this->assertNotNull($shop->plan);
         $this->assertNotEmpty($shop->password);
 
+        Event::fake();
         // Run the job
         AppUninstalledJob::dispatchSync(
             $shop->getDomain()->toNative(),
@@ -46,5 +49,6 @@ class AppUninstalledTest extends TestCase
         $this->assertFalse($shop->hasCharges());
         $this->assertNull($shop->plan);
         $this->assertEmpty($shop->password);
+        Event::assertDispatched(AppUninstalledEvent::class);
     }
 }

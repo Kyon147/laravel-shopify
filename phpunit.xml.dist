@@ -23,7 +23,7 @@
             <directory>src/Exceptions/</directory>
             <directory>src/Objects/Enums/</directory>
             <directory>src/resources/</directory>
-            <file>src/Messaging/Events/AppLoggedIn.php</file>
+            <directory>src/Messaging/Events/</directory>
             <file>src/ShopifyAppProvider.php</file>
         </exclude>
         <report>

@@ -2,8 +2,10 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
+use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
@@ -88,6 +90,7 @@ class AuthenticateShopTest extends TestCase
 
     public function testRuns(): void
     {
+        Event::fake();
         // Build request
         $currentRequest = Request::instance();
         $newRequest = $currentRequest->duplicate(
@@ -121,5 +124,6 @@ class AuthenticateShopTest extends TestCase
         [, $status] = call_user_func($this->action, $newRequest);
 
         $this->assertTrue($status);
+        Event::assertDispatched(AppInstalledEvent::class);
     }
 }

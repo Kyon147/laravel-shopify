@@ -2,7 +2,9 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Facades\Event;
 use Osiset\ShopifyApp\Actions\ActivatePlan;
+use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
 use Osiset\ShopifyApp\Objects\Values\ChargeId;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Storage\Models\Charge;
@@ -27,6 +29,7 @@ class ActivatePlanTest extends TestCase
 
     public function testRunRecurring(): void
     {
+        Event::fake();
         // Create a plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring')->create();
 
@@ -56,10 +59,12 @@ class ActivatePlanTest extends TestCase
         );
 
         $this->assertInstanceOf(ChargeId::class, $result);
+        Event::assertDispatched(PlanActivatedEvent::class);
     }
 
     public function testRunOnetime(): void
     {
+        Event::fake();
         // Create a plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_onetime')->create();
 
@@ -89,6 +94,7 @@ class ActivatePlanTest extends TestCase
         );
 
         $this->assertInstanceOf(ChargeId::class, $result);
+        Event::assertDispatched(PlanActivatedEvent::class);
     }
 
     //TODO we need to test for both myshopify and admin hosts
