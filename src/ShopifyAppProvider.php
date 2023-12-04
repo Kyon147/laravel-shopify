@@ -34,12 +34,14 @@ use Osiset\ShopifyApp\Http\Middleware\AuthWebhook;
 use Osiset\ShopifyApp\Http\Middleware\Billable;
 use Osiset\ShopifyApp\Http\Middleware\IframeProtection;
 use Osiset\ShopifyApp\Http\Middleware\VerifyShopify;
+use Osiset\ShopifyApp\Interfaces\ProductJobInterface;
 use Osiset\ShopifyApp\Macros\TokenRedirect;
 use Osiset\ShopifyApp\Macros\TokenRoute;
 use Osiset\ShopifyApp\Messaging\Jobs\ScripttagInstaller;
 use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
 use Osiset\ShopifyApp\Services\ApiHelper;
 use Osiset\ShopifyApp\Services\ChargeHelper;
+use Osiset\ShopifyApp\Services\ProductJobService;
 use Osiset\ShopifyApp\Services\ThemeHelper;
 use Osiset\ShopifyApp\Storage\Commands\Charge as ChargeCommand;
 use Osiset\ShopifyApp\Storage\Commands\Shop as ShopCommand;
@@ -225,6 +227,7 @@ class ShopifyAppProvider extends ServiceProvider
         $this->app->bind(ChargeHelper::class, function ($app) {
             return new ChargeHelper($app->make(IChargeQuery::class));
         });
+        $this->app->bind(ProductJobInterface::class,ProductJobService::class);
     }
 
     /**
