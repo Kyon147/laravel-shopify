@@ -22,6 +22,7 @@ class ProductJobServiceTest extends TestCase
 
     public function testGetCount(): void
     {
+        $this->productJobService->setCount($this->redis_key);
         $this->assertIsInt($this->productJobService->getCount($this->redis_key));
     }
 
