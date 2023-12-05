@@ -22,6 +22,11 @@ class ProductJobServiceTest extends TestCase
 
     public function testGetCount(): void
     {
+        $redis = $this->createPartialMock('Redis', ['get']);
+        $redis->expects($this->once())
+            ->method('get')
+            ->with($this->redis_key, 1);
+
         $this->assertIsInt($this->productJobService->getCount($this->redis_key));
     }
 
