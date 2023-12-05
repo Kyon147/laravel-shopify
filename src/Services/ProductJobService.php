@@ -13,7 +13,7 @@ class ProductJobService implements ProductJobInterface
 
     public function getCount(string $redis_key): int
     {
-        return Cache::get($redis_key,1);
+        return Cache::get($redis_key) ?? 1;
     }
 
     public function setCount(string $redis_key): void
