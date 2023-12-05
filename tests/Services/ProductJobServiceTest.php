@@ -20,10 +20,10 @@ class ProductJobServiceTest extends TestCase
         $this->productJobService = new ProductJobService();
     }
 
-    public function testGetCount(): void
+    public function testGetCount(): int
     {
-        $this->productJobService->setCount($this->redis_key);
         $this->assertIsInt($this->productJobService->getCount($this->redis_key));
+        return 1;
     }
 
     public function testSetCount(): void
