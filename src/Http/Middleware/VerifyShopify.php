@@ -320,7 +320,7 @@ class VerifyShopify
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative()]
+            ['shop' => $shopDomain->toNative(), 'host' => request('host')]
         );
     }
 
