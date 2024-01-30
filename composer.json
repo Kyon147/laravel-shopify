@@ -73,9 +73,9 @@
         "test-no-cov": "vendor/bin/phpunit --no-coverage"
     },
     "support": {
-        "issues": "https://github.com/osiset/laravel-shopify/issues",
-        "forum": "https://github.com/osiset/laravel-shopify/discussions",
-        "wiki": "https://github.com/osiset/laravel-shopify/wiki",
-        "source": "https://github.com/osiset/laravel-shopify"
+        "issues": "https://github.com/Kyon147/laravel-shopify/issues",
+        "forum": "https://github.com/Kyon147/laravel-shopify/discussions",
+        "wiki": "https://github.com/Kyon147/laravel-shopify/wiki",
+        "source": "https://github.com/Kyon147/laravel-shopify"
     }
 }
