@@ -50,7 +50,7 @@ final class SessionToken implements SessionTokenValue
      *
      * @var int
      */
-    public const LEEWAY_SECONDS = 10;
+    public const LEEWAY_SECONDS = 100;
 
     /**
      * Token parts.
