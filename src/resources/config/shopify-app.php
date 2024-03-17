@@ -550,7 +550,7 @@ return [
         /*
          * Cache duration
          */
-        'cache_duration' => '12',
+        'cache_duration' => 12,
          /*
          * At which levels of theme support the use of "theme app extension" is not available
          * and script tags will be installed.

@@ -159,6 +159,7 @@
       <path value="$PROJECT_DIR$/vendor/ergebnis/json-pointer" />
       <path value="$PROJECT_DIR$/vendor/laravel/legacy-factories" />
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-php73" />
+      <path value="$PROJECT_DIR$/vendor/carbonphp/carbon-doctrine-types" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.0">
