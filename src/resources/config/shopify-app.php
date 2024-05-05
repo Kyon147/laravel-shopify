@@ -168,7 +168,7 @@ return [
     |
     */
 
-    'api_version' => env('SHOPIFY_API_VERSION', '2024-01'),
+    'api_version' => env('SHOPIFY_API_VERSION', '2024-04'),
 
     /*
     |--------------------------------------------------------------------------
@@ -396,8 +396,7 @@ return [
                 'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -416,8 +415,7 @@ return [
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
             ...
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -441,8 +439,7 @@ return [
                 'job' => env('AFTER_AUTHENTICATE_JOB'), // example: \App\Jobs\AfterAuthorizeJob::class
                 'inline' => env('AFTER_AUTHENTICATE_JOB_INLINE', false) // False = dispatch job for later, true = dispatch immediately
             ],
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -551,7 +548,7 @@ return [
          * Cache duration
          */
         'cache_duration' => 12,
-         /*
+        /*
          * At which levels of theme support the use of "theme app extension" is not available
          * and script tags will be installed.
          * Available levels: FULL, PARTIAL, UNSUPPORTED.
