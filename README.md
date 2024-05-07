@@ -13,6 +13,10 @@ To install this package run:
 ```
 composer require kyon147/laravel-shopify
 ```
+Publish the config file:
+```
+php artisan vendor:publish --tag=shopify-config
+```
 ----
 
 A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 8 and up.
