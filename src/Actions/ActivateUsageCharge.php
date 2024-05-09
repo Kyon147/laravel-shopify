@@ -94,7 +94,6 @@ class ActivateUsageCharge
         $uct->shopId = $shopId;
         $uct->planId = $shop->plan->getId();
         $uct->chargeReference = ChargeReference::fromNative((int) $response['id']);
-        $uct->billingOn = new Carbon($response['billing_on']);
         $uct->details = $ucd;
 
         // Save the usage charge
