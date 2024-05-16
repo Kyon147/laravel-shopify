@@ -6,11 +6,11 @@ use Exception;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
+use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\NullAccessToken;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
-use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -42,16 +42,17 @@ class InstallShop
     /**
      * Setup.
      *
-     * @param IShopQuery  $shopQuery   The querier for the shop.
-     * @param VerifyThemeSupport    $verifyThemeSupport     The action for verify theme support
+     * @param IShopQuery $shopQuery The querier for the shop.
+     * @param VerifyThemeSupport $verifyThemeSupport The action for verify theme support
      *
      * @return void
      */
     public function __construct(
-        IShopQuery $shopQuery,
-        IShopCommand $shopCommand,
+        IShopQuery         $shopQuery,
+        IShopCommand       $shopCommand,
         VerifyThemeSupport $verifyThemeSupport
-    ) {
+    )
+    {
         $this->shopQuery = $shopQuery;
         $this->shopCommand = $shopCommand;
         $this->verifyThemeSupport = $verifyThemeSupport;
@@ -60,8 +61,8 @@ class InstallShop
     /**
      * Execution.
      *
-     * @param ShopDomain  $shopDomain The shop ID.
-     * @param string|null $code       The code from Shopify.
+     * @param ShopDomain $shopDomain The shop ID.
+     * @param string|null $code The code from Shopify.
      *
      * @return array
      */
