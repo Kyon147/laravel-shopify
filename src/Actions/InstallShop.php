@@ -6,6 +6,7 @@ use Exception;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
+use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\NullAccessToken;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
@@ -41,14 +42,14 @@ class InstallShop
     /**
      * Setup.
      *
-     * @param IShopQuery  $shopQuery   The querier for the shop.
-     * @param VerifyThemeSupport    $verifyThemeSupport     The action for verify theme support
+     * @param IShopQuery $shopQuery The querier for the shop.
+     * @param VerifyThemeSupport $verifyThemeSupport The action for verify theme support
      *
      * @return void
      */
     public function __construct(
-        IShopQuery $shopQuery,
-        IShopCommand $shopCommand,
+        IShopQuery         $shopQuery,
+        IShopCommand       $shopCommand,
         VerifyThemeSupport $verifyThemeSupport
     ) {
         $this->shopQuery = $shopQuery;
@@ -59,8 +60,8 @@ class InstallShop
     /**
      * Execution.
      *
-     * @param ShopDomain  $shopDomain The shop ID.
-     * @param string|null $code       The code from Shopify.
+     * @param ShopDomain $shopDomain The shop ID.
+     * @param string|null $code The code from Shopify.
      *
      * @return array
      */
@@ -100,8 +101,15 @@ class InstallShop
             $data = $apiHelper->getAccessData($code);
             $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
 
-            $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
-            $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
+            // Try to get the theme support level, if not, return the default setting
+            try {
+                $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
+                $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
+            } catch (Exception $e) {
+                // Just return the default setting which is null
+                $themeSupportLevel = ThemeSupportLevelEnum::NONE;
+            }
+
 
             return [
                 'completed' => true,
