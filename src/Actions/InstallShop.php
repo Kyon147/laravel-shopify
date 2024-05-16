@@ -51,8 +51,7 @@ class InstallShop
         IShopQuery         $shopQuery,
         IShopCommand       $shopCommand,
         VerifyThemeSupport $verifyThemeSupport
-    )
-    {
+    ){
         $this->shopQuery = $shopQuery;
         $this->shopCommand = $shopCommand;
         $this->verifyThemeSupport = $verifyThemeSupport;
