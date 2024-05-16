@@ -10,6 +10,7 @@ use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\NullAccessToken;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
+use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -100,8 +101,15 @@ class InstallShop
             $data = $apiHelper->getAccessData($code);
             $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
 
-            $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
-            $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
+            // Try to get the theme support level, if not, return the default setting
+            try {
+                $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
+                $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
+            } catch (Exception $e) {
+                // Just return the default setting which is null
+                $themeSupportLevel = ThemeSupportLevelEnum::NONE;
+            }
+
 
             return [
                 'completed' => true,

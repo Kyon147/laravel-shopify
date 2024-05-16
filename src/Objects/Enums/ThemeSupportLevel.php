@@ -32,4 +32,11 @@ class ThemeSupportLevel implements ValueObject
      * @var int
      */
     public const UNSUPPORTED = 2;
+
+    /**
+     * Support level: None.
+     *
+     * @var null
+     */
+    public const NONE = null;
 }
