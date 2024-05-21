@@ -2,7 +2,6 @@
 
 namespace Osiset\ShopifyApp\Actions;
 
-use Illuminate\Support\Carbon;
 use Osiset\ShopifyApp\Contracts\Commands\Charge as IChargeCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
