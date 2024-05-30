@@ -27,6 +27,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sub Domain
+    |--------------------------------------------------------------------------
+    |
+    | This is the subdomain where Shopify will be accessible from. If the
+    | setting is null, Shopify will reside under the same domain as the
+    | application. Otherwise, this value will be used as the subdomain.
+    |
+    */
+
+    'domain' => env('SHOPIFY_DOMAIN'),
+    
+    /*
+    |--------------------------------------------------------------------------
     | Manual routes
     |--------------------------------------------------------------------------
     |
