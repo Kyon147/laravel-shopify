@@ -69,7 +69,8 @@ class DispatchWebhooks
             ($this->jobClass)::dispatch(
                 $shop->getId(),
                 $webhooks
-            )->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
+            )->onConnection(Util::getShopifyConfig('job_connections')['webhooks'])
+            ->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
         }
 
         return true;

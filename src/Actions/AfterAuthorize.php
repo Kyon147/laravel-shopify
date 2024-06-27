@@ -58,6 +58,7 @@ class AfterAuthorize
             } else {
                 // Run later
                 $job::dispatch($shop)
+                    ->onConnection(Util::getShopifyConfig('job_connections')['after_authenticate'])
                     ->onQueue(Util::getShopifyConfig('job_queues')['after_authenticate']);
             }
 
