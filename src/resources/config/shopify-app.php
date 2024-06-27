@@ -456,7 +456,21 @@ return [
         'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Job Connections
+    |--------------------------------------------------------------------------
+    |
+    | This option is for setting a specific job connection for webhooks, scripttags
+    | and after_authenticate_job.
+    |
+    */
 
+    'job_connections' => [
+        'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
+        'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
+    ],
     /*
     |--------------------------------------------------------------------------
     | Config API Callback
