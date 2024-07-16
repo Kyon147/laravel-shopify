@@ -10,7 +10,7 @@ use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Util;
 
 /**
- * Responsibility for protection against clickjaking
+ * Responsibility for protection against clickjacking
  */
 class IframeProtection
 {
