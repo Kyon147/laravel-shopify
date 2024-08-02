@@ -69,7 +69,8 @@ class DispatchScripts
             ($this->jobClass)::dispatch(
                 $shop->getId(),
                 $scripttags
-            )->onQueue(Util::getShopifyConfig('job_queues')['scripttags']);
+            )->onConnection(Util::getShopifyConfig('job_connections')['scripttags'])
+            ->onQueue(Util::getShopifyConfig('job_queues')['scripttags']);
         }
 
         return true;
