@@ -44,7 +44,8 @@ class WebhookControllerTest extends TestCase
         Queue::assertPushed(OrdersCreateJob::class, function ($job) use ($shop) {
             return ShopDomain::fromNative($job->shopDomain)->isSame($shop->getDomain())
                 && $job->data instanceof stdClass
-                && $job->data->email === 'jon@doe.ca';
+                && $job->data->email === 'jon@doe.ca'
+                && $job->queue === 'webhooks-queue';
         });
     }
 
@@ -98,6 +99,41 @@ class WebhookControllerTest extends TestCase
         );
     }
 
+    public function testHandleWithCustomQueueMapping(): void
+    {
+        // Fake the queue
+        Queue::fake();
+
+        // Extend Job::class into a custom class
+        $shop = factory($this->model)->create(['name' => 'example.myshopify.com']);
+
+        // Mock headers that match Shopify
+        $headers = [
+            'HTTP_CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SHOPIFY_SHOP_DOMAIN' => $shop->name,
+            'HTTP_X_SHOPIFY_HMAC_SHA256' => 'hvTE9wpDzMcDnPEuHWvYZ58ElKn5vHs0LomurfNIuUc=', // Matches fixture data and API secret
+        ];
+
+        // Create a webhook call and pass in our own headers and data
+        $response = $this->call(
+            'post',
+            '/webhook/orders-create-custom-queue',
+            [],
+            [],
+            [],
+            $headers,
+            file_get_contents(__DIR__.'/../fixtures/webhook.json')
+        );
+
+        // Check it was created and job was pushed
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertStatus(201);
+
+        Queue::assertPushed(OrdersCreateJob::class, function ($job) {
+            return $job->queue === 'custom-queue';
+        });
+    }
+
     /**
      * Override the default config
      * Allow config change to persist when using $this->call()
@@ -117,6 +153,13 @@ class WebhookControllerTest extends TestCase
             'address' => 'https://some-app.com/webhook/orders-create-example',
             'class' => OrdersCreateJob::class,
         ];
+        $webhooks['orders-create-custom-queue'] = [
+            'topic' => 'ORDERS_PAID',
+            'address' => 'https://some-app.com/webhook/orders-create-example',
+            'class' => OrdersCreateJob::class,
+            'queue' => 'custom-queue',
+        ];
         $app['config']->set('shopify-app.webhooks', $webhooks);
+        $app['config']->set('shopify-app.job_queues.webhooks', 'webhooks-queue');
     }
 }
