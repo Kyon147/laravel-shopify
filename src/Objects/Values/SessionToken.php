@@ -6,8 +6,10 @@ use Assert\Assert;
 use Assert\AssertionFailedException;
 use Funeralzone\ValueObjects\Scalars\StringTrait;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Osiset\ShopifyApp\Contracts\Objects\Values\SessionToken as SessionTokenValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
+use Osiset\ShopifyApp\Objects\Enums\SessionTokenSource;
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -130,6 +132,13 @@ final class SessionToken implements SessionTokenValue
     protected $shopDomain;
 
     /**
+     * Shopify has multiple session tokens, slightly differing in format.
+     *
+     * @var string
+     */
+    protected $tokenSource = SessionTokenSource::APP;
+
+    /**
      * Constructor.
      *
      * @param string $token The JWT.
@@ -167,32 +176,38 @@ final class SessionToken implements SessionTokenValue
         $this->parts = explode('.', $this->string);
         $body = json_decode(Util::base64UrlDecode($this->parts[1]), true);
 
+        $this->tokenSource = $this->determineTokenSource($body);
+
         // Confirm token is not malformed
         Assert::thatAll([
-            $body['iss'],
             $body['dest'],
             $body['aud'],
-            $body['sub'],
             $body['exp'],
             $body['nbf'],
             $body['iat'],
             $body['jti'],
-            $body['sid'],
+            ... $this->tokenSource === SessionTokenSource::APP
+                ? [
+                    $body['iss'],
+                    $body['sub'],
+                    $body['sid'],
+                ]
+                : [],
         ])->notNull(self::EXCEPTION_MALFORMED);
 
         // Format the values
-        $this->iss = $body['iss'];
+        $this->iss = $body['iss'] ?? '';
         $this->dest = $body['dest'];
         $this->aud = $body['aud'];
-        $this->sub = $body['sub'];
+        $this->sub = $body['sub'] ?? '';
         $this->jti = $body['jti'];
-        $this->sid = SessionId::fromNative($body['sid']);
+        $this->sid = SessionId::fromNative($body['sid'] ?? '');
         $this->exp = new Carbon($body['exp']);
         $this->nbf = new Carbon($body['nbf']);
         $this->iat = new Carbon($body['iat']);
 
         // Parse the shop domain from the destination
-        $host = parse_url($body['dest'], PHP_URL_HOST);
+        $host = $this->findHost($body['dest']);
         $this->shopDomain = NullableShopDomain::fromNative($host);
     }
 
@@ -357,7 +372,10 @@ final class SessionToken implements SessionTokenValue
      */
     protected function verifyValidity(): void
     {
-        Assert::that($this->iss)->contains($this->dest, self::EXCEPTION_INVALID);
+        if($this->tokenSource === SessionTokenSource::APP) {
+            Assert::that($this->iss)->contains($this->dest, self::EXCEPTION_INVALID);
+        }
+
         Assert::that($this->aud)->eq(Util::getShopifyConfig('api_key', $this->getShopDomain()), self::EXCEPTION_INVALID);
     }
 
@@ -376,5 +394,21 @@ final class SessionToken implements SessionTokenValue
             $now->lessThan($this->getLeewayNotBefore()),
             $now->lessThan($this->getLeewayIssuedAt()),
         ])->false(self::EXCEPTION_EXPIRED);
+    }
+
+    protected function determineTokenSource(array $body): int
+    {
+        if(!isset($body['iss']) && !isset($body['sid'])) {
+            return SessionTokenSource::CHECKOUT_EXTENSION;
+        }
+
+        return SessionTokenSource::APP;
+    }
+
+    protected function findHost(string $destination): ?string
+    {
+        return Str::startsWith($destination, 'https')
+            ? parse_url($destination, PHP_URL_HOST)
+            : $destination;
     }
 }
