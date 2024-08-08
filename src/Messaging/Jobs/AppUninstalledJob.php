@@ -81,8 +81,7 @@ class AppUninstalledJob implements ShouldQueue
         $shopCommand->clean($shopId);
 
         // Check freemium mode
-        $freemium = Util::getShopifyConfig('billing_freemium_enabled');
-        if ($freemium === true) {
+        if (Util::getShopifyConfig('billing_freemium_enabled') === true) {
             // Add the freemium flag to the shop
             $shopCommand->setAsFreemium($shopId);
         }
