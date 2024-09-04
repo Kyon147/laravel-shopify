@@ -98,6 +98,51 @@ class WebhookControllerTest extends TestCase
         );
     }
 
+    public function testHandleDispatchesJobWithCustomConnection(): void
+    {
+        // Fake the queue
+        Queue::fake();
+
+        // Extend Job::class into a custom class
+        $shop = factory($this->model)->create(['name' => 'example.myshopify.com']);
+       
+        // Define the custom job connection
+        $customConnection = 'custom_connection';
+
+        // Set up the configuration
+        $this->app['config']->set('shopify-app.job_connections', [
+            'webhooks' => $customConnection,
+        ]);
+
+        // Mock headers that match Shopify
+        $headers = [
+            'HTTP_CONTENT_TYPE' => 'application/json',
+            'HTTP_X_SHOPIFY_SHOP_DOMAIN' => $shop->name,
+            'HTTP_X_SHOPIFY_HMAC_SHA256' => 'hvTE9wpDzMcDnPEuHWvYZ58ElKn5vHs0LomurfNIuUc=', // Matches fixture data and API secret
+        ];
+
+        // Create a webhook call and pass in our own headers and data
+        $response = $this->call(
+            'post',
+            '/webhook/orders-create-example',
+            [],
+            [],
+            [],
+            $headers,
+            file_get_contents(__DIR__.'/../fixtures/webhook.json')
+        );
+
+        // Check it was created and job was pushed
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertStatus(201);
+
+
+        // Assert the job was pushed with the correct connection
+        Queue::assertPushed(OrdersCreateJob::class, function ($job) use ($customConnection) {
+            return $job->connection === $customConnection;
+        });
+    }
+
     /**
      * Override the default config
      * Allow config change to persist when using $this->call()
