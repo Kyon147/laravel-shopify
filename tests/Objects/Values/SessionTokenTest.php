@@ -49,7 +49,6 @@ class SessionTokenTest extends TestCase
 
         $this->assertSame('', $st->getIssuer());
         $this->assertSame('', $st->getSubject());
-
     }
 
     public function testShouldProcessForValidToken(): void

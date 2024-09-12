@@ -372,7 +372,7 @@ final class SessionToken implements SessionTokenValue
      */
     protected function verifyValidity(): void
     {
-        if($this->tokenSource === SessionTokenSource::APP) {
+        if ($this->tokenSource === SessionTokenSource::APP) {
             Assert::that($this->iss)->contains($this->dest, self::EXCEPTION_INVALID);
         }
 
@@ -398,7 +398,7 @@ final class SessionToken implements SessionTokenValue
 
     protected function determineTokenSource(array $body): int
     {
-        if(!isset($body['iss']) && !isset($body['sid'])) {
+        if (!isset($body['iss']) && !isset($body['sid'])) {
             return SessionTokenSource::CHECKOUT_EXTENSION;
         }
 
