@@ -351,7 +351,7 @@ return [
     | in this configuration file is unnecessary.
     |
     | If you register the listeners manually again here, the listener will be called twice.
-    | 
+    |
     | If you plan to store your listeners in a different directory like `App\Shopify\Listeners`
     | or within multiple directories, then you should register them here.
     |

@@ -41,6 +41,7 @@ class Billable
                     array_merge($request->input(), [
                         'shop' => $shop->getDomain()->toNative(),
                         'host' => $request->get('host'),
+                        'locale' => $request->get('locale'),
                     ])
                 );
             }
