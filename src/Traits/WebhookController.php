@@ -35,7 +35,8 @@ trait WebhookController
         $jobClass::dispatch(
             $request->header('x-shopify-shop-domain'),
             $jobData
-        )->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
+        )->onConnection(Util::getShopifyConfig('job_connections')['webhooks'])
+        ->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
 
         return Response::make('', ResponseResponse::HTTP_CREATED);
     }

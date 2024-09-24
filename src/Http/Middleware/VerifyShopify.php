@@ -305,6 +305,7 @@ class VerifyShopify
                 'shop' => ShopDomain::fromRequest($request)->toNative(),
                 'target' => $target,
                 'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
             ]
         );
     }
@@ -320,7 +321,7 @@ class VerifyShopify
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative(), 'host' => request('host')]
+            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
         );
     }
 
