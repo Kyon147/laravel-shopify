@@ -105,7 +105,7 @@ class WebhookControllerTest extends TestCase
 
         // Extend Job::class into a custom class
         $shop = factory($this->model)->create(['name' => 'example.myshopify.com']);
-       
+
         // Define the custom job connection
         $customConnection = 'custom_connection';
 
