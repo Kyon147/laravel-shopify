@@ -29,6 +29,7 @@ abstract class TokenUrl
                 'shop' => ShopDomain::fromRequest(Request::instance())->toNative(),
                 'target' => URL::route($route, $params, $absolute),
                 'host' => Request::instance()->get('host'),
+                'locale' => Request::instance()->get('locale'),
             ],
         ];
     }

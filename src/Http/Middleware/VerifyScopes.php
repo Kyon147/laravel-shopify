@@ -46,6 +46,7 @@ class VerifyScopes
             [
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
             ]
         );
     }
