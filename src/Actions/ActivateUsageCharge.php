@@ -2,7 +2,6 @@
 
 namespace Osiset\ShopifyApp\Actions;
 
-use Illuminate\Support\Carbon;
 use Osiset\ShopifyApp\Contracts\Commands\Charge as IChargeCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
@@ -94,7 +93,6 @@ class ActivateUsageCharge
         $uct->shopId = $shopId;
         $uct->planId = $shop->plan->getId();
         $uct->chargeReference = ChargeReference::fromNative((int) $response['id']);
-        $uct->billingOn = new Carbon($response['billing_on']);
         $uct->details = $ucd;
 
         // Save the usage charge

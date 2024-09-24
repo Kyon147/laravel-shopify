@@ -27,6 +27,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sub Domain
+    |--------------------------------------------------------------------------
+    |
+    | This is the subdomain where Shopify will be accessible from. If the
+    | setting is null, Shopify will reside under the same domain as the
+    | application. Otherwise, this value will be used as the subdomain.
+    |
+    */
+
+    'domain' => env('SHOPIFY_DOMAIN'),
+    
+    /*
+    |--------------------------------------------------------------------------
     | Manual routes
     |--------------------------------------------------------------------------
     |
@@ -168,7 +181,7 @@ return [
     |
     */
 
-    'api_version' => env('SHOPIFY_API_VERSION', '2024-01'),
+    'api_version' => env('SHOPIFY_API_VERSION', '2024-04'),
 
     /*
     |--------------------------------------------------------------------------
@@ -346,6 +359,18 @@ return [
     | Register listeners to the events
     |--------------------------------------------------------------------------
     |
+    | In Laravel version 11 and later, event listeners located in the `App\Listeners`
+    | directory are automatically registered by default. Therefore, manual registration
+    | in this configuration file is unnecessary.
+    |
+    | If you register the listeners manually again here, the listener will be called twice.
+    |
+    | If you plan to store your listeners in a different directory like `App\Shopify\Listeners`
+    | or within multiple directories, then you should register them here.
+    |
+    | If you are using Laravel version 10 or earlier, then corresponding listeners
+    | must be registered here.
+    |
     */
 
     'listen' => [
@@ -396,8 +421,7 @@ return [
                 'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -416,8 +440,7 @@ return [
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
             ...
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -441,8 +464,7 @@ return [
                 'job' => env('AFTER_AUTHENTICATE_JOB'), // example: \App\Jobs\AfterAuthorizeJob::class
                 'inline' => env('AFTER_AUTHENTICATE_JOB_INLINE', false) // False = dispatch job for later, true = dispatch immediately
             ],
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -459,7 +481,21 @@ return [
         'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Job Connections
+    |--------------------------------------------------------------------------
+    |
+    | This option is for setting a specific job connection for webhooks, scripttags
+    | and after_authenticate_job.
+    |
+    */
 
+    'job_connections' => [
+        'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
+        'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
+    ],
     /*
     |--------------------------------------------------------------------------
     | Config API Callback
@@ -550,8 +586,8 @@ return [
         /*
          * Cache duration
          */
-        'cache_duration' => '12',
-         /*
+        'cache_duration' => 12,
+        /*
          * At which levels of theme support the use of "theme app extension" is not available
          * and script tags will be installed.
          * Available levels: FULL, PARTIAL, UNSUPPORTED.

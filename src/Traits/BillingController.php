@@ -60,6 +60,7 @@ trait BillingController
             [
                 'url' => $url,
                 'host' => $host,
+                'locale' => $request->get('locale'),
                 'apiKey' => Util::getShopifyConfig('api_key', ShopDomain::fromNative($request->get('shop'))),
             ]
         );
@@ -89,6 +90,7 @@ trait BillingController
             return Redirect::route(Util::getShopifyConfig('route_names.home'), [
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $host,
+                'locale' => $request->get('locale'),
             ]);
         }
         // Activate the plan and save
@@ -99,16 +101,20 @@ trait BillingController
             $host
         );
 
+        $data = [
+            'shop' => $shop->getDomain()->toNative(),
+            'host' => $host,
+            'locale' => $request->get('locale'),
+        ];
+
+        if (!Util::useNativeAppBridge()) {
+            $data['billing'] = $result ? 'success' : 'failure';
+        }
+
         // Go to homepage of app
         return Redirect::route(
             Util::getShopifyConfig('route_names.home'),
-            array_merge([
-                'shop' => $shop->getDomain()->toNative(),
-                'host' => $host,
-            ], Util::useNativeAppBridge() ? [] : [
-                'host' => $host,
-                'billing' => $result ? 'success' : 'failure',
-            ])
+            $data
         )->with(
             $result ? 'success' : 'failure',
             'billing'

@@ -23,7 +23,11 @@ if ($manualRoutes) {
     $manualRoutes = explode(',', $manualRoutes);
 }
 
-Route::group(['prefix' => Util::getShopifyConfig('prefix'), 'middleware' => ['web']], function () use ($manualRoutes) {
+Route::group([
+    'domain' => Util::getShopifyConfig('domain'),
+    'prefix' => Util::getShopifyConfig('prefix'), 
+    'middleware' => ['web']
+], function () use ($manualRoutes) {
     /*
     |--------------------------------------------------------------------------
     | Home Route

@@ -72,6 +72,48 @@ class DispatchScriptsTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function testRunDispatchCustomConnection(): void
+    {
+        // Fake the queue
+        Queue::fake();
+
+        // Create the config
+        $this->app['config']->set('shopify-app.scripttags', [
+            [
+                'src' => 'https://js-aplenty.com/foo.js',
+            ],
+        ]);
+
+        // Define the custom job connection
+        $customConnection = 'custom_connection';
+
+        // Set up the configuration
+        $this->app['config']->set('shopify-app.job_connections', [
+            'scripttags' => $customConnection,
+        ]);
+
+        // Setup API stub
+        $this->setApiStub();
+        ApiStub::stubResponses(['get_script_tags']);
+
+        // Create the shop
+        $shop = factory($this->model)->create();
+
+        // Run
+        $result = call_user_func(
+            $this->action,
+            $shop->getId(),
+            false // async
+        );
+
+        // Assert the job was pushed with the correct connection
+        Queue::assertPushed(ScripttagInstaller::class, function ($job) use ($customConnection) {
+            return $job->connection === $customConnection;
+        });
+
+        $this->assertTrue($result);
+    }
+
     public function testRunDispatchNow(): void
     {
         // Fake the queue

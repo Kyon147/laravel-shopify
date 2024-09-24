@@ -31,13 +31,12 @@
                 window.jQuery.ajaxSettings.headers = { 'Authorization': bearer };
             }
         }
-		
-		if (window.Livewire) {
-            // livewire
-            window.livewire.addHeaders({
-                'Authorization': bearer,
-                'content-type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+
+        if (window.Livewire) {
+            window.Livewire.hook('request', ({options}) => {
+                options.headers['Authorization'] = `Bearer ${window.sessionToken}`;
+                options.headers['Content-Type'] = 'application/json';
+                options.headers['X-Requested-With'] = 'XMLHttpRequest';
             });
         }
 
