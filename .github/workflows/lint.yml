@@ -10,7 +10,25 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v2
 
-      - name: Check for code style violation with PHP-CS-Fixer
-        uses: OskarStark/php-cs-fixer-ga@3.0.0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          args: --diff --dry-run
+          php-version: '8.2'
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: cache-composer
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Restore Composer cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.cache-composer.outputs.dir }}
+          key: ${{ runner.os }}-${{ github.ref_name }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+
+      - name: Check for code style violation with PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --diff

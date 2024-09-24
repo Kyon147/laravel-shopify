@@ -48,7 +48,7 @@ Its best to:
 
 If you're forking the repository and wish to keep your copy up-to-date with the master, ensure you run this command:
 
-`git remote add upstream git@github.com:osiset/laravel-shopify.git`
+`git remote add upstream git@github.com:Kyon147/laravel-shopify.git`
 
 You can then update by simply running:
 

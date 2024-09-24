@@ -53,6 +53,47 @@ class AfterAuthorizeTest extends TestCase
         Queue::assertPushed($jobClass);
     }
 
+    public function testRunDispatchCustomConnection(): void
+    {
+        // Fake the queue
+        Queue::fake();
+
+        // Create the config
+        $jobClass = AfterAuthorizeJob::class;
+        $this->app['config']->set('shopify-app.after_authenticate_job', [
+            [
+                'job' => $jobClass,
+                'inline' => false,
+            ],
+            [
+                'job' => $jobClass,
+                'inline' => false,
+            ],
+        ]);
+
+        // Define the custom job connection
+        $customConnection = 'custom_connection';
+
+        // Set up the configuration
+        $this->app['config']->set('shopify-app.job_connections', [
+            'after_authenticate' => $customConnection,
+        ]);
+
+        // Create the shop
+        $shop = factory($this->model)->create();
+
+        // Run
+        call_user_func(
+            $this->action,
+            $shop->getId()
+        );
+
+        // Assert the job was pushed with the correct connection
+        Queue::assertPushed($jobClass, function ($job) use ($customConnection) {
+            return $job->connection === $customConnection;
+        });
+    }
+
     public function testRunInline(): void
     {
         // Create the config
