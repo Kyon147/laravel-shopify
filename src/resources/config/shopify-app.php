@@ -139,8 +139,9 @@ return [
 
     // Use semver range to link to a major or minor version number.
     // Leaving empty will use the latest version - not recommended in production.
-    'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', 'latest'),
-
+   'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', '3.7.10'),
+    'appbridge_utils_version' => env('SHOPIFY_APPBRIDGE_UTILS_VERSION', '3.5.1'),
+    'appbridge_host' => env('SHOPIFY_HOST_VERSION', base64_encode('admin.shopify.com/store/storename')),
     // Set a new CDN URL if you want to host the AppBridge JS yourself or unpkg goes down.
     // DO NOT include a trailing slash.
     'appbridge_cdn_url' => env('SHOPIFY_APPBRIDGE_CDN_URL', 'https://unpkg.com'),
