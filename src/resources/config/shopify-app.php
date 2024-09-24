@@ -27,6 +27,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sub Domain
+    |--------------------------------------------------------------------------
+    |
+    | This is the subdomain where Shopify will be accessible from. If the
+    | setting is null, Shopify will reside under the same domain as the
+    | application. Otherwise, this value will be used as the subdomain.
+    |
+    */
+
+    'domain' => env('SHOPIFY_DOMAIN'),
+    
+    /*
+    |--------------------------------------------------------------------------
     | Manual routes
     |--------------------------------------------------------------------------
     |
@@ -351,7 +364,7 @@ return [
     | in this configuration file is unnecessary.
     |
     | If you register the listeners manually again here, the listener will be called twice.
-    | 
+    |
     | If you plan to store your listeners in a different directory like `App\Shopify\Listeners`
     | or within multiple directories, then you should register them here.
     |
@@ -468,7 +481,21 @@ return [
         'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Job Connections
+    |--------------------------------------------------------------------------
+    |
+    | This option is for setting a specific job connection for webhooks, scripttags
+    | and after_authenticate_job.
+    |
+    */
 
+    'job_connections' => [
+        'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
+        'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
+    ],
     /*
     |--------------------------------------------------------------------------
     | Config API Callback
