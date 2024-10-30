@@ -1,10 +1,14 @@
 {
-    "access_scopes": [
-        {
-            "handle": "read_products"
-        },
-        {
-            "handle": "write_products"
+    "data": {
+        "currentAppInstallation": {
+            "accessScopes": [
+                {
+                    "handle": "write_products"
+                },
+                {
+                    "handle": "read_products"
+                }
+            ]
         }
-    ]
+    }
 }
