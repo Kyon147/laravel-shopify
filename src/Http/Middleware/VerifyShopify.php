@@ -377,20 +377,9 @@ class VerifyShopify
      */
     protected function getAccessTokenFromRequest(Request $request): ?string
     {
-        if (Util::getShopifyConfig('turbo_enabled')) {
-            if ($request->bearerToken()) {
-                // Bearer tokens collect.
-                // Turbo does not refresh the page, values are attached to the same header.
-                $bearerTokens = Collection::make(explode(',', $request->header('Authorization', '')));
-                $newestToken = Str::substr(trim($bearerTokens->last()), 7);
-
-                return $newestToken;
-            }
-
-            return $request->get('token');
-        }
-
-        return $this->isApiRequest($request) ? $request->bearerToken() : $request->get('token');
+        return $this->isApiRequest($request)
+            ? $request->bearerToken()
+            : $request->get('token');
     }
 
     /**
