@@ -6,8 +6,7 @@
 
     <title>{{ \Osiset\ShopifyApp\Util::getShopifyConfig('app_name') }}</title>
 
-    <meta name="shopify-api-key"
-          content="{{ \Osiset\ShopifyApp\Util::getShopifyConfig('api_key', $shopDomain ?? Auth::user()->name ) }}"/>
+    <meta name="shopify-api-key" content="{{ \Osiset\ShopifyApp\Util::getShopifyConfig('api_key', $shopDomain ?? Auth::user()->name ) }}"/>
     <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 
     @yield('styles')

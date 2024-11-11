@@ -25,10 +25,9 @@ class HomeControllerTest extends TestCase
         $shop = factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
 
         $host = base64_encode($shop->getDomain()->toNative().'/admin');
-        $this->call('get', '/', ['token' => $this->buildToken(), 'host' => $host])
+        $this->call('get', '/', ['id_token' => $this->buildToken(), 'host' => $host])
             ->assertOk()
-            ->assertSee('apiKey: "'.Util::getShopifyConfig('api_key').'"', false)
-            ->assertSee("host: \"{$host}\"", false);
+            ->assertSee('name="shopify-api-key" content="'.Util::getShopifyConfig('api_key').'"', false);
     }
 
     public function testHomeRouteHostAdmin(): void
@@ -36,9 +35,8 @@ class HomeControllerTest extends TestCase
         $shop = factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
 
         $host = base64_encode('admin.shopify.com/store/shop-name');
-        $this->call('get', '/', ['token' => $this->buildToken(), 'host' => $host])
+        $this->call('get', '/', ['id_token' => $this->buildToken(), 'host' => $host])
             ->assertOk()
-            ->assertSee('apiKey: "'.Util::getShopifyConfig('api_key').'"', false)
-            ->assertSee("host: \"{$host}\"", false);
+            ->assertSee('name="shopify-api-key" content="'.Util::getShopifyConfig('api_key').'"', false);
     }
 }
