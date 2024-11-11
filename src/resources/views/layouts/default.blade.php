@@ -6,7 +6,7 @@
         <meta name="shopify-api-key" content="{{ config('shopify-app.api_key') }}" />
         <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 
-        <title>{{ \Osiset\ShopifyApp\Util::getShopifyConfig('app_name') }}</title>
+        <title>{{ config('shopify-app.app_name') }}</title>
         @yield('styles')
     </head>
 

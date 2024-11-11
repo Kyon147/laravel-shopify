@@ -10,7 +10,7 @@
 
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
-                let redirectUrl = "{!! $authUrl !!}";
+                let redirectUrl = "{!! $url !!}";
 
                 if (window.top === window.self) {
                     window.top.location.href = redirectUrl;

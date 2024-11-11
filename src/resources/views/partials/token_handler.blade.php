@@ -1,7 +1,8 @@
 <script>
-    let SESSION_TOKEN_REFRESH_INTERVAL = {{ \Osiset\ShopifyApp\Util::getShopifyConfig('session_token_refresh_interval') }};
+    var SESSION_TOKEN_REFRESH_INTERVAL = {{ config('shopify-app.session_token_refresh_interval') }};
+    var LOAD_EVENT = 'DOMContentLoaded'
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener(LOAD_EVENT, () => {
         retrieveToken();
         keepRetrievingToken();
     });
@@ -29,7 +30,6 @@
         }
 
         if (window.Livewire) {
-            // Works only with Livewire 2
             window.Livewire.hook('request', ({options}) => {
                 options.headers['Authorization'] = `Bearer ${window.sessionToken}`;
                 options.headers['Content-Type'] = 'application/json';
