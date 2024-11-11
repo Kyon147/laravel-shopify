@@ -387,10 +387,10 @@ class VerifyShopify
                 return $newestToken;
             }
 
-            return $request->get('token');
+            return $request->get('id_token');
         }
 
-        return $this->isApiRequest($request) ? $request->bearerToken() : $request->get('token');
+        return $this->isApiRequest($request) ? $request->bearerToken() : $request->get('id_token');
     }
 
     /**

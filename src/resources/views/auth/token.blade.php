@@ -37,9 +37,30 @@
 
     @if(config('shopify-app.appbridge_enabled'))
         <script>
-            const host = new URLSearchParams(location.search).get("host")
-            utils.getSessionToken(app).then((token) => {
-                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}{{ Str::contains($target, 'host')? '' : '&host=${host}'}}`;
+            const host = new URLSearchParams(location.search).get("host");
+
+            shopify.idToken().then((token) => {
+                // Construct the initial target path and convert it into a URL object
+                let targetPath = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}id_token=${token}{{ Str::contains($target, 'host') ? '' : '&host=${host}'}}`;
+                const targetUrl = new URL(targetPath, window.location.origin); // Uses current origin to build URL
+
+                // Parse and update search parameters from the target URL
+                const urlParams = targetUrl.searchParams;
+                urlParams.set('id_token', token); // Ensure 'id_token' is set or updated
+                if (host) {
+                    urlParams.set('host', host); // Ensure 'host' is set if it was not in the target
+                }
+
+                // Enforce HTTPS if the current page is using HTTPS
+                if (window.location.protocol === 'https:') {
+                    targetUrl.protocol = 'https:';
+                }
+
+                // Only push to history if the final URL is different from the current URL
+                if (window.location.href !== targetUrl.href) {
+                    window.location = targetUrl; // Redirect to the target URL
+                    history.pushState(null, '', targetUrl.href); // Update the URL in the history without a page reload
+                }
             });
         </script>
     @endif
