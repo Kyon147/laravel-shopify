@@ -34,16 +34,20 @@
 
 @section('scripts')
     @parent
-
         <script>
-            shopify.idToken().then((token) => {
-                const host = new URLSearchParams(location.search).get("host");
-                const url = new URL(`{!! $target !!}`, window.location.origin);
+                shopify.idToken().then((token) => {
+                    const host = new URLSearchParams(location.search).get("host");
+                    let url = new URL(`{!! $target !!}`, window.location.origin);
 
-                url.searchParams.set('token', token);
-                url.searchParams.set('host', host);
+                    // Enforce HTTPS if the current page is using HTTPS
+                    if (window.location.protocol === 'https:') {
+                        url.protocol = 'https:';
+                    }
 
-                open(url.toString(), "_self");
-            });
+                    url.searchParams.set('token', token);
+                    url.searchParams.set('host', host);
+
+                    open(url.toString(), "_self");
+                });
         </script>
 @endsection
