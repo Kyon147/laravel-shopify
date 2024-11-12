@@ -58,6 +58,7 @@
                     url.searchParams.set('host', host);
 
                     open(url.toString(), "_self");
+                    history.pushState(null, '', url.toString());
                 });
         </script>
 @endsection
