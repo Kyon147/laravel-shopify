@@ -35,10 +35,20 @@
 @section('scripts')
     @parent
         <script>
-                shopify.idToken().then((token) => {
-                    const host = new URLSearchParams(location.search).get("host");
-                    let url = new URL(`{!! $target !!}`, window.location.origin);
+                // If no host is found, we need to throw an error
+                const host = new URLSearchParams(location.search).get("host");
+                if (!host) {
+                    throw new Error('No host found in the URL');
+                }
 
+                // If shopify is not defined, then we are not in a Shopify context redirect to the homepage as it
+                if (typeof shopify === 'undefined') {
+                    open("{{ route('home') }}", "_self");
+                }
+
+                shopify.idToken().then((token) => {
+
+                    let url = new URL(`{!! $target !!}`, window.location.origin);
                     // Enforce HTTPS if the current page is using HTTPS
                     if (window.location.protocol === 'https:') {
                         url.protocol = 'https:';
