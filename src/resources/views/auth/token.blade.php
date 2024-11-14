@@ -34,13 +34,31 @@
 
 @section('scripts')
     @parent
-
-    @if(config('shopify-app.appbridge_enabled'))
         <script>
-            const host = new URLSearchParams(location.search).get("host")
-            utils.getSessionToken(app).then((token) => {
-                window.location.href = `{!! $target !!}{!! Str::contains($target, '?') ? '&' : '?' !!}token=${token}{{ Str::contains($target, 'host')? '' : '&host=${host}'}}`;
-            });
+                // If no host is found, we need to throw an error
+                const host = new URLSearchParams(location.search).get("host");
+                if (!host) {
+                    throw new Error('No host found in the URL');
+                }
+
+                // If shopify is not defined, then we are not in a Shopify context redirect to the homepage as it
+                if (typeof shopify === 'undefined') {
+                    open("{{ route('home') }}", "_self");
+                }
+
+                shopify.idToken().then((token) => {
+
+                    let url = new URL(`{!! $target !!}`, window.location.origin);
+                    // Enforce HTTPS if the current page is using HTTPS
+                    if (window.location.protocol === 'https:') {
+                        url.protocol = 'https:';
+                    }
+
+                    url.searchParams.set('token', token);
+                    url.searchParams.set('host', host);
+
+                    open(url.toString(), "_self");
+                    history.pushState(null, '', url.toString());
+                });
         </script>
-    @endif
 @endsection

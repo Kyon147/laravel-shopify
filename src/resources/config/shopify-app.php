@@ -37,7 +37,6 @@ return [
     */
 
     'domain' => env('SHOPIFY_DOMAIN'),
-    
     /*
     |--------------------------------------------------------------------------
     | Manual routes
@@ -137,26 +136,6 @@ return [
     */
 
     'prefix' => env('SHOPIFY_APP_PREFIX', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | AppBridge Mode
-    |--------------------------------------------------------------------------
-    |
-    | AppBridge (embedded apps) are enabled by default. Set to false to use legacy
-    | mode and host the app inside your own container.
-    |
-    */
-
-    'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
-
-    // Use semver range to link to a major or minor version number.
-    // Leaving empty will use the latest version - not recommended in production.
-    'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', 'latest'),
-
-    // Set a new CDN URL if you want to host the AppBridge JS yourself or unpkg goes down.
-    // DO NOT include a trailing slash.
-    'appbridge_cdn_url' => env('SHOPIFY_APPBRIDGE_CDN_URL', 'https://unpkg.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -512,18 +491,6 @@ return [
     */
 
     'config_api_callback' => null,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Enable Turbolinks or Hotwire Turbo
-    |--------------------------------------------------------------------------
-    |
-    | If you use Turbolinks/Turbo and Livewire, turn on this setting to get
-    | the token assigned automatically.
-    |
-    */
-
-    'turbo_enabled' => (bool) env('SHOPIFY_TURBO_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
