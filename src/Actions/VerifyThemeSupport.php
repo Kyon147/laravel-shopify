@@ -90,7 +90,14 @@ final class VerifyThemeSupport
     {
         $filenamesForMainSections = array_filter(
             array_map(function ($asset) {
-                $assetContent = json_decode($asset['content'], true);
+                $content = $asset['content'];
+
+                if (! $this->json_validate($content)) {
+                    $content = preg_replace("#(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|([\s\t]//.*)|(^//.*)#", '', $content);
+                }
+
+                $assetContent = json_decode($content, true);
+
 
                 $mainAsset = array_filter($assetContent['sections'], function ($value, $key) {
                     return $key == self::MAIN_ROLE || str_starts_with($value['type'], self::MAIN_ROLE);
@@ -133,5 +140,13 @@ final class VerifyThemeSupport
 
             return $acceptsAppBlock ? $file : null;
         }, $templateMainSections));
+    }
+
+
+    private function json_validate(string $string): bool
+    {
+        json_decode($string);
+
+        return json_last_error() === JSON_ERROR_NONE;
     }
 }
