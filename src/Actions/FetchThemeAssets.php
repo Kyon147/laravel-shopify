@@ -38,7 +38,7 @@ final class FetchThemeAssets
         if (blank(data_get($response['body']->toArray(), 'data.theme.userErrors'))) {
             return array_map(fn (array $data) => [
                 'filename' => $data['filename'],
-                'content' => $data['body']['content'],
+                'content' => $data['body']['content'] ?? '',
             ], data_get($response['body']->toArray(), 'data.theme.files.nodes'));
         }
 
