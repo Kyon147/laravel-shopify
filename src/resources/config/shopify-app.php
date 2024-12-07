@@ -388,7 +388,12 @@ return [
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
-                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create')
+                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                // Optionally you can create an ORDERS_CREATE webhook subscription that includes metafields during serialization
+                // This can be comma-separated string or array
+                'metafield_namespaces' => 'custom,mynamespace',
+                // Or create webhook subscription with fewer resource fields during serialization
+                'include_fields' => 'id,note',
             ], [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
                 'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
