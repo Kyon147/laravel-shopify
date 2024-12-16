@@ -43,7 +43,7 @@
 
                 // If shopify is not defined, then we are not in a Shopify context redirect to the homepage as it
                 if (typeof shopify === 'undefined') {
-                    open("{{ route('home') }}", "_self");
+                    open("{{ route(\Osiset\ShopifyApp\Util::getShopifyConfig('route_names.home')) }}", "_self");
                 }
 
                 shopify.idToken().then((token) => {
