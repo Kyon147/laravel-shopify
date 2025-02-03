@@ -4,6 +4,7 @@ namespace Osiset\ShopifyApp\ApiKeyFinder;
 
 use Illuminate\Support\Facades\Config;
 use Osiset\ShopifyApp\Contracts\CurrentApiKeyFinderInterface;
+use Osiset\ShopifyApp\Objects\Values\NullableShopDomain;
 
 class CurrentApiKeyFinder implements CurrentApiKeyFinderInterface
 {
@@ -16,7 +17,7 @@ class CurrentApiKeyFinder implements CurrentApiKeyFinderInterface
         }
 
         // Clean the shop domain
-        $shopDomain = $shop instanceof ShopDomainValue ? $shop->toNative() : $shop;
+        $shopDomain = $shop instanceof NullableShopDomain ? $shop->toNative() : $shop;
         $shopDomain = preg_replace('/[^A-Z0-9]/', '', strtoupper(explode('.', $shopDomain)[0]));
 
         // Try to get env defined for shop, fallback to config value
