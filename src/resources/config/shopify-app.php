@@ -515,6 +515,9 @@ return [
     */
 
     // 'config_api_class' => Osiset\ShopifyApp\ApiKeyFinder\CurrentApiKeyFinder::class,
+    // 'config_api_shop_keys' => [
+    //     'api_key_shop-name' => env('API_KEY_SHOPNAME', ''),
+    // ],
 
     /*
     |--------------------------------------------------------------------------

@@ -8,22 +8,27 @@ use Osiset\ShopifyApp\Objects\Values\NullableShopDomain;
 
 class CurrentApiKeyFinder implements CurrentApiKeyFinderInterface
 {
+    private const SUPPORTED_KEYS = [
+        'api_key',
+        'api_secret'
+    ];
+
     public static function resolve(string $key, $shop = null): ?string
     {
         $fullKey = "shopify-app.{$key}";
-        if (! $shop) {
+        if (! $shop || ! in_array($key, self::SUPPORTED_KEYS)) {
             // No shop passed, return default
             return Config::get($fullKey);
         }
 
-        // Clean the shop domain
         $shopDomain = $shop instanceof NullableShopDomain ? $shop->toNative() : $shop;
-        $shopDomain = preg_replace('/[^A-Z0-9]/', '', strtoupper(explode('.', $shopDomain)[0]));
+        $shopDomain = explode('.', $shopDomain)[0];
+        $searchKey = "shopify-app.config_api_shop_keys.{$key}_{$shopDomain}";
 
-        // Try to get env defined for shop, fallback to config value
-        return env(
-            strtoupper($key) . "_" . $shopDomain,
-            Config::get($fullKey)
-        );
+        if (! Config::has($searchKey)) {
+            return Config::get($fullKey);
+        }
+
+        return Config::get($searchKey);
     }
 }
