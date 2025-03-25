@@ -70,20 +70,10 @@ class GetPlanUrl
         $plan = $planId->isNull() ? $this->planQuery->getDefault() : $this->planQuery->getById($planId);
 
         // Confirmation URL
-        if ($plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative()) {
-            $api = $shop->apiHelper()
-                ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
+        $api = $shop->apiHelper()
+            ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
 
-            $confirmationUrl = $api['confirmationUrl'];
-        } else {
-            $api = $shop->apiHelper()
-                ->createCharge(
-                    ChargeType::fromNative($plan->getType()->toNative()),
-                    $this->chargeHelper->details($plan, $shop, $host)
-                );
-
-            $confirmationUrl = $api['confirmation_url'];
-        }
+        $confirmationUrl = $api['confirmationUrl'];
 
         return $confirmationUrl;
     }
