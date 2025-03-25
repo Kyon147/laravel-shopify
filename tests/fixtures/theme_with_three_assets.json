@@ -1,0 +1,28 @@
+{
+    "data": {
+        "theme": {
+            "files": {
+                "nodes": [
+                    {
+                        "filename": "templates\/collection.json",
+                        "body": {
+                            "content": "{\"sections\":{\"banner\":{\"type\":\"main-collection-banner\",\"settings\":{\"show_collection_description\":true,\"show_collection_image\":false,\"color_scheme\":\"scheme-1\"}},\"product-grid\":{\"type\":\"main-collection-product-grid\",\"settings\":{\"products_per_page\":36,\"columns_desktop\":4,\"color_scheme\":\"scheme-1\",\"image_ratio\":\"square\",\"image_shape\":\"default\",\"show_secondary_image\":false,\"show_vendor\":false,\"show_rating\":false,\"quick_add\":\"none\",\"enable_filtering\":false,\"filter_type\":\"horizontal\",\"enable_sorting\":false,\"columns_mobile\":\"2\",\"padding_top\":12,\"padding_bottom\":36}}},\"order\":[\"banner\",\"product-grid\"]}"
+                        }
+                    },
+                    {
+                        "filename": "templates\/index.json",
+                        "body": {
+                            "content": "{\"sections\":{\"featured_collection\":{\"type\":\"featured-collection\",\"settings\":{\"title\":\"\",\"heading_size\":\"h2\",\"description\":\"\",\"show_description\":false,\"description_style\":\"body\",\"collection\":\"all\",\"products_to_show\":24,\"columns_desktop\":4,\"full_width\":false,\"show_view_all\":true,\"view_all_style\":\"outline\",\"enable_desktop_slider\":false,\"color_scheme\":\"scheme-1\",\"image_ratio\":\"square\",\"image_shape\":\"default\",\"show_secondary_image\":true,\"show_vendor\":false,\"show_rating\":false,\"quick_add\":\"none\",\"columns_mobile\":\"2\",\"swipe_on_mobile\":false,\"padding_top\":0,\"padding_bottom\":36}},\"172958410329a4adbe\":{\"type\":\"apps\",\"blocks\":{\"loremipsum_my_widget_BtezBH\":{\"type\":\"shopify:\\\/\\\/apps\\\/loremipsum\\\/blocks\\\/my_widget\\\/6ca5cd00-a542-47c2-a672-bc6daaf24cda\",\"settings\":{\"upsellWidgetUniqueKey\":\"bolideai-ucs-zqulhhvilepuiqo\"}}},\"block_order\":[\"loremipsum_my_widget_BtezBH\"],\"settings\":{\"include_margins\":true}}},\"order\":[\"featured_collection\",\"172958410329a4adbe\"]}"
+                        }
+                    },
+                    {
+                        "filename": "templates\/product.json",
+                        "body": {
+                            "content": "{\"sections\":{\"main\":{\"type\":\"main-product\",\"blocks\":{\"title\":{\"type\":\"title\",\"settings\":{}},\"price\":{\"type\":\"price\",\"settings\":{}},\"variant_picker\":{\"type\":\"variant_picker\",\"settings\":{\"picker_type\":\"dropdown\",\"swatch_shape\":\"circle\"}},\"quantity_selector\":{\"type\":\"quantity_selector\",\"settings\":{}},\"buy_buttons\":{\"type\":\"buy_buttons\",\"settings\":{\"show_dynamic_checkout\":true,\"show_gift_card_recipient\":true}},\"description\":{\"type\":\"description\",\"settings\":{}},\"share\":{\"type\":\"share\",\"settings\":{\"share_label\":\"Share\"}},\"visitors_counter_boost_trust_visitor_counter_Twap9C\":{\"type\":\"shopify:\\\/\\\/apps\\\/visitors-counter-boost-trust\\\/blocks\\\/visitor_counter\\\/e0f3ea31-aa1d-41e8-9fac-8f16b0b0007e\",\"settings\":{\"counterText\":\"\ud83d\udc64 {visitsCount} people viewed this product today!\",\"counterFontFamily\":\"arial, sans-serif\",\"counterFontSize\":12,\"counterFontWeight\":300,\"verticalAlignment\":\"left\",\"textColor\":\"#45729c\",\"backgroundColor\":\"#b0e7ff\",\"counterRoundedCorners\":0,\"counterPadding\":0,\"interval\":\"ONE_HOUR\",\"product\":\"\"}}},\"block_order\":[\"title\",\"price\",\"variant_picker\",\"quantity_selector\",\"buy_buttons\",\"description\",\"share\",\"visitors_counter_boost_trust_visitor_counter_Twap9C\"],\"settings\":{\"enable_sticky_info\":false,\"color_scheme\":\"scheme-1\",\"media_size\":\"large\",\"constrain_to_viewport\":false,\"media_fit\":\"contain\",\"gallery_layout\":\"stacked\",\"media_position\":\"left\",\"image_zoom\":\"lightbox\",\"mobile_thumbnails\":\"hide\",\"hide_variants\":true,\"enable_video_looping\":false,\"padding_top\":16,\"padding_bottom\":0}},\"related-products\":{\"type\":\"related-products\",\"settings\":{\"heading\":\"Related products\",\"heading_size\":\"h2\",\"products_to_show\":4,\"columns_desktop\":4,\"color_scheme\":\"scheme-1\",\"image_ratio\":\"square\",\"image_shape\":\"default\",\"show_secondary_image\":true,\"show_vendor\":false,\"show_rating\":false,\"columns_mobile\":\"2\",\"padding_top\":8,\"padding_bottom\":28}}},\"order\":[\"main\",\"related-products\"]}"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
