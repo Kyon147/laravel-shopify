@@ -72,7 +72,7 @@ class AppUninstalledJob implements ShouldQueue
 
         // Get the shop
         $shop = $shopQuery->getByDomain($this->domain);
-        if ( !$shop ) {
+        if (!$shop) {
             return true;
         }
         $shopId = $shop->getId();

@@ -87,8 +87,12 @@ class AuthenticateShop
         $result = call_user_func(
             $this->installShopAction,
             ShopDomain::fromNative($request->get('shop')),
-            $request->query('code')
+            $request->query('id_token')
         );
+        if ($result['completed']) {
+            // Install completed.
+            return [$result, true];
+        }
 
         if (! $result['completed']) {
             // No code, redirect to auth URL
@@ -97,7 +101,7 @@ class AuthenticateShop
 
         // Determine if the HMAC is correct
         $this->apiHelper->make();
-        if (! $this->apiHelper->verifyRequest($request->all())) {
+        if (! $this->apiHelper->verifyRequest($request->except('id_token'))) {
             // Throw exception, something is wrong
             return [$result, null];
         }
