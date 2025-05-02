@@ -89,32 +89,23 @@ class AuthenticateShop
             ShopDomain::fromNative($request->get('shop')),
             $request->query('id_token')
         );
-        if ($result['completed']) {
-            // Install completed.
-            return [$result, true];
-        }
 
         if (! $result['completed']) {
             // No code, redirect to auth URL
             return [$result, false];
         }
 
-        // Determine if the HMAC is correct
-        $this->apiHelper->make();
-        if (! $this->apiHelper->verifyRequest($request->except('id_token'))) {
-            // Throw exception, something is wrong
-            return [$result, null];
+        if ($result['shop_just_installed']) {
+            // Fire the post processing jobs
+            if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
+                call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
+            }
+
+            call_user_func($this->dispatchWebhooksAction, $result['shop_id'], false);
+            call_user_func($this->afterAuthorizeAction, $result['shop_id']);
+
+            event(new AppInstalledEvent($result['shop_id']));
         }
-
-        // Fire the post processing jobs
-        if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
-            call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
-        }
-
-        call_user_func($this->dispatchWebhooksAction, $result['shop_id'], false);
-        call_user_func($this->afterAuthorizeAction, $result['shop_id']);
-
-        event(new AppInstalledEvent($result['shop_id']));
 
         return [$result, true];
     }
