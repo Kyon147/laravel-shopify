@@ -68,8 +68,6 @@ class InstallShop
      */
     public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
     {
-        $shopJustInstalled = false;
-
         // Get the shop
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
 
@@ -77,7 +75,6 @@ class InstallShop
             // Shop does not exist, make them and re-get
             $this->shopCommand->make($shopDomain, NullAccessToken::fromNative(null));
             $shop = $this->shopQuery->getByDomain($shopDomain);
-            $shopJustInstalled = true;
         }
 
         // Access/grant mode
@@ -99,7 +96,6 @@ class InstallShop
             // if the store has been deleted, restore the store to set the access token
             if ($shop->trashed()) {
                 $shop->restore();
-                $shopJustInstalled = true;
             }
 
             // Get the data and set the access token
@@ -121,7 +117,6 @@ class InstallShop
                 'url' => null,
                 'shop_id' => $shop->getId(),
                 'theme_support_level' => $themeSupportLevel,
-                'shop_just_installed' => $shopJustInstalled,
             ];
         } catch (Exception $e) {
             // Just return the default setting

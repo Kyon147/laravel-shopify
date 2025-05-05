@@ -151,38 +151,28 @@ class ApiHelper implements IApiHelper
      */
     public function performOfflineTokenExchange(string $token): ResponseAccess
     {
-        try {
-            $data = [
-                'client_id' => $this->api->getOptions()->getApiKey(),
-                'client_secret' => $this->api->getOptions()->getApiSecret(),
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token' => $token,
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
-                'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
-            ];
-            $response = $this->api->request(
-                'POST',
-                '/admin/oauth/access_token',
-                [
-                    'json' => $data,
-                ]
+        $data = [
+            'client_id' => $this->api->getOptions()->getApiKey(),
+            'client_secret' => $this->api->getOptions()->getApiSecret(),
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token' => $token,
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
+            'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
+        ];
+        $response = $this->api->request(
+            'POST',
+            '/admin/oauth/access_token',
+            [
+                'json' => $data,
+            ]
+        );
+
+        if (isset($response['errors']) && $response['errors'] === true) {
+            throw new ApiException(
+                is_string($response['body']) ? $response['body'] : 'Unknown error',
+                0,
+                $response['exception']
             );
-
-            // Check for errors
-            if (isset($response['errors']) && $response['errors'] === true) {
-                throw new ApiException(
-                    is_string($response['body']) ? $response['body'] : 'Unknown error',
-                    0,
-                    $response['exception']
-                );
-            }
-
-        } catch (ClientException $e) {
-            $body = json_decode($e->getResponse()->getBody()->getContents());
-
-            throw new Exception($body->error_description);
-        } catch (ApiException $e) {
-            throw $e;
         }
 
         return $response['body'];

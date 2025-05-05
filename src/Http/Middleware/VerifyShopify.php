@@ -317,13 +317,14 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
-     * @param string $token The session token.
+     * @param string|null $token The session token (for Managed App Installation).
      *
      * @return RedirectResponse
      */
     protected function installRedirect(ShopDomainValue $shopDomain, ?string $token): RedirectResponse
     {
         if ($token !== null) {
+            // Managed App Installation.
             return Redirect::route(
                 Util::getShopifyConfig('route_names.authenticate'),
                 ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
