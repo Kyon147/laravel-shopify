@@ -103,7 +103,7 @@ class InstallShop
             }
 
             // Get the data and set the access token
-            $data = $apiHelper->getAccessData($idToken === null ? $code : $idToken);
+            $data = $idToken !== null ? $apiHelper->performOfflineTokenExchange($idToken) : $apiHelper->getAccessData($code);
             $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
 
             // Try to get the theme support level, if not, return the default setting

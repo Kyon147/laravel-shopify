@@ -148,18 +148,15 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     *
-     * @codeCoverageIgnore No need to retest.
      */
-    public function getAccessData(string $code): ResponseAccess
+    public function performOfflineTokenExchange(string $token): ResponseAccess
     {
-        // Perform Session Token Exchange to request an offline access token.
         try {
             $data = [
                 'client_id' => $this->api->getOptions()->getApiKey(),
                 'client_secret' => $this->api->getOptions()->getApiSecret(),
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token' => $code,
+                'subject_token' => $token,
                 'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
                 'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
             ];
@@ -189,8 +186,15 @@ class ApiHelper implements IApiHelper
         }
 
         return $response['body'];
+    }
 
-        // TODO: Figure out how to conditionally perform the above token exchange, or this one below.
+    /**
+     * {@inheritdoc}
+     *
+     * @codeCoverageIgnore No need to retest.
+     */
+    public function getAccessData(string $code): ResponseAccess
+    {
         return $this->api->requestAccess($code);
     }
 
