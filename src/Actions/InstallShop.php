@@ -61,11 +61,12 @@ class InstallShop
      * Execution.
      *
      * @param ShopDomain $shopDomain The shop ID.
-     * @param string|null $code The code from Shopify.
+     * @param string|null $code The code from Shopify (for OAuth).
+     * @param string|null $idToken The id_token from Shopify (for Managed App Installation).
      *
      * @return array
      */
-    public function __invoke(ShopDomain $shopDomain, ?string $code): array
+    public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
     {
         $shopJustInstalled = false;
 
@@ -86,7 +87,7 @@ class InstallShop
             AuthMode::OFFLINE();
 
         // If there's no code
-        if (empty($code)) {
+        if (empty($code) && empty($idToken)) {
             return [
                 'completed' => false,
                 'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
@@ -102,7 +103,7 @@ class InstallShop
             }
 
             // Get the data and set the access token
-            $data = $apiHelper->getAccessData($code);
+            $data = $apiHelper->getAccessData($idToken === null ? $code : $idToken);
             $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
 
             // Try to get the theme support level, if not, return the default setting

@@ -208,7 +208,10 @@ class VerifyShopify
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(ShopDomain::fromRequest($request), $request->query('id_token'));
+        return $this->installRedirect(
+            ShopDomain::fromRequest($request),
+            $request->has('id_token') ? $request->query('id_token') : null
+        );
     }
 
     /**
@@ -320,9 +323,16 @@ class VerifyShopify
      */
     protected function installRedirect(ShopDomainValue $shopDomain, ?string $token): RedirectResponse
     {
+        if ($token !== null) {
+            return Redirect::route(
+                Util::getShopifyConfig('route_names.authenticate'),
+                ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
+            );
+        }
+
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
+            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
         );
     }
 
@@ -381,7 +391,6 @@ class VerifyShopify
         return $this->isApiRequest($request)
             ? $request->bearerToken()
             : $request->get('token');
-        //            : $request->query('id_token') ?? $request->get('token');
     }
 
     /**
