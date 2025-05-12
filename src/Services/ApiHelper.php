@@ -39,7 +39,7 @@ class ApiHelper implements IApiHelper
     /**
      * {@inheritdoc}
      */
-    public function make(Session $session = null): self
+    public function make(?Session $session = null): self
     {
         // Create the options
         $opts = new Options();
@@ -485,7 +485,7 @@ class ApiHelper implements IApiHelper
      *
      * @return array
      */
-    protected function doRequest(ApiMethod $method, string $path, array $payload = null)
+    protected function doRequest(ApiMethod $method, string $path, ?array $payload = null)
     {
         $response = $this->api->rest($method->toNative(), $path, $payload);
         if ($response['errors'] === true) {
@@ -531,7 +531,7 @@ class ApiHelper implements IApiHelper
      *
      * @return NullableShopDomain
      */
-    private function getShopDomain(Session $session = null): NullableShopDomain
+    private function getShopDomain(?Session $session = null): NullableShopDomain
     {
         // Check for existing session passed in
         if ($session && $session->getShop()) {
