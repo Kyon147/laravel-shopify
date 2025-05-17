@@ -101,20 +101,24 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
-            $shop = $this->getShopIfAlreadyInstalled($request);
-            $storeResult = !$this->isApiRequest($request) && $shop;
-
-            if ($storeResult) {
-                $this->loginFromShop($shop);
-
-                return $next($request);
-            }
-        }
-
         $tokenSource = $this->getAccessTokenFromRequest($request);
 
         if ($tokenSource === null) {
+            if (!Util::useNativeAppBridge()) {
+                if (str_contains($request->path(), 'api/')) {
+                    throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
+                }
+
+                $shop = $this->getShopIfAlreadyInstalled($request);
+                $storeResult = !$this->isApiRequest($request) && $shop;
+
+                if ($storeResult) {
+                    $this->loginFromShop($shop);
+
+                    return $next($request);
+                }
+            }
+
             //Check if there is a store record in the database
             return $this->checkPreviousInstallation($request)
                 // Shop exists, token not available, we need to get one

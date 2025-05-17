@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Http\Middleware;
 
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
@@ -318,7 +319,7 @@ class VerifyShopifyTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
-    public function testNotNativeAppbridgeWithTokenProcessingAndLoginShop(): void
+    public function testNotNativeAppBridgeWithTokenProcessingAndLoginShop(): void
     {
         // Create a shop that matches the token from buildToken
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
@@ -348,5 +349,30 @@ class VerifyShopifyTest extends TestCase
         // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
         $this->assertTrue($result[0]);
+    }
+
+    public function testAccessingApiRouteFromBrowserReceivedAccessError(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Access denied');
+        $this->expectExceptionCode(Response::HTTP_FORBIDDEN);
+
+        // Create a shop that matches the token from buildToken
+        factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+
+        // Setup the request
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            query: [
+                'shop' => 'shop-name.myshopify.com',
+            ],
+            server: [
+                'HTTP_Authorization' => "Bearer {$this->buildToken()}",
+                'REQUEST_URI' => 'api/some/endpoint',
+            ]
+        );
+
+        $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 }
