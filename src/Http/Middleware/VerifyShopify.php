@@ -101,7 +101,7 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
+        if (!Util::isMPAApplication()) {
             $shop = $this->getShopIfAlreadyInstalled($request);
             $storeResult = !$this->isApiRequest($request) && $shop;
 

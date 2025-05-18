@@ -215,7 +215,7 @@ class VerifyShopifyTest extends TestCase
         $currentRequest = Request::instance();
         $newRequest = $currentRequest->duplicate(
             // Query Params
-            ['token' => $this->buildToken() . 'OOPS'],
+            ['token' => $this->buildToken().'OOPS'],
             // Request Params
             null,
             // Attributes
