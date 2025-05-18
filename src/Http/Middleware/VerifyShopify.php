@@ -104,11 +104,16 @@ class VerifyShopify
         $tokenSource = $this->getAccessTokenFromRequest($request);
 
         if ($tokenSource === null) {
-            if (!Util::useNativeAppBridge()) {
-                if (str_contains($request->path(), 'api/')) {
-                    throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
-                }
+            $forbiddenMiddlewareMatches = array_intersect(
+                Util::getShopifyConfig('forbidden_web_middleware_groups'),
+                $request->route()?->middleware() ?? []
+            );
 
+            if (filled($forbiddenMiddlewareMatches)) {
+                throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
+            }
+
+            if (!Util::useNativeAppBridge()) {
                 $shop = $this->getShopIfAlreadyInstalled($request);
                 $storeResult = !$this->isApiRequest($request) && $shop;
 
