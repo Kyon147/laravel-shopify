@@ -6,7 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use LogicException;
-use Osiset\ShopifyApp\Objects\Enums\FrontendEngine;
+use Osiset\ShopifyApp\Objects\Enums\FrontendType;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 
 /**
@@ -36,7 +36,7 @@ class Util
             ksort($data);
             $queryCompiled = [];
             foreach ($data as $key => $value) {
-                $queryCompiled[] = "{$key}=".(is_array($value) ? implode(',', $value) : $value);
+                $queryCompiled[] = "{$key}=" . (is_array($value) ? implode(',', $value) : $value);
             }
             $data = implode(
                 $buildQueryWithJoin ? '&' : '',
@@ -72,7 +72,7 @@ class Util
 
         $params = [];
         $split = preg_split(
-            $delimiter ? $commonSeparator[$delimiter] || '/['.$delimiter.']\s*/' : $defaultSeparator,
+            $delimiter ? $commonSeparator[$delimiter] || '/[' . $delimiter . ']\s*/' : $defaultSeparator,
             $queryString ?? ''
         );
 
@@ -182,9 +182,11 @@ class Util
         }
 
         // Check if config API callback is defined
-        if (Str::startsWith($key, 'api')
+        if (
+            Str::startsWith($key, 'api')
             && Arr::exists($config, 'config_api_callback')
-            && is_callable($config['config_api_callback'])) {
+            && is_callable($config['config_api_callback'])
+        ) {
             // It is, use this to get the config value
             return call_user_func(
                 Arr::get($config, 'config_api_callback'),
@@ -229,7 +231,7 @@ class Util
      */
     public static function getShopsTableForeignKey(): string
     {
-        return Str::singular(self::getShopsTable()).'_id';
+        return Str::singular(self::getShopsTable()) . '_id';
     }
 
     /**
@@ -239,12 +241,11 @@ class Util
      */
     public static function useNativeAppBridge(): bool
     {
-        $frontendEngine = FrontendEngine::fromNative(
-            self::getShopifyConfig('frontend_engine') ?? 'BLADE'
+        $frontendType = FrontendType::fromNative(
+            self::getShopifyConfig('frontend_type') ?? 'MPA'
         );
-        $reactEngine = FrontendEngine::fromNative('REACT');
 
-        return !$frontendEngine->isSame($reactEngine);
+        return !$frontendType->isSame(FrontendType::fromNative('SPA'));
     }
 
     public static function hasAppLegacySupport(string $feature): bool

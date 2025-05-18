@@ -60,12 +60,12 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_engine' => 'REACT']);
+        config(['shopify-app.frontend_type' => 'SPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
         $this->auth->login($shop);
-        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
+        $hostValue = base64_encode($shop->getDomain()->toNative() . '/admin');
         // Make the plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring')->create();
 
@@ -86,7 +86,7 @@ class BillingControllerTest extends TestCase
 
         // Assert we've redirected and shop has been updated
         $response->assertRedirect();
-        $this->assertTrue(Str::contains($response->headers->get('Location'), '&host='.urlencode($hostValue)));
+        $this->assertTrue(Str::contains($response->headers->get('Location'), '&host=' . urlencode($hostValue)));
         $this->assertTrue(Str::contains($response->headers->get('Location'), '&billing=success'));
         $this->assertNotNull($shop->plan);
     }
@@ -99,7 +99,7 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_engine' => 'BLADE']);
+        config(['shopify-app.frontend_type' => 'MPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
@@ -107,7 +107,7 @@ class BillingControllerTest extends TestCase
 
         // Make the plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring')->create();
-        $hostValue = urlencode(base64_encode($shop->getDomain()->toNative().'/admin'));
+        $hostValue = urlencode(base64_encode($shop->getDomain()->toNative() . '/admin'));
         // Run the call
         $response = $this->call(
             'get',
@@ -124,7 +124,7 @@ class BillingControllerTest extends TestCase
 
         // Assert we've redirected and shop has been updated
         $response->assertRedirect();
-        $this->assertTrue(Str::contains($response->headers->get('Location'), '&host='.$hostValue));
+        $this->assertTrue(Str::contains($response->headers->get('Location'), '&host=' . $hostValue));
         $this->assertFalse(Str::contains($response->headers->get('Location'), '&billing=success'));
         $this->assertNotNull($shop->plan);
     }
@@ -186,8 +186,8 @@ class BillingControllerTest extends TestCase
         ]);
         //Log in
         $this->auth->login($shop);
-        $hostValue = urlencode(base64_encode($shop->getDomain()->toNative().'/admin'));
-        $url = 'https://example-app.com/billing/process/9999?shop='.$shop->name.'&host='.$hostValue;
+        $hostValue = urlencode(base64_encode($shop->getDomain()->toNative() . '/admin'));
+        $url = 'https://example-app.com/billing/process/9999?shop=' . $shop->name . '&host=' . $hostValue;
         // Try to go to bill without a charge id which happens when you cancel the charge
         $response = $this->call(
             'get',
@@ -198,7 +198,7 @@ class BillingControllerTest extends TestCase
             ]
         );
         //Confirm we get sent back to the homepage of the app
-        $response->assertRedirect('https://example-app.com?shop='.$shop->name.'&host='.$hostValue);
+        $response->assertRedirect('https://example-app.com?shop=' . $shop->name . '&host=' . $hostValue);
     }
 
     public function testUsageChargeSuccessWithShopParam(): void
@@ -267,7 +267,8 @@ class BillingControllerTest extends TestCase
         $data = [
             'description' => 'One email',
             'price' => 1.00,
-            'redirect' => 'https://localhost/usage-success',];
+            'redirect' => 'https://localhost/usage-success',
+        ];
         $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $secret);
 
         // Run the call
