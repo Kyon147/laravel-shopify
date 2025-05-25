@@ -27,7 +27,7 @@ class Billable
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Util::useNativeAppBridge() === false) {
+        if (!Util::isMPAApplication()) {
             throw new RuntimeException('You cannot use Billable middleware with SPA mode');
         }
 
