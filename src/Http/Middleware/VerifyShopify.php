@@ -208,7 +208,10 @@ class VerifyShopify
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(ShopDomain::fromRequest($request));
+        return $this->installRedirect(
+            ShopDomain::fromRequest($request),
+            $request->has('id_token') ? $request->query('id_token') : null
+        );
     }
 
     /**
@@ -314,11 +317,20 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
+     * @param string|null $token The session token (for Managed App Installation).
      *
      * @return RedirectResponse
      */
-    protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
+    protected function installRedirect(ShopDomainValue $shopDomain, ?string $token): RedirectResponse
     {
+        if ($token !== null) {
+            // Managed App Installation.
+            return Redirect::route(
+                Util::getShopifyConfig('route_names.authenticate'),
+                ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
+            );
+        }
+
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
             ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]

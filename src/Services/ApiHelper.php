@@ -148,6 +148,38 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
+     */
+    public function performOfflineTokenExchange(string $token): ResponseAccess
+    {
+        $data = [
+            'client_id' => $this->api->getOptions()->getApiKey(),
+            'client_secret' => $this->api->getOptions()->getApiSecret(),
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token' => $token,
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
+            'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
+        ];
+        $response = $this->api->request(
+            'POST',
+            '/admin/oauth/access_token',
+            [
+                'json' => $data,
+            ]
+        );
+
+        if (isset($response['errors']) && $response['errors'] === true) {
+            throw new ApiException(
+                is_string($response['body']) ? $response['body'] : 'Unknown error',
+                0,
+                $response['exception']
+            );
+        }
+
+        return $response['body'];
+    }
+
+    /**
+     * {@inheritdoc}
      *
      * @codeCoverageIgnore No need to retest.
      */
