@@ -188,8 +188,8 @@ final class SessionToken implements SessionTokenValue
             $body['jti'],
             ... $this->tokenSource === SessionTokenSource::APP
                 ? [
-                    $body['iss'],
-                    $body['sub'],
+                    $body['iss'] ?? '',
+                    $body['sub'] ?? '',
                     $body['sid'],
                 ]
                 : [],
