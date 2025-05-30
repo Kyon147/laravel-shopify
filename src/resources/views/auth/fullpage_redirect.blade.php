@@ -16,9 +16,15 @@
                 } else {
                     open(redirectUrl, '_top');
                 }
+
+                document.getElementById('redirectBtn').addEventListener('click', function () {
+                   window.top.location.href = redirectUrl;
+                });
+
             });
         </script>
     </head>
     <body>
+     <button id="redirectBtn">Click here to continue</button>
     </body>
 </html>
