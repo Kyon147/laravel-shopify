@@ -588,4 +588,16 @@ return [
     'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
 
     'iframe_ancestors' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Forbidden middleware groups
+    |--------------------------------------------------------------------------
+    |
+    | Routes prohibited from being opened in the browser.
+    |
+    */
+    'forbidden_web_middleware_groups' => [
+        'api',
+    ]
 ];
