@@ -282,25 +282,6 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     * TODO: Convert to GraphQL (merge createChargeGraphQL).
-     */
-    public function createCharge(ChargeType $chargeType, PlanDetailsTransfer $payload): ResponseAccess
-    {
-        // API path
-        $typeString = $this->chargeApiPath($chargeType);
-
-        // Fire the request
-        $response = $this->doRequest(
-            ApiMethod::POST(),
-            "/admin/{$typeString}s.json",
-            [$typeString => $payload->toArray()]
-        );
-
-        return $response['body'][$typeString];
-    }
-
-    /**
-     * {@inheritdoc}
      *
      * @throws Exception
      */
@@ -310,6 +291,7 @@ class ApiHelper implements IApiHelper
         mutation appSubscriptionCreate(
             $name: String!,
             $returnUrl: URL!,
+            $replacementBehavior: AppSubscriptionReplacementBehavior,
             $trialDays: Int,
             $test: Boolean,
             $lineItems: [AppSubscriptionLineItemInput!]!
@@ -317,6 +299,7 @@ class ApiHelper implements IApiHelper
             appSubscriptionCreate(
                 name: $name,
                 returnUrl: $returnUrl,
+                replacementBehavior: $replacementBehavior,
                 trialDays: $trialDays,
                 test: $test,
                 lineItems: $lineItems
@@ -335,6 +318,7 @@ class ApiHelper implements IApiHelper
         $variables = [
             'name' => $payload->name,
             'returnUrl' => $payload->returnUrl,
+            'replacementBehavior' => 'APPLY_IMMEDIATELY',
             'trialDays' => $payload->trialDays,
             'test' => $payload->test,
             'lineItems' => [
