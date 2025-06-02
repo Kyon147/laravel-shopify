@@ -137,16 +137,6 @@ interface ApiHelper
     public function activateCharge(ChargeType $chargeType, ChargeReference $chargeRef): ResponseAccess;
 
     /**
-     * Create a charge.
-     *
-     * @param ChargeType  $chargeType The type of charge (plural).
-     * @param PlanDetails $payload    The data for the charge creation.
-     *
-     * @return ResponseAccess
-     */
-    public function createCharge(ChargeType $chargeType, PlanDetails $payload): ResponseAccess;
-
-    /**
      * Create a charge using GraphQL.
      *
      * @param PlanDetails $payload    The data for the charge creation.
