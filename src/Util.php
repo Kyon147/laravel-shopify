@@ -181,16 +181,24 @@ class Util
             );
         }
 
-        // Check if config API callback is defined
-        if (Str::startsWith($key, 'api')
-            && Arr::exists($config, 'config_api_callback')
-            && is_callable($config['config_api_callback'])) {
-            // It is, use this to get the config value
-            return call_user_func(
-                Arr::get($config, 'config_api_callback'),
-                $key,
-                $shop
-            );
+        // Check if config API callback or class is defined
+        if (Str::startsWith($key, 'api')) {
+            if (
+                Arr::exists($config, 'config_api_callback')
+                && is_callable($config['config_api_callback'])
+            ) {
+                // It is, use this to get the config value
+                return call_user_func(
+                    Arr::get($config, 'config_api_callback'),
+                    $key,
+                    $shop
+                );
+            } else if (
+                Arr::exists($config, 'config_api_class')
+                && class_exists($config['config_api_class'])
+            ) {
+                return $config['config_api_class']::resolve($key, $shop);
+            }
         }
 
         return Arr::get($config, $key);
