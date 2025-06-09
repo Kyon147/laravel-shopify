@@ -430,6 +430,18 @@ class ApiHelper implements IApiHelper
             ],
         ];
 
+        if (!empty($payload['metafield_namespaces'])) {
+            $variables['webhookSubscription']['metafieldNamespaces'] = is_array($payload['metafield_namespaces'])
+                ? $payload['metafield_namespaces']
+                : array_map('trim', explode(',', $payload['metafield_namespaces']));
+        }
+
+        if (!empty($payload['include_fields'])) {
+            $variables['webhookSubscription']['includeFields'] = is_array($payload['include_fields'])
+                ? $payload['include_fields']
+                : array_map('trim', explode(',', $payload['include_fields']));
+        }
+
         $response = $this->doRequestGraphQL($query, $variables);
 
         return $response['body'];
