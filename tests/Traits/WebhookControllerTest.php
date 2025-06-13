@@ -159,7 +159,7 @@ class WebhookControllerTest extends TestCase
         $webhooks = Config::get('shopify-app.webhooks');
         $webhooks['orders-create-example'] = [
             'topic' => 'ORDERS_PAID',
-            'address' => 'https://some-app.com/webhook/orders-create-example',
+            'address' => 'https://example.com/webhook/orders-create-example',
             'class' => OrdersCreateJob::class,
         ];
         $app['config']->set('shopify-app.webhooks', $webhooks);
