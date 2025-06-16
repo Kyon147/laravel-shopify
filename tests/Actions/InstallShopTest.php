@@ -110,4 +110,35 @@ class InstallShopTest extends TestCase
         $this->assertNotNull($result['shop_id']);
         $this->assertNotSame($currentToken->toNative(), $shop->getAccessToken()->toNative());
     }
+
+    public function testManagedAppInstall(): void
+    {
+        // Setup API stub
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token']);
+
+        $this->assertDatabaseMissing(
+            $this->model,
+            [
+            'name' => 'test.myshopify.com',
+            ]
+        );
+
+        $result = call_user_func(
+            $this->action,
+            ShopDomain::fromNative('test.myshopify.com'),
+            null,
+            '1234'
+        );
+
+        $this->assertDatabaseHas($this->model, [
+            'id' => $result['shop_id']->toNative(),
+            'name' => 'test.myshopify.com',
+            /*
+             * Password as per the test fixture.
+             * @see ../../tests/fixtures/access_token.json
+             */
+            'password' => '12345678',
+        ]);
+    }
 }
