@@ -59,7 +59,7 @@ class VerifyScopes
         $response = Cache::remember(
             $this->cacheKey($shop->getDomain()->toNative()),
             now()->addDay(),
-            fn() => $shop->api()->graph('{
+            fn () => $shop->api()->graph('{
                 currentAppInstallation {
                     accessScopes {
                         handle
@@ -78,7 +78,7 @@ class VerifyScopes
             ];
         }
 
-        Log::error('Fetch current app installation access scopes error: ' . json_encode(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors')));
+        Log::error('Fetch current app installation access scopes error: '.json_encode(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors')));
 
         return [
             'hasErrors' => true,

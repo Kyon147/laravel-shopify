@@ -76,6 +76,8 @@ class AuthenticateShop
     /**
      * Execution.
      *
+     * Managed App Installs have an `id_token` parameter, whereas oAuth exchange has a `code` query parameter.
+     *
      * @param Request $request The request object.
      *
      * @return array
@@ -87,7 +89,8 @@ class AuthenticateShop
         $result = call_user_func(
             $this->installShopAction,
             ShopDomain::fromNative($request->get('shop')),
-            $request->query('code')
+            $request->query('code'),
+            $request->query('id_token'),
         );
 
         if (! $result['completed']) {
@@ -95,11 +98,13 @@ class AuthenticateShop
             return [$result, false];
         }
 
-        // Determine if the HMAC is correct
-        $this->apiHelper->make();
-        if (! $this->apiHelper->verifyRequest($request->all())) {
-            // Throw exception, something is wrong
-            return [$result, null];
+        if ($request->has('code')) {
+            // Determine if the HMAC is correct
+            $this->apiHelper->make();
+            if (! $this->apiHelper->verifyRequest($request->all())) {
+                // Throw exception, something is wrong
+                return [$result, null];
+            }
         }
 
         // Fire the post processing jobs

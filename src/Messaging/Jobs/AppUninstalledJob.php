@@ -72,6 +72,9 @@ class AppUninstalledJob implements ShouldQueue
 
         // Get the shop
         $shop = $shopQuery->getByDomain($this->domain);
+        if (!$shop) {
+            return true;
+        }
         $shopId = $shop->getId();
 
         // Cancel the current plan

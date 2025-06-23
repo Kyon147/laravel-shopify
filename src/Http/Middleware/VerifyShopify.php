@@ -101,20 +101,29 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
-            $shop = $this->getShopIfAlreadyInstalled($request);
-            $storeResult = !$this->isApiRequest($request) && $shop;
-
-            if ($storeResult) {
-                $this->loginFromShop($shop);
-
-                return $next($request);
-            }
-        }
-
         $tokenSource = $this->getAccessTokenFromRequest($request);
 
         if ($tokenSource === null) {
+            $forbiddenMiddlewareMatches = array_intersect(
+                Util::getShopifyConfig('forbidden_web_middleware_groups'),
+                $request->route()?->middleware() ?? []
+            );
+
+            if (filled($forbiddenMiddlewareMatches)) {
+                throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
+            }
+
+            if (!Util::useNativeAppBridge()) {
+                $shop = $this->getShopIfAlreadyInstalled($request);
+                $storeResult = !$this->isApiRequest($request) && $shop;
+
+                if ($storeResult) {
+                    $this->loginFromShop($shop);
+
+                    return $next($request);
+                }
+            }
+
             //Check if there is a store record in the database
             return $this->checkPreviousInstallation($request)
                 // Shop exists, token not available, we need to get one
@@ -208,7 +217,10 @@ class VerifyShopify
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(ShopDomain::fromRequest($request));
+        return $this->installRedirect(
+            ShopDomain::fromRequest($request),
+            $request->has('id_token') ? $request->query('id_token') : null
+        );
     }
 
     /**
@@ -314,11 +326,20 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
+     * @param string|null $token The session token (for Managed App Installation).
      *
      * @return RedirectResponse
      */
-    protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
+    protected function installRedirect(ShopDomainValue $shopDomain, ?string $token): RedirectResponse
     {
+        if ($token !== null) {
+            // Managed App Installation.
+            return Redirect::route(
+                Util::getShopifyConfig('route_names.authenticate'),
+                ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
+            );
+        }
+
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
             ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
