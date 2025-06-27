@@ -475,6 +475,7 @@ return [
         'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
     ],
+
     /*
     |--------------------------------------------------------------------------
     | Config API Callback
@@ -487,10 +488,36 @@ return [
     | A closure/callable is required.
     | The first argument will be the key string.
     | The second argument will be something to help identify the shop.
+    | 
+    | This will break caching config values because Closures can not be serialized.
+    | Use config_api_class below instead.
     |
     */
 
     'config_api_callback' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Config API Resolver Class
+    |--------------------------------------------------------------------------
+    |
+    | This option can be used to modify what returns when `getConfig('api_*')`
+    | is used. A use-case for this is modifying the return of `api_secret`
+    | or something similar.
+    |
+    | A class name is required
+    | The class must implement Osiset\ShopifyApp\Contracts\CurrentApiKeyFinderInterface
+    | A default class is provided and can be uncommented below.
+    |
+    | config_api_callback will take priority for backwards-compatibility however,
+    | this option is the recommended way because closures can not be serialized.
+    |
+    */
+
+    // 'config_api_class' => Osiset\ShopifyApp\ApiKeyFinder\CurrentApiKeyFinder::class,
+    // 'config_api_shop_keys' => [
+    //     'api_key_shop-name' => env('API_KEY_SHOPNAME', ''),
+    // ],
 
     /*
     |--------------------------------------------------------------------------
