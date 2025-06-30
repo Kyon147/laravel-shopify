@@ -12,7 +12,7 @@ $chargeModel = Util::getShopifyConfig('models.charge', Charge::class);
 $factory->define($chargeModel, function (Faker $faker) {
     return [
         'charge_id' => $faker->randomNumber(8),
-        'name' => $faker->word,
+        'name' => $faker->word(),
         'price' => $faker->randomFloat(),
         'status' => ChargeStatus::ACCEPTED()->toNative(),
     ];
