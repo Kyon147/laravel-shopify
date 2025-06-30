@@ -30,7 +30,7 @@
         "source": "https://github.com/Kyon147/laravel-shopify"
     },
     "require": {
-        "php": "^8.1",
+        "php": ">=8.1",
         "ext-json": "*",
         "funeralzone/valueobjects": "^0.5",
         "gnikyt/basic-shopify-api": "^11.0",

@@ -7,7 +7,6 @@ use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Orchestra\Testbench\Http\Middleware\RedirectIfAuthenticated;
 use Osiset\ShopifyApp\Http\Middleware\AuthProxy;
 use Osiset\ShopifyApp\Http\Middleware\AuthWebhook;
 use Osiset\ShopifyApp\Http\Middleware\Billable;
@@ -27,7 +26,6 @@ class Kernel extends \Orchestra\Testbench\Foundation\Http\Kernel
         'auth.basic' => AuthenticateWithBasicAuth::class,
         'bindings' => SubstituteBindings::class,
         'can' => Authorize::class,
-        'guest' => RedirectIfAuthenticated::class,
         'throttle' => ThrottleRequests::class,
 
         // Added for testing
