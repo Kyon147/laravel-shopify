@@ -388,16 +388,16 @@ return [
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
-                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create')
+                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://example.com/webhook/orders-create')
             ], [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
-                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
+                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://example.com/webhook/purchase'),
             ]
             // In certain situations you may wish to map the webhook to a specific class
             // To do this, change the array to an associative array with a 'class' key
             'orders-create' => [
                 'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
-                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://example.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
         */],
@@ -414,7 +414,7 @@ return [
     'scripttags' => [
         /*
             [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
+                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://example.com/some-controller/js-method-response'),
                 'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
@@ -588,4 +588,16 @@ return [
     'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
 
     'iframe_ancestors' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Forbidden middleware groups
+    |--------------------------------------------------------------------------
+    |
+    | Routes prohibited from being opened in the browser.
+    |
+    */
+    'forbidden_web_middleware_groups' => [
+        'api',
+    ]
 ];

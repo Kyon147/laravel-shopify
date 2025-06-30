@@ -22,7 +22,7 @@ class InstallShop
     ) {
     }
 
-    public function __invoke(ShopDomain $shopDomain, ?string $code): array
+    public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
     {
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
 
@@ -36,7 +36,7 @@ class InstallShop
             AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop)) :
             AuthMode::OFFLINE();
 
-        if (empty($code)) {
+        if (empty($code) && empty($idToken)) {
             return [
                 'completed' => false,
                 'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
@@ -50,7 +50,7 @@ class InstallShop
             }
 
             // Get the data and set the access token
-            $data = $apiHelper->getAccessData($code);
+            $data = $idToken !== null ? $apiHelper->performOfflineTokenExchange($idToken) : $apiHelper->getAccessData($code);
             $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
 
             try {

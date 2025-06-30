@@ -21,23 +21,23 @@ class AuthenticateShop
 
     public function __invoke(Request $request): array
     {
-        /** @var $result array */
         $result = call_user_func(
             $this->installShopAction,
             ShopDomain::fromNative($request->get('shop')),
-            $request->query('code')
+            $request->query('code'),
+            $request->query('id_token'),
         );
 
         if (! $result['completed']) {
-            // No code, redirect to auth URL
             return [$result, false];
         }
 
-        // Determine if the HMAC is correct
-        $this->apiHelper->make();
+        if ($request->has('code')) {
+            $this->apiHelper->make();
 
-        if (! $this->apiHelper->verifyRequest($request->all())) {
-            return [$result, null];
+            if (! $this->apiHelper->verifyRequest($request->all())) {
+                return [$result, null];
+            }
         }
 
         if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
