@@ -13,69 +13,26 @@ use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Services\ChargeHelper;
 
-/**
- * Activates a usage charge for a shop.
- */
 class ActivateUsageCharge
 {
-    /**
-     * The helper for charges.
-     *
-     * @var ChargeHelper
-     */
-    protected $chargeHelper;
-
-    /**
-     * Command for charges.
-     *
-     * @var IChargeCommand
-     */
-    protected $chargeCommand;
-
-    /**
-     * Querier for shops.
-     *
-     * @var IShopQuery
-     */
-    protected $shopQuery;
-
-    /**
-     * Setup.
-     *
-     * @param ChargeHelper   $chargeHelper  The helper for charges.
-     * @param IChargeCommand $chargeCommand The commands for charges.
-     * @param IShopQuery     $shopQuery     The querier for shops.
-     *
-     * @return void
-     */
     public function __construct(
-        ChargeHelper $chargeHelper,
-        IChargeCommand $chargeCommand,
-        IShopQuery $shopQuery
+        protected ChargeHelper $chargeHelper,
+        protected IChargeCommand $chargeCommand,
+        protected IShopQuery $shopQuery
     ) {
-        $this->chargeHelper = $chargeHelper;
-        $this->chargeCommand = $chargeCommand;
-        $this->shopQuery = $shopQuery;
     }
 
     /**
-     * Execute.
      * TODO: Rethrow an API exception.
      *
-     * @param ShopId                    $shopId The shop ID.
-     * @param UsageChargeDetailsTransfer $ucd    The usage charge details (without charge ID).
-     *
      * @throws ChargeNotRecurringException
-     *
-     * @return ChargeId|bool
      */
-    public function __invoke(ShopId $shopId, UsageChargeDetailsTransfer $ucd)
+    public function __invoke(ShopId $shopId, UsageChargeDetailsTransfer $ucd): ChargeId|bool
     {
-        // Get the shop
         $shop = $this->shopQuery->getById($shopId);
-
         // Ensure we have a recurring charge
         $currentCharge = $this->chargeHelper->chargeForPlan($shop->plan->getId(), $shop);
+
         if (! $currentCharge->isType(ChargeType::RECURRING())) {
             throw new ChargeNotRecurringException('Can only create usage charges for recurring charge.');
         }
@@ -83,19 +40,18 @@ class ActivateUsageCharge
         // Create the usage charge
         $ucd->chargeReference = $currentCharge->getReference();
         $response = $shop->apiHelper()->createUsageCharge($ucd);
+
         if (! $response) {
             // Could not make usage charge, limit possibly reached
             return false;
         }
 
-        // Create the transfer
-        $uct = new UsageChargeTransfer();
-        $uct->shopId = $shopId;
-        $uct->planId = $shop->plan->getId();
-        $uct->chargeReference = ChargeReference::fromNative((int) $response['id']);
-        $uct->details = $ucd;
+        $transfer = new UsageChargeTransfer();
+        $transfer->shopId = $shopId;
+        $transfer->planId = $shop->plan->getId();
+        $transfer->chargeReference = ChargeReference::fromNative((int) $response['id']);
+        $transfer->details = $ucd;
 
-        // Save the usage charge
-        return $this->chargeCommand->makeUsage($uct);
+        return $this->chargeCommand->makeUsage($transfer);
     }
 }
