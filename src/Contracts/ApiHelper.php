@@ -24,7 +24,7 @@ interface ApiHelper
      *
      * @return self
      */
-    public function make(Session $session = null);
+    public function make(?Session $session = null);
 
     /**
      * Set an existing API instance.

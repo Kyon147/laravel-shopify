@@ -65,7 +65,7 @@ class Util
      *
      * @return mixed
      */
-    public static function parseQueryString(string $queryString, string $delimiter = null): array
+    public static function parseQueryString(string $queryString, ?string $delimiter = null): array
     {
         $commonSeparator = [';' => '/[;]\s*/', ';,' => '/[;,]\s*/', '&' => '/[&]\s*/'];
         $defaultSeparator = '/[&;]\s*/';
