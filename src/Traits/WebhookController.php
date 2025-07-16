@@ -32,11 +32,20 @@ trait WebhookController
             $jobClass = $config[$type]['class'];
         }
 
-        $jobClass::dispatch(
+        $dispatch = $jobClass::dispatch(
             $request->header('x-shopify-shop-domain'),
             $jobData
-        )->onConnection(Util::getShopifyConfig('job_connections')['webhooks'])
-        ->onQueue(Util::getShopifyConfig('job_queues')['webhooks']);
+        );
+
+        $connection = Util::getShopifyConfig('job_connections')['webhooks'] ?? null;
+        if ($connection) {
+            $dispatch->onConnection($connection);
+        }
+
+        $queue = Util::getShopifyConfig('job_queues')['webhooks'] ?? null;
+        if ($queue) {
+            $dispatch->onQueue($queue);
+        }
 
         return Response::make('', ResponseResponse::HTTP_CREATED);
     }
