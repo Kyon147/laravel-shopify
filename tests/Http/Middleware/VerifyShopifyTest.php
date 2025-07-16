@@ -324,7 +324,7 @@ class VerifyShopifyTest extends TestCase
     {
         // Create a shop that matches the token from buildToken
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
-        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
 
         // Setup the request
         $currentRequest = Request::instance();

@@ -577,15 +577,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Frontend engine used
+    | Frontend type used
     |--------------------------------------------------------------------------
     |
-    | Available engines: "BLADE", "VUE", or "REACT".
-    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
-    | No changes are made for Vue.js and Blade.
+    | Available types: "SPA" (single-page application), "MPA" (multiple-page application).
+    | For example, if you use SPA, you do not need to be redirected to a separate page to get the JWT token.
     |
     */
-    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
+    'frontend_type' => env('SHOPIFY_FRONTEND_TYPE', 'MPA'),
 
     'iframe_ancestors' => '',
 

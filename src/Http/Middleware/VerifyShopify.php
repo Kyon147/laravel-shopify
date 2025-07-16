@@ -91,6 +91,7 @@ class VerifyShopify
     {
         // Verify the HMAC (if available)
         $hmacResult = $this->verifyHmac($request);
+
         if ($hmacResult === false) {
             // Invalid HMAC
             throw new SignatureVerificationException('Unable to verify signature.');
@@ -99,6 +100,17 @@ class VerifyShopify
         // Continue if current route is an auth or billing route
         if (Str::contains($request->getRequestUri(), ['/authenticate', '/billing'])) {
             return $next($request);
+        }
+
+        if (!Util::isMPAApplication()) {
+            $shop = $this->getShopIfAlreadyInstalled($request);
+            $storeResult = !$this->isApiRequest($request) && $shop;
+
+            if ($storeResult) {
+                $this->loginFromShop($shop);
+
+                return $next($request);
+            }
         }
 
         $tokenSource = $this->getAccessTokenFromRequest($request);
@@ -111,17 +123,6 @@ class VerifyShopify
 
             if (filled($forbiddenMiddlewareMatches)) {
                 throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
-            }
-
-            if (!Util::useNativeAppBridge()) {
-                $shop = $this->getShopIfAlreadyInstalled($request);
-                $storeResult = !$this->isApiRequest($request) && $shop;
-
-                if ($storeResult) {
-                    $this->loginFromShop($shop);
-
-                    return $next($request);
-                }
             }
 
             //Check if there is a store record in the database
@@ -217,10 +218,7 @@ class VerifyShopify
             throw new HttpException('Shop is not installed or missing data.', Response::HTTP_FORBIDDEN);
         }
 
-        return $this->installRedirect(
-            ShopDomain::fromRequest($request),
-            $request->has('id_token') ? $request->query('id_token') : null
-        );
+        return $this->installRedirect(ShopDomain::fromRequest($request));
     }
 
     /**
@@ -326,20 +324,11 @@ class VerifyShopify
      * Redirect to install route.
      *
      * @param ShopDomainValue $shopDomain The shop domain.
-     * @param string|null $token The session token (for Managed App Installation).
      *
      * @return RedirectResponse
      */
-    protected function installRedirect(ShopDomainValue $shopDomain, ?string $token): RedirectResponse
+    protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
     {
-        if ($token !== null) {
-            // Managed App Installation.
-            return Redirect::route(
-                Util::getShopifyConfig('route_names.authenticate'),
-                ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale'), 'id_token' => $token]
-            );
-        }
-
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
             ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
