@@ -84,6 +84,7 @@ final class VerifyThemeSupport
      *
      * @param  Z  $mainTheme
      * @param  T  $assets
+     *
      * @return T
      */
     private function mainSections(ShopModel $shop, array $mainTheme, array $assets): array
@@ -104,13 +105,13 @@ final class VerifyThemeSupport
                 }, ARRAY_FILTER_USE_BOTH);
 
                 if ($mainAsset) {
-                    return 'sections/' . end($mainAsset)['type'] . '.liquid';
+                    return 'sections/'.end($mainAsset)['type'].'.liquid';
                 }
             }, $assets)
         );
 
         return Cache::remember(
-            "mainSections.{$mainTheme['id']}." . sha1(implode('|', $filenamesForMainSections)),
+            "mainSections.{$mainTheme['id']}.".sha1(implode('|', $filenamesForMainSections)),
             now()->{$this->cacheInterval}($this->cacheDuration),
             fn () => $this->fetchThemeAssets->handle(
                 shop: $shop,
@@ -124,6 +125,7 @@ final class VerifyThemeSupport
      * @template T
      *
      * @param  T  $templateMainSections
+     *
      * @return T
      */
     private function sectionsWithAppBlock(array $templateMainSections): array

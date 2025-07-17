@@ -42,7 +42,7 @@ final class FetchThemeAssets
             ], data_get($response['body']->toArray(), 'data.theme.files.nodes'));
         }
 
-        Log::error('Fetching settings data error: ' . json_encode(data_get($response['body']->toArray(), 'data.theme.userErrors')));
+        Log::error('Fetching settings data error: '.json_encode(data_get($response['body']->toArray(), 'data.theme.userErrors')));
 
         return [];
     }

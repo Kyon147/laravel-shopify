@@ -2,7 +2,9 @@
 
 namespace Osiset\ShopifyApp\Test\Http\Middleware;
 
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
 use Osiset\ShopifyApp\Http\Middleware\VerifyShopify;
@@ -162,7 +164,7 @@ class VerifyShopifyTest extends TestCase
             [
                 'token' => $this->buildToken(),
                 'shop' => 'non-existent.myshopify.com',
-                'host' => 'loremipsum'
+                'host' => 'loremipsum',
             ],
             // Request Params
             null,
@@ -319,11 +321,11 @@ class VerifyShopifyTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
-    public function testNotNativeAppbridgeWithTokenProcessingAndLoginShop(): void
+    public function testNotNativeAppBridgeWithTokenProcessingAndLoginShop(): void
     {
         // Create a shop that matches the token from buildToken
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
-        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
 
         // Setup the request
         $currentRequest = Request::instance();
@@ -349,5 +351,34 @@ class VerifyShopifyTest extends TestCase
         // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
         $this->assertTrue($result[0]);
+    }
+
+    public function testAccessingForbiddenMiddlewareRouteFromBrowserReceivedAccessError(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Access denied');
+        $this->expectExceptionCode(Response::HTTP_FORBIDDEN);
+
+        // Create a shop that matches the token from buildToken
+        factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.forbidden_web_middleware_groups', ['api']);
+        $this->app['router']->get('/api/some/endpoint', fn () => true)->middleware(['api']);
+
+        // Setup the request
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            query: [
+                'shop' => 'shop-name.myshopify.com',
+            ],
+            server: [
+                'HTTP_Authorization' => "Bearer {$this->buildToken()}",
+                'REQUEST_URI' => 'api/some/endpoint',
+            ]
+        );
+        $route = Route::getRoutes()->match($newRequest);
+        $newRequest->setRouteResolver(fn () => $route);
+
+        $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 }

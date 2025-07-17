@@ -24,7 +24,7 @@ interface ApiHelper
      *
      * @return self
      */
-    public function make(Session $session = null);
+    public function make(?Session $session = null);
 
     /**
      * Set an existing API instance.
@@ -60,6 +60,17 @@ interface ApiHelper
      * @return bool
      */
     public function verifyRequest(array $request): bool;
+
+    /**
+     * Exchange a session token for an offline access token.
+     *
+     * @link https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/token-exchange
+     *
+     * @param string $token The Session Token from the request.
+     *
+     * @return ResponseAccess
+     */
+    public function performOfflineTokenExchange(string $token): ResponseAccess;
 
     /**
      * Finish the process by getting the access details from the code.

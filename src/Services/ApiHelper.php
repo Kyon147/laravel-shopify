@@ -39,7 +39,7 @@ class ApiHelper implements IApiHelper
     /**
      * {@inheritdoc}
      */
-    public function make(Session $session = null): self
+    public function make(?Session $session = null): self
     {
         // Create the options
         $opts = new Options();
@@ -144,6 +144,38 @@ class ApiHelper implements IApiHelper
     public function verifyRequest(array $request): bool
     {
         return $this->api->verifyRequest($request);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function performOfflineTokenExchange(string $token): ResponseAccess
+    {
+        $data = [
+            'client_id' => $this->api->getOptions()->getApiKey(),
+            'client_secret' => $this->api->getOptions()->getApiSecret(),
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token' => $token,
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
+            'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
+        ];
+        $response = $this->api->request(
+            'POST',
+            '/admin/oauth/access_token',
+            [
+                'json' => $data,
+            ]
+        );
+
+        if (isset($response['errors']) && $response['errors'] === true) {
+            throw new ApiException(
+                is_string($response['body']) ? $response['body'] : 'Unknown error',
+                0,
+                $response['exception']
+            );
+        }
+
+        return $response['body'];
     }
 
     /**
@@ -485,7 +517,7 @@ class ApiHelper implements IApiHelper
      *
      * @return array
      */
-    protected function doRequest(ApiMethod $method, string $path, array $payload = null)
+    protected function doRequest(ApiMethod $method, string $path, ?array $payload = null)
     {
         $response = $this->api->rest($method->toNative(), $path, $payload);
         if ($response['errors'] === true) {
@@ -531,7 +563,7 @@ class ApiHelper implements IApiHelper
      *
      * @return NullableShopDomain
      */
-    private function getShopDomain(Session $session = null): NullableShopDomain
+    private function getShopDomain(?Session $session = null): NullableShopDomain
     {
         // Check for existing session passed in
         if ($session && $session->getShop()) {

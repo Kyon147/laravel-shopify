@@ -27,7 +27,7 @@ final class FetchMainTheme
             return data_get($response['body']->toArray(), 'data.themes.nodes.0', []);
         }
 
-        Log::error('Fetching main theme error: ' . json_encode(data_get($response['body']->toArray(), 'data.themes.userErrors')));
+        Log::error('Fetching main theme error: '.json_encode(data_get($response['body']->toArray(), 'data.themes.userErrors')));
 
         return [];
     }

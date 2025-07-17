@@ -6,60 +6,23 @@ use Osiset\ShopifyApp\Contracts\Objects\Values\ShopId as ShopIdValue;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Util;
 
-/**
- * Attempt to install script tags on a shop.
- */
 class DispatchScripts
 {
-    /**
-     * Querier for shops.
-     *
-     * @var IShopQuery
-     */
-    protected $shopQuery;
-
-    /**
-     * The job to dispatch.
-     *
-     * @var string
-     */
-    protected $jobClass;
-
-    /**
-     * Setup.
-     *
-     * @param IShopQuery $shopQuery The querier for the shop.
-     * @param string $jobClass The job to dispatch.
-     *
-     * @return void
-     */
-    public function __construct(IShopQuery $shopQuery, string $jobClass)
-    {
-        $this->shopQuery = $shopQuery;
-        $this->jobClass = $jobClass;
+    public function __construct(
+        protected IShopQuery $shopQuery,
+        protected string $jobClass
+    ) {
     }
 
-    /**
-     * Execution.
-     *
-     * @param ShopIdValue $shopId The shop ID.
-     * @param bool $inline Fire the job inline (now) or queue.
-     *
-     * @return bool
-     */
     public function __invoke(ShopIdValue $shopId, bool $inline = false): bool
     {
-        // Get the shop
         $shop = $this->shopQuery->getById($shopId);
-
-        // Get the scripttags
         $scripttags = Util::getShopifyConfig('scripttags');
+
         if (count($scripttags) === 0) {
-            // Nothing to do
             return false;
         }
 
-        // Run the installer job
         if ($inline) {
             ($this->jobClass)::dispatchSync(
                 $shop->getId(),
@@ -70,7 +33,7 @@ class DispatchScripts
                 $shop->getId(),
                 $scripttags
             )->onConnection(Util::getShopifyConfig('job_connections')['scripttags'])
-            ->onQueue(Util::getShopifyConfig('job_queues')['scripttags']);
+                ->onQueue(Util::getShopifyConfig('job_queues')['scripttags']);
         }
 
         return true;

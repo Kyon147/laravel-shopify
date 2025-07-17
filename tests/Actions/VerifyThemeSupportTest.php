@@ -2,12 +2,10 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
-use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Osiset\ShopifyApp\Actions\VerifyThemeSupport;
 use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
-use Osiset\ShopifyApp\Test\TestCase;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
-
+use Osiset\ShopifyApp\Test\TestCase;
 
 class VerifyThemeSupportTest extends TestCase
 {

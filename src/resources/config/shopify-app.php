@@ -37,7 +37,6 @@ return [
     */
 
     'domain' => env('SHOPIFY_DOMAIN'),
-    
     /*
     |--------------------------------------------------------------------------
     | Manual routes
@@ -137,26 +136,6 @@ return [
     */
 
     'prefix' => env('SHOPIFY_APP_PREFIX', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | AppBridge Mode
-    |--------------------------------------------------------------------------
-    |
-    | AppBridge (embedded apps) are enabled by default. Set to false to use legacy
-    | mode and host the app inside your own container.
-    |
-    */
-
-    'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
-
-    // Use semver range to link to a major or minor version number.
-    // Leaving empty will use the latest version - not recommended in production.
-    'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', 'latest'),
-
-    // Set a new CDN URL if you want to host the AppBridge JS yourself or unpkg goes down.
-    // DO NOT include a trailing slash.
-    'appbridge_cdn_url' => env('SHOPIFY_APPBRIDGE_CDN_URL', 'https://unpkg.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -409,16 +388,16 @@ return [
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
-                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create')
+                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://example.com/webhook/orders-create')
             ], [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
-                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
+                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://example.com/webhook/purchase'),
             ]
             // In certain situations you may wish to map the webhook to a specific class
             // To do this, change the array to an associative array with a 'class' key
             'orders-create' => [
                 'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
-                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://example.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
         */],
@@ -435,7 +414,7 @@ return [
     'scripttags' => [
         /*
             [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
+                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://example.com/some-controller/js-method-response'),
                 'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
@@ -512,18 +491,6 @@ return [
     */
 
     'config_api_callback' => null,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Enable Turbolinks or Hotwire Turbo
-    |--------------------------------------------------------------------------
-    |
-    | If you use Turbolinks/Turbo and Livewire, turn on this setting to get
-    | the token assigned automatically.
-    |
-    */
-
-    'turbo_enabled' => (bool) env('SHOPIFY_TURBO_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -610,15 +577,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Frontend engine used
+    | Frontend type used
     |--------------------------------------------------------------------------
     |
-    | Available engines: "BLADE", "VUE", or "REACT".
-    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
-    | No changes are made for Vue.js and Blade.
+    | Available types: "SPA" (single-page application), "MPA" (multiple-page application).
+    | For example, if you use SPA, you do not need to be redirected to a separate page to get the JWT token.
     |
     */
-    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
+    'frontend_type' => env('SHOPIFY_FRONTEND_TYPE', 'MPA'),
 
     'iframe_ancestors' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Forbidden middleware groups
+    |--------------------------------------------------------------------------
+    |
+    | Routes prohibited from being opened in the browser.
+    |
+    */
+    'forbidden_web_middleware_groups' => [
+        'api',
+    ]
 ];

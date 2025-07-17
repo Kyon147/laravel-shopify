@@ -14,6 +14,7 @@ jobs:
           - '8.1'
           - '8.2'
           - '8.3'
+          - '8.4'
         analysis: [ false ]
         coverage: [ 'none' ]
         normalize: [ false ]
@@ -23,6 +24,7 @@ jobs:
           - '9.0'
           - '10.0'
           - '11.0.3'
+          - '12.0'
         exclude:
           - php: '8.0'
             laravel: '9.0'
@@ -40,6 +42,8 @@ jobs:
             laravel: '8.22'
           - php: '8.3'
             laravel: '9.0'
+          - php: '8.4'
+            laravel: '12.0'
         include:
           - php: '8.0'
             laravel: '9.39.0'
@@ -80,7 +84,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: "php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-${{ hashFiles('**/composer.json') }}"
