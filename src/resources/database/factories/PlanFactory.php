@@ -10,7 +10,7 @@ $planModel = Util::getShopifyConfig('models.plan', Plan::class);
 
 $factory->define($planModel, function (Faker $faker) {
     return [
-        'name' => $faker->word,
+        'name' => $faker->word(),
         'price' => $faker->randomFloat(),
     ];
 });
@@ -18,7 +18,7 @@ $factory->define($planModel, function (Faker $faker) {
 $factory->state($planModel, 'usage', function ($faker) {
     return [
         'capped_amount' => $faker->randomFloat(),
-        'terms' => $faker->sentence,
+        'terms' => $faker->sentence(),
     ];
 });
 

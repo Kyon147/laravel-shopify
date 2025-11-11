@@ -1,0 +1,49 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#1 \$session \(Gnikyt\\BasicShopifyAPI\\Session\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Contracts/ApiHelper.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#1 \$session \(Gnikyt\\BasicShopifyAPI\\Session\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 2
+			path: src/Services/ApiHelper.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$payload \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Services/ApiHelper.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$delimiter \(string\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Util.php
+
+		-
+			message: '#^Variable \$queryString on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/Util.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$params \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/Stubs/Api.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$requestInstance \(Illuminate\\Http\\Request\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/TestCase.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$cb \(Closure\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/TestCase.php
