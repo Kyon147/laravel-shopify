@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request as FacadesRequest;
-use Orchestra\Database\ConsoleServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
@@ -78,10 +77,8 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function getPackageProviders($app): array
     {
-        // ConsoleServiceProvider required to make migrations work
         return [
             ShopifyAppProvider::class,
-            ConsoleServiceProvider::class,
         ];
     }
 
