@@ -79,13 +79,10 @@ final class VerifyThemeSupport
     }
 
     /**
-     * @template T
-     * @template Z
+     * @param  array{id: string}  $mainTheme
+     * @param  array{content: string}  $assets
      *
-     * @param  Z  $mainTheme
-     * @param  T  $assets
-     *
-     * @return T
+     * @return array<int, array{filename: string, content: string}>
      */
     private function mainSections(ShopModel $shop, array $mainTheme, array $assets): array
     {
@@ -121,13 +118,6 @@ final class VerifyThemeSupport
         );
     }
 
-    /**
-     * @template T
-     *
-     * @param  T  $templateMainSections
-     *
-     * @return T
-     */
     private function sectionsWithAppBlock(array $templateMainSections): array
     {
         return array_filter(array_map(function ($file) {

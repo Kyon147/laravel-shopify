@@ -398,7 +398,7 @@ final class SessionToken implements SessionTokenValue
 
     protected function determineTokenSource(array $body): int
     {
-        if (!isset($body['iss']) && !isset($body['sid'])) {
+        if (!isset($body['sid'])) {
             return SessionTokenSource::CHECKOUT_EXTENSION;
         }
 
