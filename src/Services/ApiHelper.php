@@ -406,7 +406,6 @@ class ApiHelper implements IApiHelper
      * @return ResponseAccess The GraphQL response body containing the result of the webhook subscription creation.
      *                        Includes potential errors and the created webhook details.
      */
-
     public function createWebhook(array $payload): ResponseAccess
     {
         $addressType = str_starts_with($payload['address'], 'arn:') ? 'arn' : 'callbackUrl';
