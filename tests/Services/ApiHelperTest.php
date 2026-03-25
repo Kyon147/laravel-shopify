@@ -197,7 +197,8 @@ class ApiHelperTest extends TestCase
 
         // Response stubbing
         $this->setApiStub();
-        ApiStub::stubResponses(['post_webhook']);
+        ApiStub::stubResponses(['post_webhook', 'eventbridge_webhook_subscription_create']);
+
 
         $data = $shop->apiHelper()->createWebhook([
             'topic' => 'ORDERS_CREATE',
@@ -212,7 +213,7 @@ class ApiHelperTest extends TestCase
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertInstanceOf(ResponseAccess::class, $dataArn);
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
-        $this->assertSame('ORDERS_CREATE', $dataArn['data']['webhookSubscriptionCreate']['topic']);
+        $this->assertSame('ORDERS_CREATE', $dataArn['data']['eventBridgeWebhookSubscriptionCreate']['topic']);
     }
 
     public function testDeleteWebhook(): void

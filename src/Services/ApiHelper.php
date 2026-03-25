@@ -392,43 +392,38 @@ class ApiHelper implements IApiHelper
     }
 
     /**
-     * {@inheritdoc}
+     * Creates a new webhook subscription based on the provided payload.
      *
-     * @throws Exception
+     * This method determines the appropriate GraphQL mutation and input type
+     * required to create a webhook subscription. It supports both traditional
+     * URL-based webhooks and AWS EventBridge webhooks.
+     *
+     * @param  array  $payload  An associative array containing the necessary data for creating the webhook.
+     *                       Expected keys include:
+     *                       - 'address' (string): The callback URL or ARN for the webhook subscription.
+     *                       - 'topic' (string): The topic of the webhook in REST format (e.g., "resource/event").
+     *
+     * @return ResponseAccess The GraphQL response body containing the result of the webhook subscription creation.
+     *                        Includes potential errors and the created webhook details.
      */
+
     public function createWebhook(array $payload): ResponseAccess
     {
         $addressType = str_starts_with($payload['address'], 'arn:') ? 'arn' : 'callbackUrl';
-        if ($addressType === 'arn') {
-            $query = '
-            mutation eventBridgeWebhookSubscriptionCreate(
-                $topic: WebhookSubscriptionTopic!, 
-                $webhookSubscription: EventBridgeWebhookSubscriptionInput!
+        $isEventBridge = $addressType === 'arn';
+
+        // Determine mutation details based on address type
+        $mutationName = $isEventBridge ? 'eventBridgeWebhookSubscriptionCreate' : 'webhookSubscriptionCreate';
+        $inputType = $isEventBridge ? 'EventBridgeWebhookSubscriptionInput' : 'WebhookSubscriptionInput';
+
+        $query = "
+            mutation {$mutationName}(
+                \$topic: WebhookSubscriptionTopic!,
+                \$webhookSubscription: {$inputType}!
             ) {
-                eventBridgeWebhookSubscriptionCreate(
-                    topic: $topic, 
-                    webhookSubscription: $webhookSubscription
-                ) {
-                    userErrors {
-                      field
-                      message
-                    }
-                    webhookSubscription {
-                      id
-                      topic
-                    }
-                }
-            }
-            ';
-        } else {
-            $query = '
-            mutation webhookSubscriptionCreate(
-                $topic: WebhookSubscriptionTopic!,
-                $webhookSubscription: WebhookSubscriptionInput!
-            ) {
-                webhookSubscriptionCreate(
-                    topic: $topic
-                    webhookSubscription: $webhookSubscription
+                {$mutationName}(
+                    topic: \$topic
+                    webhookSubscription: \$webhookSubscription
                 ) {
                     userErrors {
                         field
@@ -440,15 +435,16 @@ class ApiHelper implements IApiHelper
                     }
                 }
             }
-            ';
-        }
+        ";
+
+
         // Change REST-format topics ("resource/event")
         // to GraphQL-format topics ("RESOURCE_EVENT"), for pre-v17 compatibility
         $topic = Util::getGraphQLWebhookTopic($payload['topic']);
         $variables = [
             'topic' => $topic,
             'webhookSubscription' => [
-                 $addressType => $payload['address'],
+                $addressType => $payload['address'],
                 'format' => 'JSON',
             ],
         ];
