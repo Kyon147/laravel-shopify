@@ -9,6 +9,15 @@
 This is a maintained version of the wonderful but now deprecated original [Laravel Shopify App](https://github.com/gnikyt/laravel-shopify/). To keep things clean, this has been detached from the original.
 
 ----
+To install this package run:
+```
+composer require kyon147/laravel-shopify
+```
+Publish the config file:
+```
+php artisan vendor:publish --tag=shopify-config
+```
+----
 
 A full-featured Laravel package for aiding in Shopify App development, similar to `shopify_app` for Rails. Works for Laravel 8 and up.
 

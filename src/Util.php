@@ -6,7 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use LogicException;
-use Osiset\ShopifyApp\Objects\Enums\FrontendEngine;
+use Osiset\ShopifyApp\Objects\Enums\FrontendType;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 
 /**
@@ -17,7 +17,7 @@ class Util
     /**
      * HMAC creation helper.
      *
-     * @param array  $opts   The options for building the HMAC.
+     * @param array $opts The options for building the HMAC.
      * @param string $secret The app secret key.
      *
      * @return Hmac
@@ -61,11 +61,11 @@ class Util
      * See: https://github.com/rack/rack/blob/f9ad97fd69a6b3616d0a99e6bedcfb9de2f81f6c/lib/rack/query_parser.rb#L36
      *
      * @param string $queryString The query string.
-     * @param string|null $delimiter  The delimiter.
+     * @param string|null $delimiter The delimiter.
      *
      * @return mixed
      */
-    public static function parseQueryString(string $queryString, string $delimiter = null): array
+    public static function parseQueryString(string $queryString, ?string $delimiter = null): array
     {
         $commonSeparator = [';' => '/[;]\s*/', ';,' => '/[;,]\s*/', '&' => '/[&]\s*/'];
         $defaultSeparator = '/[&;]\s*/';
@@ -77,7 +77,7 @@ class Util
         );
 
         foreach ($split as $part) {
-            if (! $part) {
+            if (!$part) {
                 continue;
             }
 
@@ -135,7 +135,7 @@ class Util
     /**
      * Checks if the route should be registered or not.
      *
-     * @param string     $routeToCheck The route name to check.
+     * @param string $routeToCheck The route name to check.
      * @param bool|array $routesToExclude The routes which are to be excluded.
      *
      * @return bool
@@ -158,8 +158,8 @@ class Util
      * Used as a helper function so it is accessible in Blade.
      * The second param of `shop` is important for `config_api_callback`.
      *
-     * @param string $key  The key to lookup.
-     * @param mixed  $shop The shop domain (string, ShopDomain, etc).
+     * @param string $key The key to lookup.
+     * @param mixed $shop The shop domain (string, ShopDomain, etc).
      *
      * @return mixed
      */
@@ -182,9 +182,11 @@ class Util
         }
 
         // Check if config API callback is defined
-        if (Str::startsWith($key, 'api')
+        if (
+            Str::startsWith($key, 'api')
             && Arr::exists($config, 'config_api_callback')
-            && is_callable($config['config_api_callback'])) {
+            && is_callable($config['config_api_callback'])
+        ) {
             // It is, use this to get the config value
             return call_user_func(
                 Arr::get($config, 'config_api_callback'),
@@ -207,8 +209,8 @@ class Util
     public static function getGraphQLWebhookTopic(string $topic): string
     {
         return Str::of($topic)
-                  ->upper()
-                  ->replaceMatches('/[^A-Z_]/', '_');
+            ->upper()
+            ->replaceMatches('/[^A-Z_]/', '_');
     }
 
 
@@ -237,13 +239,19 @@ class Util
      *
      * @return bool
      */
-    public static function useNativeAppBridge(): bool
+    public static function isMPAApplication(): bool
     {
-        $frontendEngine = FrontendEngine::fromNative(
-            self::getShopifyConfig('frontend_engine') ?? 'BLADE'
+        $frontendType = FrontendType::fromNative(
+            self::getShopifyConfig('frontend_type') ?? 'MPA'
         );
-        $reactEngine = FrontendEngine::fromNative('REACT');
 
-        return !$frontendEngine->isSame($reactEngine);
+        return !$frontendType->isSame(FrontendType::fromNative('SPA'));
+    }
+
+    public static function hasAppLegacySupport(string $feature): bool
+    {
+        $legacySupports = self::getShopifyConfig('app_legacy_supports') ?? [];
+
+        return (bool) Arr::get($legacySupports, $feature, true);
     }
 }

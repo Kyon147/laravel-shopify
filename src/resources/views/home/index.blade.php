@@ -5,6 +5,8 @@
 @endsection
 
 @section('content')
+    <ui-title-bar title="Welcome"></ui-title-bar>
+
     <div class="flex-center position-ref full-height">
         <div class="content">
             <div class="title m-b-md">
@@ -17,20 +19,10 @@
             <p>&nbsp;</p>
 
             <div class="links">
-                <a href="https://github.com/osiset/laravel-shopify" target="_blank">Package</a>
+                <a href="https://github.com/Kyon147/laravel-shopify" target="_blank">Package</a>
                 <a href="https://laravel.com" target="_blank">Laravel</a>
-                <a href="https://github.com/osiset/laravel-shopify" target="_blank">GitHub</a>
+                <a href="https://github.com/Kyon147/laravel-shopify" target="_blank">GitHub</a>
             </div>
         </div>
     </div>
-@endsection
-
-@section('scripts')
-    @parent
-
-    @if(config('shopify-app.appbridge_enabled'))
-        <script>
-            actions.TitleBar.create(app, { title: 'Welcome' });
-        </script>
-    @endif
 @endsection

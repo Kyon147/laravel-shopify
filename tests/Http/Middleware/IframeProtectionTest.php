@@ -63,4 +63,28 @@ class IframeProtectionTest extends TestCase
         $this->assertNotEmpty($currentHeader);
         $this->assertEquals($expectedHeader, $currentHeader);
     }
+
+    public function testIframeProtectionWithExistingAncestorsInConfig(): void
+    {
+        $shop = factory($this->model)->create();
+        $this->auth->login($shop);
+        $this->app['config']->set('shopify-app.iframe_ancestors', 'https://example.com');
+
+        $domain = auth()->user()->name;
+        $expectedHeader = "frame-ancestors https://$domain https://admin.shopify.com https://example.com";
+
+        $request = new Request();
+        $shopQueryStub = $this->createStub(ShopQuery::class);
+        $shopQueryStub->method('getByDomain')->willReturn($shop);
+        $next = function () {
+            return new Response('Test Response');
+        };
+
+        $middleware = new IframeProtection($shopQueryStub);
+        $response = $middleware->handle($request, $next);
+        $currentHeader = $response->headers->get('content-security-policy');
+
+        $this->assertNotEmpty($currentHeader);
+        $this->assertEquals($expectedHeader, $currentHeader);
+    }
 }

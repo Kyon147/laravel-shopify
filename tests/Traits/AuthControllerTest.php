@@ -3,7 +3,10 @@
 namespace Osiset\ShopifyApp\Test\Traits;
 
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
+use Osiset\ShopifyApp\Messaging\Events\ShopAuthenticatedEvent;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 use Osiset\ShopifyApp\Util;
@@ -20,15 +23,18 @@ class AuthControllerTest extends TestCase
 
     public function testAuthRedirectsToShopifyWhenNoCode(): void
     {
+        Event::fake();
         // Run the request
         $response = $this->call('post', '/authenticate', ['shop' => 'example.myshopify.com']);
 
         // Check the redirect happens and location is set properly in the header.
         $response->assertViewHas('shopDomain', 'example.myshopify.com');
         $response->assertViewHas(
-            'authUrl',
+            'url',
             'https://example.myshopify.com/admin/oauth/authorize?client_id='.Util::getShopifyConfig('api_key').'&scope=read_products%2Cwrite_products%2Cread_themes&redirect_uri=https%3A%2F%2Flocalhost%2Fauthenticate'
         );
+
+        Event::assertDispatched(ShopAuthenticatedEvent::class);
     }
 
     public function testAuthAcceptsShopWithCode(): void

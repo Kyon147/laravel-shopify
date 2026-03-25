@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Osiset\ShopifyApp\Util;
 
 class AddThemeSupportLevelToUsersTable extends Migration
 {
@@ -13,7 +14,7 @@ class AddThemeSupportLevelToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table(Util::getShopsTable(), function (Blueprint $table) {
             $table->integer('theme_support_level')->nullable();
         });
     }
@@ -25,7 +26,7 @@ class AddThemeSupportLevelToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table(Util::getShopsTable(), function (Blueprint $table) {
             $table->dropColumn('theme_support_level');
         });
     }

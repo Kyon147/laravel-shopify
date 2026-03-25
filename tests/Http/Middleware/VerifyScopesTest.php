@@ -18,12 +18,12 @@ class VerifyScopesTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+
         $this->auth = $this->app->make(AuthManager::class);
     }
 
     public function testMissingScopes(): void
     {
-        // Setup API stub
         $this->setApiStub();
         ApiStub::stubResponses(['access_scopes']);
 
@@ -34,18 +34,14 @@ class VerifyScopesTest extends TestCase
 
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
-        // Run the middleware
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {
-        });
+        $result = $middleware->handle($request, function () {});
 
-        //this line needs to assert if proper redirect was made
         $this->assertEquals(302, $result->getStatusCode());
     }
 
     public function testMatchingScopes(): void
     {
-        // Setup API stub
         $this->setApiStub();
         ApiStub::stubResponses(['access_scopes']);
 
@@ -56,18 +52,14 @@ class VerifyScopesTest extends TestCase
 
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
-        // Run the middleware
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {
-        });
+        $result = $middleware->handle($request, function () {});
 
-        //this line needs to assert if proper redirect was made
         $this->assertEquals($result, null);
     }
 
     public function testScopeApiFailure(): void
     {
-        // Setup API stub
         $this->setApiStub();
         ApiStub::stubResponses(['access_scopes_error']);
 
@@ -78,12 +70,9 @@ class VerifyScopesTest extends TestCase
 
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
-        // Run the middleware
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {
-        });
+        $result = $middleware->handle($request, function () {});
 
-        //this line needs to assert if proper redirect was made
         $this->assertEquals($result, null);
     }
 }

@@ -83,7 +83,7 @@ class VerifyShopify
      * @param Request $request The request object.
      * @param Closure $next    The next action.
      *
-     * @throws SignatureVerificationException If HMAC verification fails.
+     * @throws SignatureVerificationException|HttpException If HMAC verification fails.
      *
      * @return mixed
      */
@@ -91,6 +91,7 @@ class VerifyShopify
     {
         // Verify the HMAC (if available)
         $hmacResult = $this->verifyHmac($request);
+
         if ($hmacResult === false) {
             // Invalid HMAC
             throw new SignatureVerificationException('Unable to verify signature.');
@@ -101,10 +102,13 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::useNativeAppBridge()) {
-            $storeResult = !$this->isApiRequest($request) && $this->checkPreviousInstallation($request);
+        if (!Util::isMPAApplication()) {
+            $shop = $this->getShopIfAlreadyInstalled($request);
+            $storeResult = !$this->isApiRequest($request) && $shop;
 
             if ($storeResult) {
+                $this->loginFromShop($shop);
+
                 return $next($request);
             }
         }
@@ -112,6 +116,15 @@ class VerifyShopify
         $tokenSource = $this->getAccessTokenFromRequest($request);
 
         if ($tokenSource === null) {
+            $forbiddenMiddlewareMatches = array_intersect(
+                Util::getShopifyConfig('forbidden_web_middleware_groups'),
+                $request->route()?->middleware() ?? []
+            );
+
+            if (filled($forbiddenMiddlewareMatches)) {
+                throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
+            }
+
             //Check if there is a store record in the database
             return $this->checkPreviousInstallation($request)
                 // Shop exists, token not available, we need to get one
@@ -302,6 +315,7 @@ class VerifyShopify
                 'shop' => ShopDomain::fromRequest($request)->toNative(),
                 'target' => $target,
                 'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
             ]
         );
     }
@@ -317,7 +331,7 @@ class VerifyShopify
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative()]
+            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
         );
     }
 
@@ -373,20 +387,9 @@ class VerifyShopify
      */
     protected function getAccessTokenFromRequest(Request $request): ?string
     {
-        if (Util::getShopifyConfig('turbo_enabled')) {
-            if ($request->bearerToken()) {
-                // Bearer tokens collect.
-                // Turbo does not refresh the page, values are attached to the same header.
-                $bearerTokens = Collection::make(explode(',', $request->header('Authorization', '')));
-                $newestToken = Str::substr(trim($bearerTokens->last()), 7);
-
-                return $newestToken;
-            }
-
-            return $request->get('token');
-        }
-
-        return $this->isApiRequest($request) ? $request->bearerToken() : $request->get('token');
+        return $this->isApiRequest($request)
+            ? $request->bearerToken()
+            : $request->get('token');
     }
 
     /**
@@ -511,5 +514,37 @@ class VerifyShopify
         $shop = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request), [], true);
 
         return $shop && $shop->password && ! $shop->trashed();
+    }
+
+    /**
+     * Get shop model if there is a store record in the database.
+     *
+     * @param Request $request The request object.
+     *
+     * @return ?ShopModel
+     */
+    protected function getShopIfAlreadyInstalled(Request $request): ?ShopModel
+    {
+        $shop = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request), [], true);
+
+        return $shop && $shop->password && ! $shop->trashed() ? $shop : null;
+    }
+
+    /**
+     * Login and validate store
+     *
+     * @param ShopModel $shop
+     *
+     * @return void
+     */
+    protected function loginFromShop(ShopModel $shop): void
+    {
+        // Override auth guard
+        if (($guard = Util::getShopifyConfig('shop_auth_guard'))) {
+            $this->auth->setDefaultDriver($guard);
+        }
+
+        // All is well, login the shop
+        $this->auth->login($shop);
     }
 }

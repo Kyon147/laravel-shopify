@@ -45,6 +45,7 @@ class BillingControllerTest extends TestCase
 
         // Run the call
         $response = $this->call('get', '/billing', ['shop' => $shop->getDomain()->toNative()]);
+
         $response->assertViewHas(
             'url',
             'https://example.myshopify.com/admin/charges/1029266947/confirm_recurring_application_charge?signature=BAhpBANeWT0%3D--64de8739eb1e63a8f848382bb757b20343eb414f'
@@ -59,7 +60,7 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_engine' => 'REACT']);
+        config(['shopify-app.frontend_type' => 'SPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
@@ -98,7 +99,7 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_engine' => 'BLADE']);
+        config(['shopify-app.frontend_type' => 'MPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
@@ -266,7 +267,8 @@ class BillingControllerTest extends TestCase
         $data = [
             'description' => 'One email',
             'price' => 1.00,
-            'redirect' => 'https://localhost/usage-success',];
+            'redirect' => 'https://localhost/usage-success',
+        ];
         $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $secret);
 
         // Run the call

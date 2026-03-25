@@ -9,9 +9,48 @@ use Osiset\ShopifyApp\Contracts\Objects\Values\SessionId as SessionIdValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
 use Osiset\ShopifyApp\Objects\Values\SessionToken;
 use Osiset\ShopifyApp\Test\TestCase;
+use Osiset\ShopifyApp\Util;
 
 class SessionTokenTest extends TestCase
 {
+    public function testShouldProcessForValidCheckoutExtensionToken(): void
+    {
+        $now = Carbon::now()->unix();
+        $this->tokenDefaults = [
+            'dest' => 'shop-name.myshopify.com',
+            'aud' => Util::getShopifyConfig('api_key'),
+            'exp' => $now + 60,
+            'nbf' => $now,
+            'iat' => $now,
+            'jti' => '00000000-0000-0000-0000-000000000000',
+        ];
+
+        $token = $this->buildToken();
+        $st = SessionToken::fromNative($token);
+
+        $this->assertInstanceOf(ShopDomainValue::class, $st->getShopDomain());
+        $this->assertTrue(Str::contains($this->tokenDefaults['dest'], $st->getShopDomain()->toNative()));
+
+        $this->assertInstanceOf(Carbon::class, $st->getExpiration());
+        $this->assertSame($this->tokenDefaults['exp'], $st->getExpiration()->unix());
+
+        $this->assertInstanceOf(Carbon::class, $st->getIssuedAt());
+        $this->assertSame($this->tokenDefaults['iat'], $st->getIssuedAt()->unix());
+
+        $this->assertInstanceOf(Carbon::class, $st->getNotBefore());
+        $this->assertSame($this->tokenDefaults['nbf'], $st->getNotBefore()->unix());
+
+        $this->assertSame($this->tokenDefaults['dest'], $st->getDestination());
+        $this->assertSame($this->tokenDefaults['aud'], $st->getAudience());
+        $this->assertSame($this->tokenDefaults['jti'], $st->getTokenId());
+
+        $this->assertInstanceOf(SessionIdValue::class, $st->getSessionId());
+        $this->assertSame('', $st->getSessionId()->toNative());
+
+        $this->assertSame('', $st->getIssuer());
+        $this->assertSame('', $st->getSubject());
+    }
+
     public function testShouldProcessForValidToken(): void
     {
         $token = $this->buildToken();
