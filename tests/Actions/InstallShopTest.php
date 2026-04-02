@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Actions;
 
+use Illuminate\Support\Facades\Crypt;
 use Osiset\ShopifyApp\Actions\InstallShop;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
@@ -140,5 +141,33 @@ class InstallShopTest extends TestCase
              */
             'password' => '12345678',
         ]);
+    }
+
+    public function testWithCodeStoresExpiringOfflineMetadataWhenEnabled(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create();
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring', 'get_themes']);
+
+        $result = call_user_func(
+            $this->action,
+            $shop->getDomain(),
+            '12345678'
+        );
+
+        $this->assertTrue($result['completed']);
+        $shop->refresh();
+
+        $this->assertSame('shpat_expiring_test_token', $shop->getAccessToken()->toNative());
+        $this->assertNotNull($shop->shopify_offline_refresh_token);
+        $this->assertSame(
+            'shprt_expiring_test_refresh',
+            Crypt::decryptString($shop->shopify_offline_refresh_token)
+        );
+        $this->assertNotNull($shop->shopify_offline_access_token_expires_at);
+        $this->assertNotNull($shop->shopify_offline_refresh_token_expires_at);
     }
 }
