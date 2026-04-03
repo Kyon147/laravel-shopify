@@ -15,15 +15,9 @@ class AddExpiringOfflineTokenColumnsToShopsTable extends Migration
     public function up(): void
     {
         Schema::table(Util::getShopsTable(), function (Blueprint $table) {
-            if (! Schema::hasColumn(Util::getShopsTable(), 'shopify_offline_refresh_token')) {
-                $table->text('shopify_offline_refresh_token')->nullable();
-            }
-            if (! Schema::hasColumn(Util::getShopsTable(), 'shopify_offline_access_token_expires_at')) {
-                $table->timestamp('shopify_offline_access_token_expires_at')->nullable();
-            }
-            if (! Schema::hasColumn(Util::getShopsTable(), 'shopify_offline_refresh_token_expires_at')) {
-                $table->timestamp('shopify_offline_refresh_token_expires_at')->nullable();
-            }
+            $table->text('shopify_offline_refresh_token')->nullable();
+            $table->timestamp('shopify_offline_access_token_expires_at')->nullable();
+            $table->timestamp('shopify_offline_refresh_token_expires_at')->nullable();
         });
     }
 
