@@ -20,7 +20,15 @@
         </include>
         <exclude>
             <directory>src/Contracts/</directory>
-            <directory>src/Exceptions/</directory>
+            <file>src/Exceptions/ApiException.php</file>
+            <file>src/Exceptions/BaseException.php</file>
+            <file>src/Exceptions/ChargeNotRecurringException.php</file>
+            <file>src/Exceptions/ChargeNotRecurringOrOnetimeException.php</file>
+            <file>src/Exceptions/HttpException.php</file>
+            <file>src/Exceptions/InvalidShopDomainException.php</file>
+            <file>src/Exceptions/MissingAuthUrlException.php</file>
+            <file>src/Exceptions/MissingShopDomainException.php</file>
+            <file>src/Exceptions/SignatureVerificationException.php</file>
             <directory>src/Objects/Enums/</directory>
             <directory>src/resources/</directory>
             <directory>src/Messaging/Events/</directory>
