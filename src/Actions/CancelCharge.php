@@ -9,19 +9,51 @@ use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Services\ChargeHelper;
 
+/**
+ * Cancels a charge for a shop.
+ */
 class CancelCharge
 {
-    public function __construct(
-        protected IChargeCommand $chargeCommand,
-        protected ChargeHelper $chargeHelper
-    ) {
+    /**
+     * The commands for charges.
+     *
+     * @var IChargeCommand
+     */
+    protected $chargeCommand;
+
+    /**
+     * The charge helper.
+     *
+     * @var ChargeHelper
+     */
+    protected $chargeHelper;
+
+    /**
+     * Constructor.
+     *
+     * @param IChargeCommand $chargeCommand The commands for charges.
+     * @param ChargeHelper   $chargeHelper  The charge helper.
+     *
+     * @return void
+     */
+    public function __construct(IChargeCommand $chargeCommand, ChargeHelper $chargeHelper)
+    {
+        $this->chargeCommand = $chargeCommand;
+        $this->chargeHelper = $chargeHelper;
     }
 
     /**
+     * Cancels the charge.
+     *
+     * @param ChargeReference $chargeRef The charge ID.
+     *
      * @throws Exception
+     *
+     * @return bool
      */
     public function __invoke(ChargeReference $chargeRef): bool
     {
+        // Get the charge
         $helper = $this->chargeHelper->useCharge($chargeRef);
         $charge = $helper->getCharge();
 
@@ -32,6 +64,7 @@ class CancelCharge
             );
         }
 
+        // Save the details to the database
         return $this->chargeCommand->cancel(
             $chargeRef,
             Carbon::today(),

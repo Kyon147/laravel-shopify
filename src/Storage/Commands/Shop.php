@@ -3,7 +3,6 @@
 namespace Osiset\ShopifyApp\Storage\Commands;
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Crypt;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as ShopCommand;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken as AccessTokenValue;
 use Osiset\ShopifyApp\Contracts\Objects\Values\PlanId as PlanIdValue;
@@ -72,29 +71,11 @@ class Shop implements ShopCommand
     /**
      * {@inheritdoc}
      */
-    public function setAccessToken(
-        ShopIdValue $shopId,
-        AccessTokenValue $token,
-        ?string $offlineRefreshTokenPlain = null,
-        $offlineAccessTokenExpiresAt = null,
-        $offlineRefreshTokenExpiresAt = null
-    ): bool {
+    public function setAccessToken(ShopIdValue $shopId, AccessTokenValue $token): bool
+    {
         $shop = $this->getShop($shopId);
         $shop->password = $token->toNative();
         $shop->password_updated_at = Carbon::now();
-
-        if ($offlineRefreshTokenPlain !== null
-            && $offlineAccessTokenExpiresAt !== null
-            && $offlineRefreshTokenExpiresAt !== null
-        ) {
-            $shop->shopify_offline_refresh_token = Crypt::encryptString($offlineRefreshTokenPlain);
-            $shop->shopify_offline_access_token_expires_at = $offlineAccessTokenExpiresAt;
-            $shop->shopify_offline_refresh_token_expires_at = $offlineRefreshTokenExpiresAt;
-        } else {
-            $shop->shopify_offline_refresh_token = null;
-            $shop->shopify_offline_access_token_expires_at = null;
-            $shop->shopify_offline_refresh_token_expires_at = null;
-        }
 
         return $shop->save();
     }
@@ -117,9 +98,6 @@ class Shop implements ShopCommand
     {
         $shop = $this->getShop($shopId);
         $shop->password = '';
-        $shop->shopify_offline_refresh_token = null;
-        $shop->shopify_offline_access_token_expires_at = null;
-        $shop->shopify_offline_refresh_token_expires_at = null;
         $shop->plan_id = null;
 
         return $shop->save();

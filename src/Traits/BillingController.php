@@ -107,7 +107,7 @@ trait BillingController
             'locale' => $request->get('locale'),
         ];
 
-        if (!Util::isMPAApplication()) {
+        if (!Util::useNativeAppBridge()) {
             $data['billing'] = $result ? 'success' : 'failure';
         }
 

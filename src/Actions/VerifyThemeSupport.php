@@ -7,14 +7,48 @@ use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Services\ThemeHelper;
 
+/**
+ * Activates a plan for a shop.
+ */
 class VerifyThemeSupport
 {
+    /**
+     * Querier for shops.
+     *
+     * @var IShopQuery
+     */
+    protected $shopQuery;
+
+    /**
+     * Theme helper.
+     *
+     * @var ThemeHelper
+     */
+    protected $themeHelper;
+
+    /**
+     * Setup.
+     *
+     * @param IShopQuery  $shopQuery   The querier for shops.
+     * @param ThemeHelper $themeHelper Theme helper.
+     *
+     * @return void
+     */
     public function __construct(
-        protected IShopQuery $shopQuery,
-        protected ThemeHelper $themeHelper
+        IShopQuery $shopQuery,
+        ThemeHelper $themeHelper
     ) {
+        $this->shopQuery = $shopQuery;
+        $this->themeHelper = $themeHelper;
     }
 
+    /**
+     * Execution.
+     *
+     * @param ShopId $shopId The shop ID.
+     *
+     * @return int
+     */
     public function __invoke(ShopId $shopId): int
     {
         $this->themeHelper->extractStoreMainTheme($shopId);

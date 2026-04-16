@@ -39,7 +39,7 @@ class ApiHelper implements IApiHelper
     /**
      * {@inheritdoc}
      */
-    public function make(?Session $session = null): self
+    public function make(Session $session = null): self
     {
         // Create the options
         $opts = new Options();
@@ -151,7 +151,6 @@ class ApiHelper implements IApiHelper
      */
     public function performOfflineTokenExchange(string $token): ResponseAccess
     {
-        $shop = $this->getShopDomain($this->api->getSession())->toNative();
         $data = [
             'client_id' => $this->api->getOptions()->getApiKey(),
             'client_secret' => $this->api->getOptions()->getApiSecret(),
@@ -160,64 +159,11 @@ class ApiHelper implements IApiHelper
             'subject_token_type' => 'urn:ietf:params:oauth:token-type:id_token',
             'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
         ];
-        if (Util::getShopifyConfig('expiring_offline_tokens', $shop)) {
-            $data['expiring'] = 1;
-        }
-
-        return $this->oauthAccessTokenPost($data);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @codeCoverageIgnore No need to retest.
-     */
-    public function getAccessData(string $code, ?AuthMode $grantMode = null): ResponseAccess
-    {
-        $grantMode = $grantMode ?? AuthMode::OFFLINE();
-        $shop = $this->getShopDomain($this->api->getSession())->toNative();
-        $useExpiringOffline = Util::getShopifyConfig('expiring_offline_tokens', $shop)
-            && $grantMode->isSame(AuthMode::OFFLINE());
-
-        if ($useExpiringOffline) {
-            return $this->oauthAccessTokenPost([
-                'client_id' => $this->api->getOptions()->getApiKey(),
-                'client_secret' => $this->api->getOptions()->getApiSecret(),
-                'code' => $code,
-                'expiring' => 1,
-            ]);
-        }
-
-        return $this->api->requestAccess($code);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function refreshOfflineAccessToken(string $refreshToken): ResponseAccess
-    {
-        return $this->oauthAccessTokenPost([
-            'client_id' => $this->api->getOptions()->getApiKey(),
-            'client_secret' => $this->api->getOptions()->getApiSecret(),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $refreshToken,
-        ]);
-    }
-
-    /**
-     * POST /admin/oauth/access_token (JSON body).
-     *
-     * @param array $json
-     *
-     * @return ResponseAccess
-     */
-    protected function oauthAccessTokenPost(array $json): ResponseAccess
-    {
         $response = $this->api->request(
             'POST',
             '/admin/oauth/access_token',
             [
-                'json' => $json,
+                'json' => $data,
             ]
         );
 
@@ -225,11 +171,21 @@ class ApiHelper implements IApiHelper
             throw new ApiException(
                 is_string($response['body']) ? $response['body'] : 'Unknown error',
                 0,
-                $response['exception'] ?? null
+                $response['exception']
             );
         }
 
         return $response['body'];
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @codeCoverageIgnore No need to retest.
+     */
+    public function getAccessData(string $code): ResponseAccess
+    {
+        return $this->api->requestAccess($code);
     }
 
     /**
@@ -561,7 +517,7 @@ class ApiHelper implements IApiHelper
      *
      * @return array
      */
-    protected function doRequest(ApiMethod $method, string $path, ?array $payload = null)
+    protected function doRequest(ApiMethod $method, string $path, array $payload = null)
     {
         $response = $this->api->rest($method->toNative(), $path, $payload);
         if ($response['errors'] === true) {
@@ -607,7 +563,7 @@ class ApiHelper implements IApiHelper
      *
      * @return NullableShopDomain
      */
-    private function getShopDomain(?Session $session = null): NullableShopDomain
+    private function getShopDomain(Session $session = null): NullableShopDomain
     {
         // Check for existing session passed in
         if ($session && $session->getShop()) {

@@ -106,20 +106,20 @@ class UtilTest extends TestCase
         );
     }
 
-    public function testIsMPAApplicationIsTrue(): void
+    public function testUseNativeAppBridgeIsTrue(): void
     {
-        $this->app['config']->set('shopify-app.frontend_type', 'MPA');
+        $this->app['config']->set('shopify-app.frontend_engine', 'VUE');
 
-        $result = Util::isMPAApplication();
+        $result = Util::useNativeAppBridge();
 
         $this->assertTrue($result);
     }
 
-    public function testIsMPAApplicationIsFalse(): void
+    public function testUseNativeAppBridgeIsFalse(): void
     {
-        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
+        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
 
-        $result = Util::isMPAApplication();
+        $result = Util::useNativeAppBridge();
 
         $this->assertFalse($result);
     }

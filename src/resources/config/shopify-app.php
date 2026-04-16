@@ -210,33 +210,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Expiring offline access tokens
-    |--------------------------------------------------------------------------
-    |
-    | When true, new offline token exchanges use Shopify's expiring offline
-    | access tokens (refresh_token + rotation). Required for public apps
-    | created on or after April 1, 2026. Existing installs without refresh
-    | metadata continue using the stored access token until re-auth or migration.
-    |
-    | @see https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
-    |
-    */
-
-    'expiring_offline_tokens' => (bool) env('SHOPIFY_EXPIRING_OFFLINE_TOKENS', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Offline access token refresh skew (seconds)
-    |--------------------------------------------------------------------------
-    |
-    | Refresh the offline access token this many seconds before it expires.
-    |
-    */
-
-    'offline_access_token_refresh_skew_seconds' => (int) env('SHOPIFY_OFFLINE_ACCESS_TOKEN_REFRESH_SKEW', 60),
-
-    /*
-    |--------------------------------------------------------------------------
     | Shopify API Redirect
     |--------------------------------------------------------------------------
     |
@@ -415,16 +388,16 @@ return [
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
-                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://example.com/webhook/orders-create')
+                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create')
             ], [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
-                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://example.com/webhook/purchase'),
+                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
             ]
             // In certain situations you may wish to map the webhook to a specific class
             // To do this, change the array to an associative array with a 'class' key
             'orders-create' => [
                 'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
-                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://example.com/webhook/orders-create'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
         */],
@@ -441,7 +414,7 @@ return [
     'scripttags' => [
         /*
             [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://example.com/some-controller/js-method-response'),
+                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
                 'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
@@ -604,26 +577,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Frontend type used
+    | Frontend engine used
     |--------------------------------------------------------------------------
     |
-    | Available types: "SPA" (single-page application), "MPA" (multiple-page application).
-    | For example, if you use SPA, you do not need to be redirected to a separate page to get the JWT token.
+    | Available engines: "BLADE", "VUE", or "REACT".
+    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
+    | No changes are made for Vue.js and Blade.
     |
     */
-    'frontend_type' => env('SHOPIFY_FRONTEND_TYPE', 'MPA'),
+    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
 
     'iframe_ancestors' => '',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Forbidden middleware groups
-    |--------------------------------------------------------------------------
-    |
-    | Routes prohibited from being opened in the browser.
-    |
-    */
-    'forbidden_web_middleware_groups' => [
-        'api',
-    ]
 ];

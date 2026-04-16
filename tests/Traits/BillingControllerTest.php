@@ -60,7 +60,7 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_type' => 'SPA']);
+        config(['shopify-app.frontend_engine' => 'REACT']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
@@ -99,7 +99,7 @@ class BillingControllerTest extends TestCase
             'post_recurring_application_charges_activate',
         ]);
 
-        config(['shopify-app.frontend_type' => 'MPA']);
+        config(['shopify-app.frontend_engine' => 'BLADE']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
@@ -267,8 +267,7 @@ class BillingControllerTest extends TestCase
         $data = [
             'description' => 'One email',
             'price' => 1.00,
-            'redirect' => 'https://localhost/usage-success',
-        ];
+            'redirect' => 'https://localhost/usage-success',];
         $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $secret);
 
         // Run the call

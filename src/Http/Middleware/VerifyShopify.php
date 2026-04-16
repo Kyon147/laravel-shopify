@@ -91,7 +91,6 @@ class VerifyShopify
     {
         // Verify the HMAC (if available)
         $hmacResult = $this->verifyHmac($request);
-
         if ($hmacResult === false) {
             // Invalid HMAC
             throw new SignatureVerificationException('Unable to verify signature.');
@@ -102,7 +101,7 @@ class VerifyShopify
             return $next($request);
         }
 
-        if (!Util::isMPAApplication()) {
+        if (!Util::useNativeAppBridge()) {
             $shop = $this->getShopIfAlreadyInstalled($request);
             $storeResult = !$this->isApiRequest($request) && $shop;
 
@@ -116,15 +115,6 @@ class VerifyShopify
         $tokenSource = $this->getAccessTokenFromRequest($request);
 
         if ($tokenSource === null) {
-            $forbiddenMiddlewareMatches = array_intersect(
-                Util::getShopifyConfig('forbidden_web_middleware_groups'),
-                $request->route()?->middleware() ?? []
-            );
-
-            if (filled($forbiddenMiddlewareMatches)) {
-                throw new HttpException('Access denied.', Response::HTTP_FORBIDDEN);
-            }
-
             //Check if there is a store record in the database
             return $this->checkPreviousInstallation($request)
                 // Shop exists, token not available, we need to get one

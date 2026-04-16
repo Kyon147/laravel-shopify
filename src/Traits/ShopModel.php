@@ -16,7 +16,6 @@ use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\SessionContext;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
-use Osiset\ShopifyApp\Services\OfflineAccessTokenRefresher;
 use Osiset\ShopifyApp\Storage\Models\Charge;
 use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Storage\Scopes\Namespacing;
@@ -57,19 +56,6 @@ trait ShopModel
         static::deleted(function ($shop) {
             event(new ShopDeletedEvent($shop));
         });
-    }
-
-    /**
-     * Merge casts for expiring offline token timestamps.
-     *
-     * @return void
-     */
-    public function initializeShopModel(): void
-    {
-        $this->mergeCasts([
-            'shopify_offline_access_token_expires_at' => 'datetime',
-            'shopify_offline_refresh_token_expires_at' => 'datetime',
-        ]);
     }
 
     /**
@@ -149,14 +135,6 @@ trait ShopModel
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function hasExpiringOfflineAccess(): bool
-    {
-        return ! empty($this->shopify_offline_refresh_token);
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function setSessionContext(SessionContext $session): void
@@ -178,8 +156,6 @@ trait ShopModel
     public function apiHelper(): IApiHelper
     {
         if ($this->apiHelper === null) {
-            app(OfflineAccessTokenRefresher::class)->refreshIfNeeded($this);
-
             // Set the session
             $session = new Session(
                 $this->getDomain()->toNative(),

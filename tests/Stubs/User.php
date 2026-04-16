@@ -13,12 +13,7 @@ class User extends Authenticatable implements IShopModel
     use ShopModel;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'shopify_offline_refresh_token',
-        'shopify_offline_access_token_expires_at',
-        'shopify_offline_refresh_token_expires_at',
+        'name', 'email', 'password',
     ];
 
     protected $hidden = [

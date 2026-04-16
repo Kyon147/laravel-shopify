@@ -11,7 +11,6 @@ use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
-use Osiset\ShopifyApp\Objects\Enums\ChargeInterval;
 use Osiset\ShopifyApp\Objects\Enums\PlanType;
 use Osiset\ShopifyApp\Objects\Transfers\Charge as ChargeTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeId;
@@ -19,62 +18,128 @@ use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Services\ChargeHelper;
 
+/**
+ * Activates a plan for a shop.
+ */
 class ActivatePlan
 {
     /**
-     * @param callable $cancelCurrentPlan
+     * The charge helper.
+     *
+     * @var ChargeHelper
+     */
+    protected $chargeHelper;
+
+    /**
+     * Action which cancels the current plan.
+     *
+     * @var callable
+     */
+    protected $cancelCurrentPlan;
+
+    /**
+     * Querier for shops.
+     *
+     * @var IShopQuery
+     */
+    protected $shopQuery;
+
+    /**
+     * Command for charges.
+     *
+     * @var IChargeCommand
+     */
+    protected $chargeCommand;
+
+    /**
+     * Command for shops.
+     *
+     * @var IShopCommand
+     */
+    protected $shopCommand;
+
+    /**
+     * Querier for plans.
+     *
+     * @var IPlanQuery
+     */
+    protected $planQuery;
+
+    /**
+     * Setup.
+     *
+     * @param callable       $cancelCurrentPlanAction Action which cancels the current plan.
+     * @param ChargeHelper   $chargeHelper            The charge helper.
+     * @param IShopQuery     $shopQuery               The querier for shops.
+     * @param IPlanQuery     $planQuery               The querier for plans.
+     * @param IChargeCommand $chargeCommand           The commands for charges.
+     * @param IShopCommand   $shopCommand             The commands for shops.
+     *
+     * @return void
      */
     public function __construct(
-        protected $cancelCurrentPlan,
-        protected ChargeHelper $chargeHelper,
-        protected IShopQuery $shopQuery,
-        protected IPlanQuery $planQuery,
-        protected IChargeCommand $chargeCommand,
-        protected IShopCommand $shopCommand
+        callable $cancelCurrentPlanAction,
+        ChargeHelper $chargeHelper,
+        IShopQuery $shopQuery,
+        IPlanQuery $planQuery,
+        IChargeCommand $chargeCommand,
+        IShopCommand $shopCommand
     ) {
+        $this->cancelCurrentPlan = $cancelCurrentPlanAction;
+        $this->chargeHelper = $chargeHelper;
+        $this->shopQuery = $shopQuery;
+        $this->planQuery = $planQuery;
+        $this->chargeCommand = $chargeCommand;
+        $this->shopCommand = $shopCommand;
     }
 
     /**
+     * Execution.
      * TODO: Rethrow an API exception.
+     *
+     * @param ShopId          $shopId    The shop ID.
+     * @param PlanId          $planId    The plan to use.
+     * @param ChargeReference $chargeRef The charge ID from Shopify.
+     *
+     * @return ChargeId
      */
     public function __invoke(ShopId $shopId, PlanId $planId, ChargeReference $chargeRef, string $host): ChargeId
     {
+        // Get the shop
         $shop = $this->shopQuery->getById($shopId);
+
+        // Get the plan
         $plan = $this->planQuery->getById($planId);
         $chargeType = ChargeType::fromNative($plan->getType()->toNative());
 
-        // GraphQL subscriptions (appSubscriptionCreate) are auto-activated on merchant approval —
-        // no REST activate call needed. Derive all fields locally to avoid any API call
-        // that would fail for shops with non-expiring (legacy) access tokens.
-        $planDetails = $this->chargeHelper->details($plan, $shop, $host);
+        // Activate the plan on Shopify
+        $response = $shop->apiHelper()->activateCharge($chargeType, $chargeRef);
 
         // Cancel the shop's current plan
         call_user_func($this->cancelCurrentPlan, $shopId);
+
         // Cancel the existing charge if it exists (happens if someone refreshes during)
         $this->chargeCommand->delete($chargeRef, $shopId);
 
+        // Create the charge transfer
         $transfer = new ChargeTransfer();
         $transfer->shopId = $shopId;
         $transfer->planId = $planId;
         $transfer->chargeReference = $chargeRef;
         $transfer->chargeType = $chargeType;
-        $transfer->chargeStatus = ChargeStatus::ACTIVE();
-        $transfer->planDetails = $planDetails;
-
+        $transfer->chargeStatus = ChargeStatus::fromNative(strtoupper($response['status']));
         if ($plan->isType(PlanType::RECURRING())) {
-            $now = Carbon::now();
-            $transfer->activatedOn = $now;
-            $trialDays = (int) ($planDetails->trialDays ?? 0);
-            $transfer->trialEndsOn = $trialDays > 0 ? $now->copy()->addDays($trialDays) : null;
-            $transfer->billingOn = $plan->getInterval()->isSame(ChargeInterval::ANNUAL())
-                ? $now->copy()->addYear()
-                : $now->copy()->addDays(30);
+            $transfer->activatedOn = new Carbon($response['activated_on']);
+            $transfer->billingOn = new Carbon($response['billing_on']);
+            $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
         } else {
             $transfer->activatedOn = Carbon::today();
             $transfer->billingOn = null;
             $transfer->trialEndsOn = null;
         }
+        $transfer->planDetails = $this->chargeHelper->details($plan, $shop, $host);
 
+        // Create the charge
         $charge = $this->chargeCommand->make($transfer);
         $this->shopCommand->setToPlan($shopId, $planId);
 
