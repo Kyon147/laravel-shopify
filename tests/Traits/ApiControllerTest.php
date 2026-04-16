@@ -12,8 +12,8 @@ class ApiControllerTest extends TestCase
         $shop = factory($this->model)->create();
 
         $response = $this->getJson('/api', ['HTTP_X-Shop-Domain' => $shop->name]);
-        $response->assertStatus(Response::HTTP_BAD_REQUEST);
-        $response->assertExactJson(['error' => 'Session token is invalid.']);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+        $response->assertExactJson(['error' => 'Access denied.']);
     }
 
     public function testApiWithToken(): void

@@ -127,4 +127,32 @@ class ThemeHelperTest extends TestCase
 
         $this->assertNotEmpty($sectionsWithApp);
     }
+
+    public function testSectionsWithAppBlockHandlesMissingSchema(): void
+    {
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses([
+            'get_themes',
+            'get_theme_assets',
+            'get_theme_asset_no_schema',
+        ]);
+
+        // Define config to include a template
+        $this->app['config']->set(
+            'shopify-app.theme_support.templates',
+            [
+                'asset',
+            ]
+        );
+
+        // Run extraction
+        $this->helper->extractStoreMainTheme($this->shop->getId());
+        $jsonFiles = $this->helper->templateJSONFiles();
+        $mainSections = $this->helper->mainSections($jsonFiles);
+        $sectionsWithApp = $this->helper->sectionsWithAppBlock($mainSections);
+
+        // Assert no sections are returned and no error occurs
+        $this->assertEmpty($sectionsWithApp);
+    }
 }
