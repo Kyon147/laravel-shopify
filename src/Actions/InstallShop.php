@@ -24,6 +24,15 @@ class InstallShop
     ) {
     }
 
+    /**
+     * Execution.
+     *
+     * @param ShopDomain $shopDomain The shop ID.
+     * @param string|null $code The code from Shopify (for OAuth).
+     * @param string|null $idToken The id_token from Shopify (for Managed App Installation).
+     *
+     * @return array
+     */
     public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
     {
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
@@ -38,6 +47,7 @@ class InstallShop
             ? AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop))
             : AuthMode::OFFLINE();
 
+        // If there's no code
         if (empty($code) && empty($idToken)) {
             return [
                 'completed' => false,
