@@ -11,6 +11,7 @@ use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
+use Osiset\ShopifyApp\Objects\Enums\ChargeInterval;
 use Osiset\ShopifyApp\Objects\Enums\PlanType;
 use Osiset\ShopifyApp\Objects\Transfers\Charge as ChargeTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeId;
@@ -42,8 +43,11 @@ class ActivatePlan
         $plan = $this->planQuery->getById($planId);
         $chargeType = ChargeType::fromNative($plan->getType()->toNative());
 
-        // Activate the plan on Shopify
-        $response = $shop->apiHelper()->activateCharge($chargeType, $chargeRef);
+        // GraphQL subscriptions (appSubscriptionCreate) are auto-activated on merchant approval —
+        // no REST activate call needed. Derive all fields locally to avoid any API call
+        // that would fail for shops with non-expiring (legacy) access tokens.
+        $planDetails = $this->chargeHelper->details($plan, $shop, $host);
+
         // Cancel the shop's current plan
         call_user_func($this->cancelCurrentPlan, $shopId);
         // Cancel the existing charge if it exists (happens if someone refreshes during)
@@ -54,13 +58,17 @@ class ActivatePlan
         $transfer->planId = $planId;
         $transfer->chargeReference = $chargeRef;
         $transfer->chargeType = $chargeType;
-        $transfer->chargeStatus = ChargeStatus::fromNative(strtoupper($response['status']));
-        $transfer->planDetails = $this->chargeHelper->details($plan, $shop, $host);
+        $transfer->chargeStatus = ChargeStatus::ACTIVE();
+        $transfer->planDetails = $planDetails;
 
         if ($plan->isType(PlanType::RECURRING())) {
-            $transfer->activatedOn = new Carbon($response['activated_on']);
-            $transfer->billingOn = new Carbon($response['billing_on']);
-            $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
+            $now = Carbon::now();
+            $transfer->activatedOn = $now;
+            $trialDays = (int) ($planDetails->trialDays ?? 0);
+            $transfer->trialEndsOn = $trialDays > 0 ? $now->copy()->addDays($trialDays) : null;
+            $transfer->billingOn = $plan->getInterval()->isSame(ChargeInterval::ANNUAL())
+                ? $now->copy()->addYear()
+                : $now->copy()->addDays(30);
         } else {
             $transfer->activatedOn = Carbon::today();
             $transfer->billingOn = null;
