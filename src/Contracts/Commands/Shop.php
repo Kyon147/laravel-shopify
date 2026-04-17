@@ -41,7 +41,13 @@ interface Shop
      *
      * @return bool
      */
-    public function setAccessToken(ShopIdValue $shopId, AccessTokenValue $token): bool;
+       public function setAccessToken(
+        ShopIdValue $shopId,
+        AccessTokenValue $token,
+        ?string $offlineRefreshTokenPlain = null,
+        $offlineAccessTokenExpiresAt = null,
+        $offlineRefreshTokenExpiresAt = null
+    ): bool;
 
     /**
      * Sets the Online Store 2.0 support level

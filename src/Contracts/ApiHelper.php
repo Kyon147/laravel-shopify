@@ -79,7 +79,18 @@ interface ApiHelper
      *
      * @return ResponseAccess
      */
-    public function getAccessData(string $code): ResponseAccess;
+       public function getAccessData(string $code, ?AuthMode $grantMode = null): ResponseAccess;
+
+    /**
+     * Refresh an expiring offline access token using a refresh token.
+     *
+     * @link https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
+     *
+     * @param string $refreshToken The current offline refresh token.
+     *
+     * @return ResponseAccess
+     */
+    public function refreshOfflineAccessToken(string $refreshToken): ResponseAccess;
 
     /**
      * Get the script tags for the shop.
