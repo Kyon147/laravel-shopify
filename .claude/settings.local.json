@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(curl -s \"https://patch-diff.githubusercontent.com/raw/Kyon147/laravel-shopify/pull/471.diff\")",
-      "WebFetch(domain:github.com)",
-      "Bash(git show *)"
-    ]
-  }
-}
