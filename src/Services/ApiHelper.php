@@ -566,11 +566,18 @@ class ApiHelper implements IApiHelper
         $response = $this->api->rest($method->toNative(), $path, $payload);
         if ($response['errors'] === true) {
             // Request error somewhere, throw the exception
-            throw new ApiException(
-                is_string($response['body']) ? $response['body'] : 'Unknown error',
-                0,
-                $response['exception']
-            );
+            $body = $response['body'];
+            if (is_string($body)) {
+                $message = $body;
+            } elseif (isset($body->errors)) {
+                $message = is_string($body->errors) ? $body->errors : json_encode($body->errors);
+            } elseif ($response['exception'] instanceof \Throwable) {
+                $message = $response['exception']->getMessage();
+            } else {
+                $message = 'Unknown error';
+            }
+
+            throw new ApiException($message, 0, $response['exception']);
         }
 
         return $response;
