@@ -79,7 +79,7 @@ jobs:
         run: composer normalize --dry-run
 
       - name: Run test suite
-        run: vendor/bin/phpunit -v
+        run: vendor/bin/phpunit
 
       - name: Run static code analysis
         if: matrix.analysis == true
