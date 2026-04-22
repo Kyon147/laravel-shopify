@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/8.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
          backupGlobals="false"
-         backupStaticAttributes="false"
          colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnError="true"
          stopOnFailure="true"
          stopOnIncomplete="false"
          stopOnSkipped="false"
-         verbose="false"
+         cacheDirectory=".phpunit.cache"
 >
-    <coverage>
+    <source>
         <include>
             <directory suffix=".php">src/</directory>
         </include>
@@ -26,17 +22,12 @@
             <directory>src/Messaging/Events/</directory>
             <file>src/ShopifyAppProvider.php</file>
         </exclude>
-        <report>
-            <clover outputFile="build/logs/clover.xml"/>
-            <text outputFile="php://stdout"/>
-        </report>
-    </coverage>
+    </source>
     <testsuites>
         <testsuite name="Laravel Shopify Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <logging/>
     <php>
         <env name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
         <env name="SHOPIFY_API_KEY" value="00000000000000000000000000000000"/>
