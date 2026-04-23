@@ -47,17 +47,15 @@ class IframeProtection
         $response = $next($request);
         $ancestors = Util::getShopifyConfig('iframe_ancestors');
 
-        $shop = Cache::remember(
+        $domain = Cache::remember(
             'frame-ancestors_'.$request->get('shop'),
             now()->addMinutes(20),
             function () use ($request) {
-                return $this->shopQuery->getByDomain(ShopDomain::fromRequest($request));
-            }
-        );
+                $shop = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request));
 
-        $domain = $shop
-            ? $shop->name
-            : '*.myshopify.com';
+                return $shop ? $shop->name : null;
+            }
+        ) ?? '*.myshopify.com';
 
         $iframeAncestors = "frame-ancestors https://$domain https://admin.shopify.com";
 
