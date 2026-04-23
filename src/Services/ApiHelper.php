@@ -189,7 +189,7 @@ class ApiHelper implements IApiHelper
     public function getAccessData(string $code): ResponseAccess
     {
         $opts    = $this->api->getOptions();
-        $shop    = $this->api->getSession() ? $this->api->getSession()->getDomain() : null;
+        $shop    = $this->api->getSession() ? $this->api->getSession()->getShop() : null;
         $baseUrl = $shop ? "https://{$shop}" : '';
 
         $response = $this->api->request(
