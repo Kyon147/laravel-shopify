@@ -82,6 +82,15 @@ interface ApiHelper
     public function getAccessData(string $code): ResponseAccess;
 
     /**
+     * Exchange a refresh token for a new short-lived access token.
+     *
+     * @param string $refreshToken The current refresh token.
+     *
+     * @return ResponseAccess
+     */
+    public function refreshAccessToken(string $refreshToken): ResponseAccess;
+
+    /**
      * Get the script tags for the shop.
      *
      * @param array $params The params to set to the request.

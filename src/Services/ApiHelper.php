@@ -181,11 +181,79 @@ class ApiHelper implements IApiHelper
     /**
      * {@inheritdoc}
      *
-     * @codeCoverageIgnore No need to retest.
+     * Overrides the default requestAccess to send `expiring=1` so Shopify
+     * returns a short-lived access_token (1 hour) plus a refresh_token (90 days).
+     * This is required as of December 2025 when Shopify deprecated non-expiring
+     * offline access tokens.
      */
     public function getAccessData(string $code): ResponseAccess
     {
-        return $this->api->requestAccess($code);
+        $opts    = $this->api->getOptions();
+        $shop    = $this->api->getSession() ? $this->api->getSession()->getDomain() : null;
+        $baseUrl = $shop ? "https://{$shop}" : '';
+
+        $response = $this->api->request(
+            'POST',
+            '/admin/oauth/access_token',
+            [
+                'json' => [
+                    'client_id'     => $opts->getApiKey(),
+                    'client_secret' => $opts->getApiSecret(),
+                    'code'          => $code,
+                    'expiring'      => 1,
+                ],
+            ]
+        );
+
+        if (isset($response['errors']) && $response['errors'] === true) {
+            throw new ApiException(
+                is_string($response['body']) ? $response['body'] : 'Unknown error',
+                0,
+                $response['exception']
+            );
+        }
+
+        return $response['body'];
+    }
+
+    /**
+     * Exchange a refresh token for a new short-lived access token.
+     *
+     * Shopify refresh tokens are one-time use. The response contains a new
+     * access_token, expires_in, refresh_token, and refresh_token_expires_in.
+     *
+     * @param string $refreshToken The current refresh token.
+     *
+     * @return ResponseAccess
+     *
+     * @throws ApiException
+     */
+    public function refreshAccessToken(string $refreshToken): ResponseAccess
+    {
+        $opts = $this->api->getOptions();
+
+        $response = $this->api->request(
+            'POST',
+            '/admin/oauth/access_token',
+            [
+                'json' => [
+                    'client_id'     => $opts->getApiKey(),
+                    'client_secret' => $opts->getApiSecret(),
+                    'grant_type'    => 'refresh_token',
+                    'refresh_token' => $refreshToken,
+                ],
+            ]
+        );
+
+        if (isset($response['errors']) && $response['errors'] === true) {
+            throw new ApiException(
+                is_string($response['body']) ? $response['body'] : 'Unknown error',
+                0,
+                $response['exception']
+            );
+        }
+
+        return $response['body'];
     }
 
     /**
