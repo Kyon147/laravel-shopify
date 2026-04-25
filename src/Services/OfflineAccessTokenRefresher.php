@@ -29,9 +29,9 @@ class OfflineAccessTokenRefresher
      *
      * @param ShopModel $shop
      *
-     * @return void
-     *
      * @throws OAuthTokenRefreshException
+     *
+     * @return void
      */
     public function refreshIfNeeded(ShopModel $shop): void
     {
