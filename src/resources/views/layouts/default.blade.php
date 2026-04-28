@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        @if(\Osiset\ShopifyApp\Util::useNativeAppBridge())
+        @if(\Osiset\ShopifyApp\Util::isMPAApplication())
             @include('shopify-app::partials.token_handler')
         @endif
         @yield('scripts')

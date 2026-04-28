@@ -3,8 +3,10 @@
 namespace Osiset\ShopifyApp\Actions;
 
 use Exception;
+use Illuminate\Support\Carbon;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
+use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
 use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
@@ -13,77 +15,30 @@ use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
 use Osiset\ShopifyApp\Util;
 
-/**
- * Install steps for a shop.
- */
 class InstallShop
 {
-    /**
-     * Querier for shops.
-     *
-     * @var IShopQuery
-     */
-    protected $shopQuery;
-
-    /**
-     * Commander for shops.
-     *
-     * @var IShopCommand
-     */
-    protected $shopCommand;
-
-    /**
-     * The action for verify theme support
-     *
-     * @var VerifyThemeSupport
-     */
-    protected $verifyThemeSupport;
-
-    /**
-     * Setup.
-     *
-     * @param IShopQuery $shopQuery The querier for the shop.
-     * @param VerifyThemeSupport $verifyThemeSupport The action for verify theme support
-     *
-     * @return void
-     */
     public function __construct(
-        IShopQuery         $shopQuery,
-        IShopCommand       $shopCommand,
-        VerifyThemeSupport $verifyThemeSupport
+        protected IShopQuery $shopQuery,
+        protected IShopCommand $shopCommand,
+        protected VerifyThemeSupport $verifyThemeSupport
     ) {
-        $this->shopQuery = $shopQuery;
-        $this->shopCommand = $shopCommand;
-        $this->verifyThemeSupport = $verifyThemeSupport;
     }
 
-    /**
-     * Execution.
-     *
-     * @param ShopDomain $shopDomain The shop ID.
-     * @param string|null $code The code from Shopify.
-     *
-     * @return array
-     */
-    public function __invoke(ShopDomain $shopDomain, ?string $code): array
+    public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
     {
-        // Get the shop
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
 
         if ($shop === null) {
-            // Shop does not exist, make them and re-get
             $this->shopCommand->make($shopDomain, NullAccessToken::fromNative(null));
             $shop = $this->shopQuery->getByDomain($shopDomain);
         }
 
-        // Access/grant mode
         $apiHelper = $shop->apiHelper();
-        $grantMode = $shop->hasOfflineAccess() ?
-            AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop)) :
-            AuthMode::OFFLINE();
+        $grantMode = $shop->hasOfflineAccess()
+            ? AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop))
+            : AuthMode::OFFLINE();
 
-        // If there's no code
-        if (empty($code)) {
+        if (empty($code) && empty($idToken)) {
             return [
                 'completed' => false,
                 'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
@@ -92,21 +47,20 @@ class InstallShop
         }
 
         try {
-            // if the store has been deleted, restore the store to set the access token
             if ($shop->trashed()) {
                 $shop->restore();
             }
 
             // Get the data and set the access token
-            $data = $apiHelper->getAccessData($code);
-            $this->shopCommand->setAccessToken($shop->getId(), AccessToken::fromNative($data['access_token']));
+            $data = $idToken !== null
+                ? $apiHelper->performOfflineTokenExchange($idToken)
+                : $apiHelper->getAccessData($code, $grantMode);
+            $this->persistShopifyOAuthTokens($shop, $data, $grantMode);
 
-            // Try to get the theme support level, if not, return the default setting
             try {
                 $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
                 $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
             } catch (Exception $e) {
-                // Just return the default setting which is null
                 $themeSupportLevel = ThemeSupportLevelEnum::NONE;
             }
 
@@ -118,7 +72,6 @@ class InstallShop
                 'theme_support_level' => $themeSupportLevel,
             ];
         } catch (Exception $e) {
-            // Just return the default setting
             return [
                 'completed' => false,
                 'url' => null,
@@ -126,5 +79,37 @@ class InstallShop
                 'theme_support_level' => null,
             ];
         }
+    }
+
+    /**
+     * Persist OAuth tokens and optional expiring-offline metadata.
+     *
+     * @param IShopModel $shop
+     * @param mixed      $data
+     * @param AuthMode   $grantMode
+     *
+     * @return void
+     */
+    protected function persistShopifyOAuthTokens(IShopModel $shop, $data, AuthMode $grantMode): void
+    {
+        $expiringEnabled = Util::getShopifyConfig('expiring_offline_tokens', $shop);
+        $isOfflineGrant = $grantMode->isSame(AuthMode::OFFLINE());
+
+        if ($expiringEnabled && $isOfflineGrant && isset($data['refresh_token'])) {
+            $this->shopCommand->setAccessToken(
+                $shop->getId(),
+                AccessToken::fromNative($data['access_token']),
+                $data['refresh_token'],
+                Carbon::now()->addSeconds((int) $data['expires_in']),
+                Carbon::now()->addSeconds((int) $data['refresh_token_expires_in'])
+            );
+
+            return;
+        }
+
+        $this->shopCommand->setAccessToken(
+            $shop->getId(),
+            AccessToken::fromNative($data['access_token'])
+        );
     }
 }
