@@ -34,10 +34,14 @@ class Api extends BasicShopifyAPI
             $exception = new Exception();
         }
 
+        $body = (isset($response['stub_body']) && is_string($response['stub_body']))
+            ? $response['stub_body']
+            : new ResponseAccess($response);
+
         return [
             'errors' => $errors,
             'exception' => $exception,
-            'body' => new ResponseAccess($response),
+            'body' => $body,
             'status' => Response::HTTP_OK,
         ];
     }
