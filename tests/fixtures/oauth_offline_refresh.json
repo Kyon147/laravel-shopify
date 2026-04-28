@@ -1,0 +1,7 @@
+{
+    "access_token": "shpat_after_refresh",
+    "expires_in": 3600,
+    "refresh_token": "shprt_after_refresh",
+    "refresh_token_expires_in": 7776000,
+    "scope": "read_products,write_products,read_themes"
+}

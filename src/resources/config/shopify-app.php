@@ -210,6 +210,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Expiring offline access tokens
+    |--------------------------------------------------------------------------
+    |
+    | When true, new offline token exchanges use Shopify's expiring offline
+    | access tokens (refresh_token + rotation). Required for public apps
+    | created on or after April 1, 2026. Existing installs without refresh
+    | metadata continue using the stored access token until re-auth or migration.
+    |
+    | @see https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
+    |
+    */
+
+    'expiring_offline_tokens' => (bool) env('SHOPIFY_EXPIRING_OFFLINE_TOKENS', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offline access token refresh skew (seconds)
+    |--------------------------------------------------------------------------
+    |
+    | Refresh the offline access token this many seconds before it expires.
+    |
+    */
+
+    'offline_access_token_refresh_skew_seconds' => (int) env('SHOPIFY_OFFLINE_ACCESS_TOKEN_REFRESH_SKEW', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Shopify API Redirect
     |--------------------------------------------------------------------------
     |
