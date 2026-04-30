@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Test\Stubs;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Osiset\ShopifyApp\Http\Middleware\AuthProxy;

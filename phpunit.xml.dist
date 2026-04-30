@@ -1,39 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
-    backupGlobals="false"
-    colors="true"
-    processIsolation="false"
-    stopOnError="true"
-    stopOnFailure="true"
-    stopOnIncomplete="false"
-    stopOnSkipped="false"
-    cacheDirectory=".phpunit.cache"
-    backupStaticProperties="false"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         processIsolation="false"
+         stopOnError="true"
+         stopOnFailure="true"
+         stopOnIncomplete="false"
+         stopOnSkipped="false"
+         cacheDirectory=".phpunit.cache"
 >
-    <testsuites>
-        <testsuite name="Laravel Shopify Test Suite">
-            <directory>tests</directory>
-        </testsuite>
-    </testsuites>
-    <logging />
-    <php>
-        <env name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF" />
-        <env name="SHOPIFY_API_KEY" value="00000000000000000000000000000000" />
-        <env name="SHOPIFY_API_SECRET" value="00000000000000000000000000000000" />
-    </php>
     <source>
         <include>
             <directory suffix=".php">src/</directory>
         </include>
         <exclude>
             <directory>src/Contracts/</directory>
-            <directory>src/Exceptions/</directory>
+            <file>src/Exceptions/ApiException.php</file>
+            <file>src/Exceptions/BaseException.php</file>
+            <file>src/Exceptions/ChargeNotRecurringException.php</file>
+            <file>src/Exceptions/ChargeNotRecurringOrOnetimeException.php</file>
+            <file>src/Exceptions/HttpException.php</file>
+            <file>src/Exceptions/InvalidShopDomainException.php</file>
+            <file>src/Exceptions/MissingAuthUrlException.php</file>
+            <file>src/Exceptions/MissingShopDomainException.php</file>
+            <file>src/Exceptions/SignatureVerificationException.php</file>
             <directory>src/Objects/Enums/</directory>
             <directory>src/resources/</directory>
             <directory>src/Messaging/Events/</directory>
             <file>src/ShopifyAppProvider.php</file>
         </exclude>
     </source>
+    <testsuites>
+        <testsuite name="Laravel Shopify Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
+        <env name="SHOPIFY_API_KEY" value="00000000000000000000000000000000"/>
+        <env name="SHOPIFY_API_SECRET" value="00000000000000000000000000000000"/>
+    </php>
 </phpunit>

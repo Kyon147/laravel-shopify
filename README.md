@@ -49,6 +49,20 @@ For more information, tutorials, etc., please view the project's [wiki](../../wi
 
 For full resources on this package, see the [wiki](../..//wiki).
 
+### Expiring offline access tokens
+
+[Shopify requires expiring offline access tokens](https://shopify.dev/changelog/expiring-offline-access-tokens-required-for-public-apps-april-1-2026) for **new public apps** created on or after April 1, 2026. This package supports them when enabled:
+
+1. Run package migrations so your shops table includes `shopify_offline_refresh_token`, `shopify_offline_access_token_expires_at`, and `shopify_offline_refresh_token_expires_at`.
+2. Set `SHOPIFY_EXPIRING_OFFLINE_TOKENS=true` in `.env` (see `expiring_offline_tokens` and `offline_access_token_refresh_skew_seconds` in `config/shopify-app.php`).
+3. Keep `APP_KEY` stable: refresh tokens are stored encrypted with Laravel’s encrypter.
+
+Authorization code exchange, session-token exchange, and `refresh_token` grants are handled inside this package (`Osiset\ShopifyApp\Services\ApiHelper` and `OfflineAccessTokenRefresher`), not via `gnikyt/basic-shopify-api` updates. A valid access token is refreshed automatically before `apiHelper()` builds the API session when the offline token is expired or within the configured skew.
+
+If your `User` model overrides `$casts`, merge `datetime` casts for the two `*_expires_at` columns (the `ShopModel` trait uses `mergeCasts` when `initializeShopModel` runs).
+
+Longer term, consider replacing or forking `gnikyt/basic-shopify-api` for REST/Graph traffic if you need an actively maintained HTTP client; expiring offline OAuth is already decoupled from that dependency.
+
 ## Issue or request?
 
 If you have found a bug or would like to request a feature for discussion, please use the `ISSUE_TEMPLATE` in this repo when creating your issue. Any issue submitted without this template will be closed.
