@@ -73,7 +73,7 @@ class Util
         $params = [];
         $split = preg_split(
             $delimiter ? $commonSeparator[$delimiter] || '/['.$delimiter.']\s*/' : $defaultSeparator,
-            $queryString ?? ''
+            $queryString
         );
 
         foreach ($split as $part) {
