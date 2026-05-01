@@ -59,11 +59,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Route names
+    | Route Names
     |--------------------------------------------------------------------------
     |
-    | This option allows you to override the package's built-in route names.
-    | This can help you avoid collisions with your existing route names.
+    | These route names are used when registering the package’s internal routes.
+    | You may override any of them if your application needs to take control
+    | of a specific route.
+    |
+    | ⚠️ Important (Laravel >= v12.29.0)
+    | Laravel now gives precedence to the FIRST route registered with the
+    | same name. Since package service providers are typically booted BEFORE
+    | the application's RouteServiceProvider, package routes will be
+    | registered first.
+    |
+    | Result:
+    | - If both your application and this package define the same route name,
+    |   the PACKAGE route will take precedence — your application route
+    |   will be ignored.
+    |
+    | Recommendation:
+    | If you want your application to override a route, change the route name
+    | here (or via environment variables) and reference that name within your
+    | application’s route definition.
+    |
+    | Example:
+    |   SHOPIFY_ROUTE_NAME_HOME="my.custom.home"
     |
     */
 
