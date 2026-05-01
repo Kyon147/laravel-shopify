@@ -44,6 +44,10 @@ Its best to:
 
 ## Misc
 
+### Laravel Boost (`resources/boost/`)
+
+The `resources/boost/` directory holds **consumer-facing** [Laravel Boost](https://laravel.com/docs/13.x/boost#third-party-package-ai-guidelines) guidelines and Agent Skills for teams building **host applications** that install this package—not for day-to-day package test maintenance. When you change public integration behavior (config keys, middleware contracts, token lifecycle, webhook flow), review and update those files so Boost stays accurate.
+
 ### Adding upstream
 
 If you're forking the repository and wish to keep your copy up-to-date with the master, ensure you run this command:
