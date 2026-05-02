@@ -43,7 +43,6 @@ use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
 use Osiset\ShopifyApp\Services\ApiHelper;
 use Osiset\ShopifyApp\Services\ChargeHelper;
 use Osiset\ShopifyApp\Services\OfflineAccessTokenRefresher;
-use Osiset\ShopifyApp\Services\ThemeHelper;
 use Osiset\ShopifyApp\Storage\Commands\Charge as ChargeCommand;
 use Osiset\ShopifyApp\Storage\Commands\Shop as ShopCommand;
 use Osiset\ShopifyApp\Storage\Observers\Shop as ShopObserver;
@@ -194,13 +193,6 @@ class ShopifyAppProvider extends ServiceProvider
                 $app->make(IPlanQuery::class),
                 $app->make(IChargeCommand::class),
                 $app->make(IShopCommand::class)
-            );
-        });
-
-        $this->app->bind(VerifyThemeSupportAction::class, function ($app) {
-            return new VerifyThemeSupportAction(
-                $app->make(IShopQuery::class),
-                $app->make(ThemeHelper::class)
             );
         });
 

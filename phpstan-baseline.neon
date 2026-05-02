@@ -1,0 +1,19 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$params \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/Stubs/Api.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$requestInstance \(Illuminate\\Http\\Request\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/TestCase.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$cb \(Closure\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: tests/TestCase.php

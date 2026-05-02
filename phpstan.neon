@@ -1,8 +1,12 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
 	level: 1
 	paths:
 		- src
 		- tests
+	reportUnmatchedIgnoredErrors: false
 	ignoreErrors:
 		- '#Access to an undefined property Osiset\\ShopifyApp\\Storage\\Models\\.*::\$.*\.#'
 		- '#Access to an undefined property Osiset\\ShopifyApp\\Test\\Stubs\\.*::\$.*\.#'
