@@ -1,5 +1,7 @@
 <?php
 
+use Osiset\ShopifyApp\Objects\Enums\AuthStrategy;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -654,5 +656,18 @@ return [
     */
     'forbidden_web_middleware_groups' => [
         'api',
-    ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auth strategy
+    |--------------------------------------------------------------------------
+    |
+    | The strategy used to install and authenticate the shop.
+    | AuthStrategy::AUTH_CODE_FLOW - classic OAuth authorization code grant.
+    | AuthStrategy::TOKEN_EXCHANGE - exchange the session token for an access
+    | token, used for Shopify managed installation.
+    |
+    */
+    'auth_strategy' => AuthStrategy::TOKEN_EXCHANGE,
 ];

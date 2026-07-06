@@ -165,6 +165,7 @@ class VerifyShopifyTest extends TestCase
             [
                 'token' => $this->buildToken(),
                 'shop' => 'non-existent.myshopify.com',
+                'host' => 'lorem',
             ],
             // Request Params
             null,
@@ -267,51 +268,25 @@ class VerifyShopifyTest extends TestCase
 
     public function testTokenProcessingAndMissMatchingShops(): void
     {
-        // Create a shop that matches the token from buildToken
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
-        factory($this->model)->create(['name' => 'some-other-shop.myshopify.com']);
-
-        // Setup the request
         $token = $this->buildToken();
         $currentRequest = Request::instance();
         $newRequest = $currentRequest->duplicate(
-            // Query Params
-            [],
-            // Request Params
-            null,
-            // Attributes
-            null,
-            // Cookies
-            null,
-            // Files
-            null,
-            // Server vars
-            [
+            query: [],
+            server: [
                 'HTTP_Authorization' => "Bearer {$token}",
                 'HTTP_X-Requested-With' => 'XMLHttpRequest',
             ]
         );
         Request::swap($newRequest);
 
-        // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
         $this->assertTrue($result[0]);
 
-        // Run the middleware and change the shop
         $token = $this->buildToken(['dest' => 'https://some-other-shop.myshopify.com', 'iss' => 'https://some-other-shop.myshopify.com/admin']);
         $newRequest = $newRequest->duplicate(
-            // Query Params
-            [],
-            // Request Params
-            null,
-            // Attributes
-            null,
-            // Cookies
-            null,
-            // Files
-            null,
-            // Server vars
-            [
+            query: [],
+            server: [
                 'HTTP_Authorization' => "Bearer {$token}",
                 'HTTP_X-Requested-With' => 'XMLHttpRequest',
             ]

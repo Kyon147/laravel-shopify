@@ -19,7 +19,8 @@ use Osiset\ShopifyApp\Actions\DeleteWebhooks as DeleteWebhooksAction;
 use Osiset\ShopifyApp\Actions\DispatchScripts as DispatchScriptsAction;
 use Osiset\ShopifyApp\Actions\DispatchWebhooks as DispatchWebhooksAction;
 use Osiset\ShopifyApp\Actions\GetPlanUrl as GetPlanUrlAction;
-use Osiset\ShopifyApp\Actions\InstallShop as InstallShopAction;
+use Osiset\ShopifyApp\Actions\InstallShopWithCodeFlow;
+use Osiset\ShopifyApp\Actions\InstallShopWithTokenExchange;
 use Osiset\ShopifyApp\Actions\VerifyThemeSupport as VerifyThemeSupportAction;
 use Osiset\ShopifyApp\Console\AddVariablesCommand;
 use Osiset\ShopifyApp\Console\MigrateExpiringOfflineTokensCommand;
@@ -136,22 +137,29 @@ class ShopifyAppProvider extends ServiceProvider
         });
 
         // Actions
-        $this->app->bind(InstallShopAction::class, function ($app) {
-            return new InstallShopAction(
+        $this->app->bind(InstallShopWithCodeFlow::class, function ($app) {
+            return new InstallShopWithCodeFlow(
                 $app->make(IShopQuery::class),
                 $app->make(IShopCommand::class),
-                $app->make(IApiHelper::class),
-                $app->make(VerifyThemeSupportAction::class)
+                $app->make(IApiHelper::class)
+            );
+        });
+        $this->app->bind(InstallShopWithTokenExchange::class, function ($app) {
+            return new InstallShopWithTokenExchange(
+                $app->make(IShopQuery::class),
+                $app->make(IShopCommand::class),
             );
         });
 
         $this->app->bind(AuthenticateShopAction::class, function ($app) {
             return new AuthenticateShopAction(
                 $app->make(IApiHelper::class),
-                $app->make(InstallShopAction::class),
+                $app->make(InstallShopWithCodeFlow::class),
+                $app->make(InstallShopWithTokenExchange::class),
                 $app->make(DispatchScriptsAction::class),
                 $app->make(DispatchWebhooksAction::class),
-                $app->make(AfterAuthorizeAction::class)
+                $app->make(AfterAuthorizeAction::class),
+                $app->make(VerifyThemeSupportAction::class)
             );
         });
 
@@ -203,6 +211,7 @@ class ShopifyAppProvider extends ServiceProvider
         $this->app->bind(VerifyThemeSupportAction::class, function ($app) {
             return new VerifyThemeSupportAction(
                 $app->make(IShopQuery::class),
+                $app->make(IShopCommand::class),
                 $app->make(ThemeHelper::class)
             );
         });

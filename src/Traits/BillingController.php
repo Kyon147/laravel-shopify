@@ -45,7 +45,7 @@ trait BillingController
     ): ViewView {
         // Get the shop
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->get('shop')));
-        $host = urldecode($request->get('host'));
+        $host = urldecode($request->get('host') ?? '');
 
         // Get the plan URL for redirect
         $url = $getPlanUrl(

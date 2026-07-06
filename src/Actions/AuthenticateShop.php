@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Actions;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
+use Osiset\ShopifyApp\Objects\Enums\AuthStrategy;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Util;
 
@@ -12,21 +13,27 @@ class AuthenticateShop
 {
     public function __construct(
         protected IApiHelper $apiHelper,
-        protected InstallShop $installShopAction,
+        protected InstallShopWithCodeFlow $installShopWithCodeFlowAction,
+        protected InstallShopWithTokenExchange $installShopWithTokenExchangeAction,
         protected DispatchScripts $dispatchScriptsAction,
         protected DispatchWebhooks $dispatchWebhooksAction,
-        protected AfterAuthorize $afterAuthorizeAction
+        protected AfterAuthorize $afterAuthorizeAction,
+        protected VerifyThemeSupport $verifyThemeSupportAction
     ) {
     }
 
     public function __invoke(Request $request): array
     {
-        $result = call_user_func(
-            $this->installShopAction,
-            ShopDomain::fromNative($request->get('shop')),
-            $request->query('code'),
-            $request->query('id_token'),
-        );
+        $result = match (Util::getShopifyConfig('auth_strategy')) {
+            AuthStrategy::TOKEN_EXCHANGE => $this->installShopWithTokenExchangeAction->handle(
+                shopDomain: ShopDomain::fromNative($request->get('shop')),
+                idToken: $request->query('id_token'),
+            ),
+            default => $this->installShopWithCodeFlowAction->handle(
+                shopDomain: ShopDomain::fromNative($request->get('shop')),
+                code: $request->query('code'),
+            ),
+        };
 
         if (! $result['completed']) {
             return [$result, false];
@@ -40,7 +47,9 @@ class AuthenticateShop
             }
         }
 
-        if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
+        $themeSupportLevel = $this->verifyThemeSupportAction->handle($result['shop_id']);
+
+        if (in_array($themeSupportLevel, Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
             call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
         }
 

@@ -3,31 +3,24 @@
 namespace Osiset\ShopifyApp\Actions;
 
 use Exception;
-use Gnikyt\BasicShopifyAPI\Session;
 use Illuminate\Support\Carbon;
-use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
-use Osiset\ShopifyApp\Objects\Enums\AuthMode;
-use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\NullAccessToken;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
-use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
 use Osiset\ShopifyApp\Util;
 
-class InstallShop
+class InstallShopWithTokenExchange
 {
     public function __construct(
         protected IShopQuery $shopQuery,
-        protected IShopCommand $shopCommand,
-        protected IApiHelper $apiHelper,
-        protected VerifyThemeSupport $verifyThemeSupport
+        protected IShopCommand $shopCommand
     ) {
     }
 
-    public function __invoke(ShopDomain $shopDomain, ?string $code = null, ?string $idToken = null): array
+    public function handle(ShopDomain $shopDomain, ?string $idToken = null): array
     {
         $shop = $this->shopQuery->getByDomain($shopDomain, [], true);
 
@@ -36,18 +29,10 @@ class InstallShop
             $shop = $this->shopQuery->getByDomain($shopDomain);
         }
 
-        $apiHelper = $this->apiHelper->make(new Session(
-            $shop->getDomain()->toNative(),
-            $shop->getAccessToken()->toNative()
-        ));
-        $grantMode = $shop->hasOfflineAccess()
-            ? AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop))
-            : AuthMode::OFFLINE();
-
-        if (empty($code) && empty($idToken)) {
+        if ($idToken === null && ! $shop->hasOfflineAccess()) {
             return [
                 'completed' => false,
-                'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
+                'url' => null,
                 'shop_id' => $shop->getId(),
             ];
         }
@@ -57,32 +42,21 @@ class InstallShop
                 $shop->restore();
             }
 
-            // Get the data and set the access token
-            $data = $idToken !== null
-                ? $apiHelper->performOfflineTokenExchange($idToken)
-                : $apiHelper->getAccessData($code, $grantMode);
-            $this->persistShopifyOAuthTokens($shop, $data, $grantMode);
-
-            try {
-                $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
-                $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
-            } catch (Exception $e) {
-                $themeSupportLevel = ThemeSupportLevelEnum::NONE;
+            if (! $shop->hasOfflineAccess()) {
+                $data = $shop->apiHelper()->performOfflineTokenExchange($idToken);
+                $this->persistShopifyOAuthTokens($shop, $data);
             }
-
 
             return [
                 'completed' => true,
                 'url' => null,
                 'shop_id' => $shop->getId(),
-                'theme_support_level' => $themeSupportLevel,
             ];
-        } catch (Exception $e) {
+        } catch (Exception) {
             return [
                 'completed' => false,
                 'url' => null,
                 'shop_id' => null,
-                'theme_support_level' => null,
             ];
         }
     }
@@ -92,16 +66,14 @@ class InstallShop
      *
      * @param IShopModel $shop
      * @param mixed      $data
-     * @param AuthMode   $grantMode
      *
      * @return void
      */
-    protected function persistShopifyOAuthTokens(IShopModel $shop, $data, AuthMode $grantMode): void
+    protected function persistShopifyOAuthTokens(IShopModel $shop, $data): void
     {
         $expiringEnabled = Util::getShopifyConfig('expiring_offline_tokens', $shop);
-        $isOfflineGrant = $grantMode->isSame(AuthMode::OFFLINE());
 
-        if ($expiringEnabled && $isOfflineGrant && isset($data['refresh_token'])) {
+        if ($expiringEnabled && isset($data['refresh_token'])) {
             $this->shopCommand->setAccessToken(
                 $shop->getId(),
                 AccessToken::fromNative($data['access_token']),

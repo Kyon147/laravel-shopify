@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
 use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
+use Osiset\ShopifyApp\Objects\Enums\AuthStrategy;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
@@ -20,6 +21,7 @@ class AuthenticateShopTest extends TestCase
     {
         parent::setUp();
 
+        config()->set('shopify-app.auth_strategy', AuthStrategy::AUTH_CODE_FLOW);
         $this->action = $this->app->make(AuthenticateShop::class);
     }
 
@@ -130,6 +132,8 @@ class AuthenticateShopTest extends TestCase
     public function testManagedAppInstall(): void
     {
         Event::fake();
+        config()->set('shopify-app.auth_strategy', AuthStrategy::TOKEN_EXCHANGE);
+
         // Build request
         $currentRequest = Request::instance();
         $newRequest = $currentRequest->duplicate(

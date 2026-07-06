@@ -3,9 +3,9 @@
 namespace Osiset\ShopifyApp\Test\Actions;
 
 use Osiset\ShopifyApp\Actions\VerifyThemeSupport;
+use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
-use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Services\ThemeHelper;
 use Osiset\ShopifyApp\Test\TestCase;
 
@@ -21,10 +21,7 @@ class VerifyThemeSupportTest extends TestCase
         $shop = factory($this->model)->create();
         $action = $this->app->make(VerifyThemeSupport::class);
 
-        $result = call_user_func(
-            $action,
-            ShopId::fromNative($shop->id)
-        );
+        $result = $action->handle($shop->getId());
 
         $this->assertNotNull($result);
         $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);
@@ -34,12 +31,13 @@ class VerifyThemeSupportTest extends TestCase
     {
         $shop = factory($this->model)->create();
         $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::FULL);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
-
-        $result = call_user_func(
-            $action,
-            ShopId::fromNative($shop->id)
+        $action = new VerifyThemeSupport(
+            $this->app->make(IShopQuery::class),
+            $this->app->make(IShopCommand::class),
+            $themeHelperStub
         );
+
+        $result = $action->handle($shop->getId());
 
         $this->assertNotNull($result);
         $this->assertEquals(ThemeSupportLevel::FULL, $result);
@@ -49,12 +47,13 @@ class VerifyThemeSupportTest extends TestCase
     {
         $shop = factory($this->model)->create();
         $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::PARTIAL);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
-
-        $result = call_user_func(
-            $action,
-            ShopId::fromNative($shop->id)
+        $action = new VerifyThemeSupport(
+            $this->app->make(IShopQuery::class),
+            $this->app->make(IShopCommand::class),
+            $themeHelperStub
         );
+
+        $result = $action->handle($shop->getId());
 
         $this->assertNotNull($result);
         $this->assertEquals(ThemeSupportLevel::PARTIAL, $result);
@@ -64,12 +63,13 @@ class VerifyThemeSupportTest extends TestCase
     {
         $shop = factory($this->model)->create();
         $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::UNSUPPORTED);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
-
-        $result = call_user_func(
-            $action,
-            ShopId::fromNative($shop->id)
+        $action = new VerifyThemeSupport(
+            $this->app->make(IShopQuery::class),
+            $this->app->make(IShopCommand::class),
+            $themeHelperStub
         );
+
+        $result = $action->handle($shop->getId());
 
         $this->assertNotNull($result);
         $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);

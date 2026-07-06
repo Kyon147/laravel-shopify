@@ -39,26 +39,21 @@ trait AuthController
             ? ShopDomain::fromNative($request->get('shop'))
             : $request->user()->getDomain();
 
-        // If the domain is obtained from $request->user()
-        if ($request->missing('shop')) {
-            $request['shop'] = $shopDomain->toNative();
-        }
-
         // Run the action
         [$result, $status] = $authShop($request);
 
         if ($status === null) {
             // Show exception, something is wrong
             throw new SignatureVerificationException('Invalid HMAC verification');
-        } elseif ($status === false) {
+        }
+
+        if ($status === false) {
             if (!$result['url']) {
                 throw new MissingAuthUrlException('Missing auth url');
             }
 
             $shopDomain = $shopDomain->toNative();
             $shopOrigin = $shopDomain ?? $request->user()->name;
-
-            event(new ShopAuthenticatedEvent($result['shop_id']));
 
             return View::make(
                 'shopify-app::auth.fullpage_redirect',
@@ -70,17 +65,19 @@ trait AuthController
                     'locale' => $request->get('locale'),
                 ]
             );
-        } else {
-            // Go to home route
-            return Redirect::route(
-                Util::getShopifyConfig('route_names.home'),
-                [
-                    'shop' => $shopDomain->toNative(),
-                    'host' => $request->get('host'),
-                    'locale' => $request->get('locale'),
-                ]
-            );
         }
+
+        event(new ShopAuthenticatedEvent($result['shop_id']));
+
+        // Go to home route
+        return Redirect::route(
+            Util::getShopifyConfig('route_names.home'),
+            [
+                'shop' => $shopDomain->toNative(),
+                'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
+            ]
+        );
     }
 
     /**
