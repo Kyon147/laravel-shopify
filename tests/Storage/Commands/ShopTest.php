@@ -2,6 +2,8 @@
 
 namespace Osiset\ShopifyApp\Test\Storage\Commands;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\PlanId;
@@ -55,16 +57,40 @@ class ShopTest extends TestCase
         );
     }
 
+    public function testSetAccessTokenClearsOfflineMetadataWhenOmitted(): void
+    {
+        $shop = factory($this->model)->create([
+            'password' => 'old',
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt_x'),
+            'shopify_offline_access_token_expires_at' => Carbon::now()->addHour(),
+            'shopify_offline_refresh_token_expires_at' => Carbon::now()->addDays(30),
+        ]);
+
+        $this->command->setAccessToken($shop->getId(), AccessToken::fromNative('newtoken'));
+        $shop->refresh();
+
+        $this->assertSame('newtoken', $shop->password);
+        $this->assertNull($shop->shopify_offline_refresh_token);
+        $this->assertNull($shop->shopify_offline_access_token_expires_at);
+        $this->assertNull($shop->shopify_offline_refresh_token_expires_at);
+    }
+
     public function testClean(): void
     {
         // Create a shop
         $shop = factory($this->model)->create([
             'plan_id' => PlanId::fromNative(1)->toNative(),
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt'),
+            'shopify_offline_access_token_expires_at' => Carbon::now()->addHour(),
         ]);
 
         $this->assertTrue(
             $this->command->clean($shop->getId())
         );
+
+        $shop->refresh();
+        $this->assertNull($shop->shopify_offline_refresh_token);
+        $this->assertNull($shop->shopify_offline_access_token_expires_at);
     }
 
     public function testSoftDeleteAndRestore(): void

@@ -43,12 +43,17 @@
 
                 // If shopify is not defined, then we are not in a Shopify context redirect to the homepage as it
                 if (typeof shopify === 'undefined') {
-                    open("{{ route('home') }}", "_self");
+                    open("{{ route(\Osiset\ShopifyApp\Util::getShopifyConfig('route_names.home')) }}", "_self");
                 }
 
                 shopify.idToken().then((token) => {
 
-                    let url = new URL(`{!! $target !!}`, window.location.origin);
+                    let url = new URL(@json($target), window.location.origin);
+
+                    if (url.origin !== window.location.origin) {
+                        url = new URL(@json($fallbackTarget), window.location.origin);
+                    }
+
                     // Enforce HTTPS if the current page is using HTTPS
                     if (window.location.protocol === 'https:') {
                         url.protocol = 'https:';

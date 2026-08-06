@@ -6,7 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use LogicException;
-use Osiset\ShopifyApp\Objects\Enums\FrontendEngine;
+use Osiset\ShopifyApp\Objects\Enums\FrontendType;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 
 /**
@@ -65,7 +65,7 @@ class Util
      *
      * @return mixed
      */
-    public static function parseQueryString(string $queryString, string $delimiter = null): array
+    public static function parseQueryString(string $queryString, ?string $delimiter = null): array
     {
         $commonSeparator = [';' => '/[;]\s*/', ';,' => '/[;,]\s*/', '&' => '/[&]\s*/'];
         $defaultSeparator = '/[&;]\s*/';
@@ -73,7 +73,7 @@ class Util
         $params = [];
         $split = preg_split(
             $delimiter ? $commonSeparator[$delimiter] || '/['.$delimiter.']\s*/' : $defaultSeparator,
-            $queryString ?? ''
+            $queryString
         );
 
         foreach ($split as $part) {
@@ -182,9 +182,11 @@ class Util
         }
 
         // Check if config API callback is defined
-        if (Str::startsWith($key, 'api')
+        if (
+            Str::startsWith($key, 'api')
             && Arr::exists($config, 'config_api_callback')
-            && is_callable($config['config_api_callback'])) {
+            && is_callable($config['config_api_callback'])
+        ) {
             // It is, use this to get the config value
             return call_user_func(
                 Arr::get($config, 'config_api_callback'),
@@ -237,14 +239,13 @@ class Util
      *
      * @return bool
      */
-    public static function useNativeAppBridge(): bool
+    public static function isMPAApplication(): bool
     {
-        $frontendEngine = FrontendEngine::fromNative(
-            self::getShopifyConfig('frontend_engine') ?? 'BLADE'
+        $frontendType = FrontendType::fromNative(
+            self::getShopifyConfig('frontend_type') ?? 'MPA'
         );
-        $reactEngine = FrontendEngine::fromNative('REACT');
 
-        return !$frontendEngine->isSame($reactEngine);
+        return !$frontendType->isSame(FrontendType::fromNative('SPA'));
     }
 
     public static function hasAppLegacySupport(string $feature): bool
@@ -252,5 +253,63 @@ class Util
         $legacySupports = self::getShopifyConfig('app_legacy_supports') ?? [];
 
         return (bool) Arr::get($legacySupports, $feature, true);
+    }
+
+    /**
+     * Constrain a token-redirect target to a same-origin relative path.
+     *
+     * @param string|null $target        The requested redirect target.
+     * @param string      $requestOrigin The current request origin (scheme + host + port).
+     *
+     * @return string A safe relative path (optionally with query string).
+     */
+    public static function sanitizeTokenRedirectTarget(?string $target, string $requestOrigin): string
+    {
+        if ($target === null || $target === '') {
+            return '/';
+        }
+
+        if (str_starts_with($target, '//')) {
+            return '/';
+        }
+
+        if (preg_match('#^(javascript|data|vbscript):#i', $target)) {
+            return '/';
+        }
+
+        if (str_starts_with($target, '/') && ! str_starts_with($target, '//')) {
+            return $target;
+        }
+
+        $parsed = parse_url($target);
+        if (! isset($parsed['scheme'], $parsed['host'])) {
+            return '/';
+        }
+
+        if (! in_array(strtolower($parsed['scheme']), ['http', 'https'], true)) {
+            return '/';
+        }
+
+        $requestParsed = parse_url($requestOrigin);
+        $targetHost = strtolower($parsed['host']);
+        $requestHost = strtolower($requestParsed['host'] ?? '');
+
+        $targetPort = $parsed['port'] ?? (strtolower($parsed['scheme']) === 'https' ? 443 : 80);
+        $requestPort = $requestParsed['port'] ?? (strtolower($requestParsed['scheme'] ?? 'http') === 'https' ? 443 : 80);
+
+        if ($targetHost !== $requestHost || $targetPort !== $requestPort) {
+            return '/';
+        }
+
+        $path = $parsed['path'] ?? '/';
+        if (! str_starts_with($path, '/')) {
+            $path = '/'.$path;
+        }
+
+        if (! empty($parsed['query'])) {
+            return $path.'?'.$parsed['query'];
+        }
+
+        return $path;
     }
 }

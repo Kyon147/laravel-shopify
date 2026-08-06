@@ -31,4 +31,4 @@ jobs:
           composer install --no-interaction --prefer-dist
 
       - name: Check for code style violation with PHP-CS-Fixer
-        run: vendor/bin/php-cs-fixer fix --diff
+        run: vendor/bin/php-cs-fixer check

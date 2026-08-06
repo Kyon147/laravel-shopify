@@ -36,12 +36,24 @@ interface Shop
     /**
      * Sets the access token (offline) from Shopify to the shop.
      *
-     * @param ShopIdValue      $shopId The shop's ID.
-     * @param AccessTokenValue $token  The token from Shopify Oauth.
+     * When expiring offline tokens are used, pass the refresh token and expiry
+     * timestamps; otherwise omit them to clear expiring-offline metadata.
+     *
+     * @param ShopIdValue           $shopId                       The shop's ID.
+     * @param AccessTokenValue      $token                        The token from Shopify OAuth.
+     * @param string|null           $offlineRefreshTokenPlain     Decrypted refresh token (stored encrypted).
+     * @param \DateTimeInterface|null $offlineAccessTokenExpiresAt  Access token expiry.
+     * @param \DateTimeInterface|null $offlineRefreshTokenExpiresAt Refresh token expiry.
      *
      * @return bool
      */
-    public function setAccessToken(ShopIdValue $shopId, AccessTokenValue $token): bool;
+    public function setAccessToken(
+        ShopIdValue $shopId,
+        AccessTokenValue $token,
+        ?string $offlineRefreshTokenPlain = null,
+        $offlineAccessTokenExpiresAt = null,
+        $offlineRefreshTokenExpiresAt = null
+    ): bool;
 
     /**
      * Sets the Online Store 2.0 support level

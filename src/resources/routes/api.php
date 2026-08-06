@@ -15,7 +15,7 @@ if ($manualRoutes) {
 
 Route::group([
     'domain' => Util::getShopifyConfig('domain'),
-    'middleware' => ['api']
+    'middleware' => ['api'],
 ], function () use ($manualRoutes) {
     /*
     |--------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
-                let redirectUrl = "{!! $url !!}";
+                let redirectUrl = @json($url);
 
                 if (window.top === window.self) {
                     window.top.location.href = redirectUrl;

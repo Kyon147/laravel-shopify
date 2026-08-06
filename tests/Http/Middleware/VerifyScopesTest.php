@@ -35,7 +35,8 @@ class VerifyScopesTest extends TestCase
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {});
+        $result = $middleware->handle($request, function () {
+        });
 
         $this->assertEquals(302, $result->getStatusCode());
     }
@@ -53,7 +54,8 @@ class VerifyScopesTest extends TestCase
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {});
+        $result = $middleware->handle($request, function () {
+        });
 
         $this->assertEquals($result, null);
     }
@@ -71,7 +73,8 @@ class VerifyScopesTest extends TestCase
         $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
 
         $middleware = new VerifyScopesMiddleware();
-        $result = $middleware->handle($request, function () {});
+        $result = $middleware->handle($request, function () {
+        });
 
         $this->assertEquals($result, null);
     }

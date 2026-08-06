@@ -79,4 +79,34 @@ class AuthControllerTest extends TestCase
         // Call authenticate with no parameters
         $this->call('get', '/authenticate');
     }
+
+    public function testTokenRejectsExternalTarget(): void
+    {
+        $response = $this->call('get', '/authenticate/token', [
+            'shop' => 'example.myshopify.com',
+            'target' => 'https://evil.com',
+            'host' => 'ZXhhbXBsZS5teXNob3BpZnkuY29t',
+        ]);
+
+        $response->assertViewHas('target', function (string $target): bool {
+            return ! str_contains($target, 'evil.com');
+        });
+
+        $response->assertViewHas('target', function (string $target): bool {
+            return str_starts_with($target, '/?shop=example.myshopify.com');
+        });
+    }
+
+    public function testTokenAcceptsRelativeTarget(): void
+    {
+        $response = $this->call('get', '/authenticate/token', [
+            'shop' => 'example.myshopify.com',
+            'target' => '/orders',
+            'host' => 'ZXhhbXBsZS5teXNob3BpZnkuY29t',
+        ]);
+
+        $response->assertViewHas('target', function (string $target): bool {
+            return str_starts_with($target, '/orders?shop=example.myshopify.com');
+        });
+    }
 }

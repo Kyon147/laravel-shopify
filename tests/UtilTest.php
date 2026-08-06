@@ -106,20 +106,20 @@ class UtilTest extends TestCase
         );
     }
 
-    public function testUseNativeAppBridgeIsTrue(): void
+    public function testIsMPAApplicationIsTrue(): void
     {
-        $this->app['config']->set('shopify-app.frontend_engine', 'VUE');
+        $this->app['config']->set('shopify-app.frontend_type', 'MPA');
 
-        $result = Util::useNativeAppBridge();
+        $result = Util::isMPAApplication();
 
         $this->assertTrue($result);
     }
 
-    public function testUseNativeAppBridgeIsFalse(): void
+    public function testIsMPAApplicationIsFalse(): void
     {
-        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
 
-        $result = Util::useNativeAppBridge();
+        $result = Util::isMPAApplication();
 
         $this->assertFalse($result);
     }
@@ -133,5 +133,28 @@ class UtilTest extends TestCase
                 Util::hasAppLegacySupport($feature)
             );
         }
+    }
+
+    /**
+     * @dataProvider sanitizeTokenRedirectTargetProvider
+     */
+    public function testSanitizeTokenRedirectTarget(?string $target, string $origin, string $expected): void
+    {
+        $this->assertSame($expected, Util::sanitizeTokenRedirectTarget($target, $origin));
+    }
+
+    public static function sanitizeTokenRedirectTargetProvider(): array
+    {
+        return [
+            'null target' => [null, 'http://localhost', '/'],
+            'empty target' => ['', 'http://localhost', '/'],
+            'relative path' => ['/orders', 'http://localhost', '/orders'],
+            'protocol relative' => ['//evil.com', 'http://localhost', '/'],
+            'javascript scheme' => ['javascript:alert(1)', 'http://localhost', '/'],
+            'external https' => ['https://evil.com', 'http://localhost', '/'],
+            'same origin absolute' => ['http://localhost/orders', 'http://localhost', '/orders'],
+            'same origin absolute with query' => ['http://localhost/orders?foo=bar', 'http://localhost', '/orders?foo=bar'],
+            'port mismatch' => ['http://localhost:8080/foo', 'http://localhost', '/'],
+        ];
     }
 }

@@ -49,6 +49,54 @@ For more information, tutorials, etc., please view the project's [wiki](../../wi
 
 For full resources on this package, see the [wiki](../..//wiki).
 
+### Expiring offline access tokens
+
+[Shopify requires expiring offline access tokens](https://shopify.dev/changelog/expiring-offline-access-tokens-required-for-public-apps-april-1-2026) for **new public apps** created on or after April 1, 2026. This package supports them when enabled:
+
+1. Run package migrations so your shops table includes `shopify_offline_refresh_token`, `shopify_offline_access_token_expires_at`, and `shopify_offline_refresh_token_expires_at`.
+2. Set `SHOPIFY_EXPIRING_OFFLINE_TOKENS=true` in `.env` (see `expiring_offline_tokens`, `auto_migrate_legacy`, `offline_access_token_refresh_skew_seconds`, and `offline_refresh_token_renewal_days` in `config/shopify-app.php`).
+3. Keep `APP_KEY` stable: refresh tokens are stored encrypted with Laravel’s encrypter.
+
+Authorization code exchange, session-token exchange, and `refresh_token` grants are handled inside this package (`Osiset\ShopifyApp\Services\ApiHelper` and `OfflineAccessTokenRefresher`), not via `gnikyt/basic-shopify-api` updates. A valid access token is refreshed automatically before `apiHelper()` builds the API session when the offline token is expired or within the configured skew.
+
+**Migrating existing installs (optional):** Shops that already have a non-expiring offline token are not upgraded automatically when you enable the flag alone. Options:
+
+- **Passive (default):** With `SHOPIFY_AUTO_MIGRATE_LEGACY=true` (default), the first `apiHelper()` call for a legacy shop runs Shopify [Step 4](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens#step-4-migrate-existing-tokens) token exchange synchronously. Failures are logged and the request continues with the legacy token (fail-open).
+- **Batch CLI (serverless-safe):** `php artisan shopify-app:migrate-expiring-offline-tokens` (`--dry-run`, `--shop=example.myshopify.com`, `--queue=`, `--connection=`) chunks matching shops and dispatches `MigrateShopTokenJob` to the queue — no HTTP in the command itself (suitable for Laravel Vapor). Without `--queue=` / config, jobs use the app default queue. Set `SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_QUEUE` / `SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_CONNECTION` (or matching `job_queues` / `job_connections` keys) for a dedicated worker.
+- **Action:** `MigrateShopToExpiringOfflineAccessToken` — call per shop from your own code; returns `migrated`, `skipped`, `reason`, and `error` keys.
+- **API:** `ApiHelper::exchangeNonExpiringOfflineTokenForExpiring($shopDomain, $currentOfflineToken)` then persist with `ShopCommand::setAccessToken`.
+
+Migration is **one-way**: Shopify revokes the old token on successful exchange.
+
+**Proactive renewal for dormant shops (optional):** Refresh tokens expire after ~90 days. If a shop has no API activity (webhooks, scheduled jobs, etc.) for that long, tokens can lapse. The package provides an opt-in CLI that queues renewal for shops whose refresh token expires within a configurable window (default 14 days via `SHOPIFY_OFFLINE_REFRESH_TOKEN_RENEWAL_DAYS`):
+
+- **Batch CLI:** `php artisan shopify-app:refresh-expiring-offline-tokens` (`--dry-run`, `--shop=example.myshopify.com`, `--days=14`, `--queue=`, `--connection=`) chunks matching shops and dispatches `RefreshShopOfflineTokenJob` to the queue. Use `SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_QUEUE` / `SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_CONNECTION` (or CLI overrides) to target a dedicated worker; otherwise jobs use the app default queue.
+- **Scheduler (app-owned):** the package does **not** register a schedule automatically. Add to your app's `routes/console.php` or `Kernel`:
+
+```php
+Schedule::command('shopify-app:refresh-expiring-offline-tokens')->daily();
+```
+
+**Long-running jobs:** Token refresh runs when the API client is first built (`$shop->api()` / `$shop->apiHelper()`). If a job reuses the same shop model for hours, the cached client keeps the old access token even after expiry. Options:
+
+- **Opt-in config:** `SHOPIFY_REFRESH_OFFLINE_TOKEN_BEFORE_API_CALL=true` re-checks expiry before each `api()` / `apiHelper()` call and rebuilds the client when needed.
+- **Manual helpers on your shop model:**
+  - `$shop->offlineAccessTokenIsFresh()` — `true` when the token is outside the refresh skew window
+  - `$shop->refreshOfflineAccessTokenIfNeeded()` — refreshes via Shopify and clears the cached client
+  - `$shop->resetApiClient()` — clears the cached client so the next API call rebuilds it
+
+```php
+// Per loop iteration in a bulk job
+if (! $shop->offlineAccessTokenIsFresh()) {
+    $shop->refreshOfflineAccessTokenIfNeeded();
+}
+$shop->api()->graph('...');
+```
+
+If your `User` model overrides `$casts`, merge `datetime` casts for the two `*_expires_at` columns (the `ShopModel` trait uses `mergeCasts` when `initializeShopModel` runs).
+
+Longer term, consider replacing or forking `gnikyt/basic-shopify-api` for REST/Graph traffic if you need an actively maintained HTTP client; expiring offline OAuth is already decoupled from that dependency.
+
 ## Issue or request?
 
 If you have found a bug or would like to request a feature for discussion, please use the `ISSUE_TEMPLATE` in this repo when creating your issue. Any issue submitted without this template will be closed.
@@ -74,6 +122,7 @@ Maintainers are users who manage the repository itself, whether it's managing th
 Currently this repository is maintained by:
 
 - [@kyon147](https://github.com/kyon147)
+- [@JonPurvis](https://github.com/JonPurvis)
 - ~[@gnikyt](https://github.com/gnikyt)~ Original author of the package. See [announcement](https://github.com/gnikyt/laravel-shopify/discussions/1276) for details.
 
 Looking to become a maintainer? E-mail @kyon147 directly.

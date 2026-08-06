@@ -5,8 +5,10 @@ namespace Osiset\ShopifyApp\Test\Services;
 use Exception;
 use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Gnikyt\BasicShopifyAPI\ResponseAccess;
+use Gnikyt\BasicShopifyAPI\Session;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
+use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Enums\PlanInterval;
@@ -259,5 +261,33 @@ class ApiHelperTest extends TestCase
         $transfer->trialDays = 7;
 
         $shop->apiHelper()->createChargeGraphQL($transfer);
+    }
+
+    public function testOauthAccessTokenPostThrowsApiExceptionOnErrorResponse(): void
+    {
+        $shop = factory($this->model)->create();
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['oauth_access_token_error']);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Unknown error');
+
+        $session = new Session($shop->name, $shop->password);
+        $this->app->make(IApiHelper::class)->make($session)->refreshOfflineAccessToken('any_refresh_token');
+    }
+
+    public function testOauthAccessTokenPostUsesStringBodyInApiExceptionWhenPresent(): void
+    {
+        $shop = factory($this->model)->create();
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['oauth_access_token_error_string_body']);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('invalid_client');
+
+        $session = new Session($shop->name, $shop->password);
+        $this->app->make(IApiHelper::class)->make($session)->refreshOfflineAccessToken('any_refresh_token');
     }
 }

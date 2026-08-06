@@ -2,10 +2,14 @@
 
 namespace Osiset\ShopifyApp\Test\Http\Middleware;
 
+use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
 use Osiset\ShopifyApp\Http\Middleware\VerifyShopify;
+use Osiset\ShopifyApp\Objects\Values\SessionToken;
 use Osiset\ShopifyApp\Test\TestCase;
 
 class VerifyShopifyTest extends TestCase
@@ -318,11 +322,11 @@ class VerifyShopifyTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
-    public function testNotNativeAppbridgeWithTokenProcessingAndLoginShop(): void
+    public function testNotNativeAppBridgeWithTokenProcessingAndLoginShop(): void
     {
         // Create a shop that matches the token from buildToken
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
-        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
 
         // Setup the request
         $currentRequest = Request::instance();
@@ -348,5 +352,85 @@ class VerifyShopifyTest extends TestCase
         // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
         $this->assertTrue($result[0]);
+    }
+
+    public function testCorruptExpiringTokenStateTriggersInstallRedirect(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        // Shop with corrupt state: password present but refresh token deleted and access token expired
+        factory($this->model)->create([
+            'name' => 'shop-name.myshopify.com',
+            'password' => 'shpat_expired_token',
+            'shopify_offline_refresh_token' => null,
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subHours(2),
+        ]);
+
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            ['shop' => 'shop-name.myshopify.com'],
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
+
+        // Request must not pass through to the app
+        $this->assertFalse($result[0]);
+
+        // Should redirect to the install/OAuth route, not just to fetch a new App Bridge session token
+        $this->assertStringContainsString('/authenticate', $result[1]->getTargetUrl());
+        $this->assertStringNotContainsString('/authenticate/token', $result[1]->getTargetUrl());
+    }
+
+    public function testSpaApiRequestWithoutTokenReceivesInvalidTokenError(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage(SessionToken::EXCEPTION_INVALID);
+        $this->expectExceptionCode(Response::HTTP_BAD_REQUEST);
+
+        factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+        $this->app['config']->set('shopify-app.frontend_type', 'SPA');
+
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            query: [],
+            server: [
+                'HTTP_X-Shop-Domain' => 'shop-name.myshopify.com',
+                'REQUEST_URI' => 'api/some/endpoint',
+            ]
+        );
+
+        $this->runMiddleware(VerifyShopify::class, $newRequest);
+    }
+
+    public function testAccessingForbiddenMiddlewareRouteFromBrowserReceivedAccessError(): void
+    {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Access denied');
+        $this->expectExceptionCode(Response::HTTP_FORBIDDEN);
+
+        // Create a shop that matches the token from buildToken
+        factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
+        $this->app['config']->set('shopify-app.frontend_engine', 'REACT');
+        $this->app['config']->set('shopify-app.forbidden_web_middleware_groups', ['api']);
+        $this->app['router']->get('/api/some/endpoint', fn () => true)->middleware(['api']);
+
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            query: [
+                'shop' => 'shop-name.myshopify.com',
+            ],
+            server: [
+                'REQUEST_URI' => 'api/some/endpoint',
+            ]
+        );
+        $route = Route::getRoutes()->match($newRequest);
+        $newRequest->setRouteResolver(fn () => $route);
+
+        $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 }

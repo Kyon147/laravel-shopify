@@ -22,6 +22,8 @@ use Osiset\ShopifyApp\Actions\GetPlanUrl as GetPlanUrlAction;
 use Osiset\ShopifyApp\Actions\InstallShop as InstallShopAction;
 use Osiset\ShopifyApp\Actions\VerifyThemeSupport as VerifyThemeSupportAction;
 use Osiset\ShopifyApp\Console\AddVariablesCommand;
+use Osiset\ShopifyApp\Console\MigrateExpiringOfflineTokensCommand;
+use Osiset\ShopifyApp\Console\RefreshExpiringOfflineTokensCommand;
 use Osiset\ShopifyApp\Console\WebhookJobMakeCommand;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Commands\Charge as IChargeCommand;
@@ -42,6 +44,7 @@ use Osiset\ShopifyApp\Messaging\Jobs\ScripttagInstaller;
 use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
 use Osiset\ShopifyApp\Services\ApiHelper;
 use Osiset\ShopifyApp\Services\ChargeHelper;
+use Osiset\ShopifyApp\Services\OfflineAccessTokenRefresher;
 use Osiset\ShopifyApp\Services\ThemeHelper;
 use Osiset\ShopifyApp\Storage\Commands\Charge as ChargeCommand;
 use Osiset\ShopifyApp\Storage\Commands\Shop as ShopCommand;
@@ -88,6 +91,8 @@ class ShopifyAppProvider extends ServiceProvider
 
         $this->commands([
             AddVariablesCommand::class,
+            MigrateExpiringOfflineTokensCommand::class,
+            RefreshExpiringOfflineTokensCommand::class,
             WebhookJobMakeCommand::class,
         ]);
 
@@ -125,11 +130,19 @@ class ShopifyAppProvider extends ServiceProvider
             return new ShopCommand($app->make(IShopQuery::class));
         });
 
+        $this->app->singleton(OfflineAccessTokenRefresher::class, function ($app) {
+            return new OfflineAccessTokenRefresher(
+                $app->make(IApiHelper::class),
+                $app->make(IShopCommand::class)
+            );
+        });
+
         // Actions
         $this->app->bind(InstallShopAction::class, function ($app) {
             return new InstallShopAction(
                 $app->make(IShopQuery::class),
                 $app->make(IShopCommand::class),
+                $app->make(IApiHelper::class),
                 $app->make(VerifyThemeSupportAction::class)
             );
         });

@@ -188,8 +188,8 @@ final class SessionToken implements SessionTokenValue
             $body['jti'],
             ... $this->tokenSource === SessionTokenSource::APP
                 ? [
-                    $body['iss'],
-                    $body['sub'],
+                    $body['iss'] ?? '',
+                    $body['sub'] ?? '',
                     $body['sid'],
                 ]
                 : [],
@@ -398,7 +398,7 @@ final class SessionToken implements SessionTokenValue
 
     protected function determineTokenSource(array $body): int
     {
-        if (!isset($body['iss']) && !isset($body['sid'])) {
+        if (!isset($body['sid'])) {
             return SessionTokenSource::CHECKOUT_EXTENSION;
         }
 

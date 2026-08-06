@@ -28,7 +28,7 @@ class WebhookJobMakeCommandTest extends TestCase
         $application = new ConsoleApplication();
         $testedCommand = $this->app->make(WebhookJobMakeCommand::class);
         $testedCommand->setLaravel($this->app);
-        $application->add($testedCommand);
+        $application->addCommand($testedCommand);
 
         $command = $application->find('shopify-app:make:webhook');
 

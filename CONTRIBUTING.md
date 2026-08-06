@@ -6,9 +6,9 @@ Thanks for wanting to be a part of this Laravel package! This is a simple and st
 
 Well, you can:
 
-+ Tackle any [open issues](https://github.com/osiset/laravel-shopify/issues)
-+ Help review [pull requests](https://github.com/osiset/laravel-shopify/pulls)
-+ [Update documentation](https://github.com/osiset/laravel-shopify/wiki) in our wiki
++ Tackle any [open issues](https://github.com/Kyon147/laravel-shopify/issues)
++ Help review [pull requests](https://github.com/Kyon147/laravel-shopify/pulls)
++ [Update documentation](https://github.com/Kyon147/laravel-shopify/wiki) in our wiki
 + And more!
 
 You don't have to be a superstar, or someone with experience, you can just dive in and help if you feel you can.
@@ -27,7 +27,7 @@ Its best to:
 
 Its best to:
 
-1. Ensure the bug was not already reported by [searching all issues](https://github.com/osiset/laravel-shopify/issues?q=).
+1. Ensure the bug was not already reported by [searching all issues](https://github.com/Kyon147/laravel-shopify/issues?q=).
 2. If you're unable to find an open issue addressing the problem, open a new one.
     * Be sure to include a title and clear description, as much relevant information as possible.
 
@@ -43,6 +43,10 @@ Its best to:
 6. Comment on the issue
 
 ## Misc
+
+### Laravel Boost (`resources/boost/`)
+
+The `resources/boost/` directory holds **consumer-facing** [Laravel Boost](https://laravel.com/docs/13.x/boost#third-party-package-ai-guidelines) guidelines and Agent Skills for teams building **host applications** that install this package—not for day-to-day package test maintenance. When you change public integration behavior (config keys, middleware contracts, token lifecycle, webhook flow), review and update those files so Boost stays accurate.
 
 ### Adding upstream
 

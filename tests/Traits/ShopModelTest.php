@@ -3,6 +3,8 @@
 namespace Osiset\ShopifyApp\Test\Traits;
 
 use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain;
@@ -49,6 +51,58 @@ class ShopModelTest extends TestCase
         $shop->save();
         $shop->refresh();
         $this->assertTrue($shop->hasOfflineAccess());
+    }
+
+    public function testHasCorruptExpiringTokenStateWhenRefreshTokenMissingAndAccessTokenExpired(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => 'shpat_some_token',
+            'shopify_offline_refresh_token' => null,
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subHours(2),
+        ]);
+
+        $this->assertTrue($shop->hasCorruptExpiringTokenState());
+    }
+
+    public function testHasCorruptExpiringTokenStateIsFalseWhenAccessTokenStillValid(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => 'shpat_some_token',
+            'shopify_offline_refresh_token' => null,
+            'shopify_offline_access_token_expires_at' => Carbon::now()->addHour(),
+        ]);
+
+        $this->assertFalse($shop->hasCorruptExpiringTokenState());
+    }
+
+    public function testHasCorruptExpiringTokenStateIsFalseWhenRefreshTokenPresent(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => 'shpat_some_token',
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt_valid_refresh'),
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subHours(2),
+        ]);
+
+        $this->assertFalse($shop->hasCorruptExpiringTokenState());
+    }
+
+    public function testHasCorruptExpiringTokenStateIsFalseWhenFeatureDisabled(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', false);
+
+        $shop = factory($this->model)->create([
+            'password' => 'shpat_some_token',
+            'shopify_offline_refresh_token' => null,
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subHours(2),
+        ]);
+
+        $this->assertFalse($shop->hasCorruptExpiringTokenState());
     }
 
     public function testNamespacingAndFreemium(): void

@@ -210,6 +210,75 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Expiring offline access tokens
+    |--------------------------------------------------------------------------
+    |
+    | When true, new offline token exchanges use Shopify's expiring offline
+    | access tokens (refresh_token + rotation). Required for public apps
+    | created on or after April 1, 2026. Existing installs without refresh
+    | metadata continue using the stored access token until re-auth or migration.
+    |
+    | @see https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
+    |
+    */
+
+    'expiring_offline_tokens' => (bool) env('SHOPIFY_EXPIRING_OFFLINE_TOKENS', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auto-migrate legacy offline tokens
+    |--------------------------------------------------------------------------
+    |
+    | When true (and expiring_offline_tokens is enabled), shops with a legacy
+    | non-expiring offline token are migrated to expiring tokens on-the-fly
+    | before the first API call via apiHelper(). Failures are logged and the
+    | request continues with the legacy token. Disable to require explicit
+    | migration via the Artisan command or MigrateShopToExpiringOfflineAccessToken.
+    |
+    */
+
+    'auto_migrate_legacy' => (bool) env('SHOPIFY_AUTO_MIGRATE_LEGACY', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offline access token refresh skew (seconds)
+    |--------------------------------------------------------------------------
+    |
+    | Refresh the offline access token this many seconds before it expires.
+    |
+    */
+
+    'offline_access_token_refresh_skew_seconds' => (int) env('SHOPIFY_OFFLINE_ACCESS_TOKEN_REFRESH_SKEW', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh offline token before each API call
+    |--------------------------------------------------------------------------
+    |
+    | When true, each shop->api() / apiHelper() call checks whether the offline
+    | access token is within the refresh skew window. If so, the cached API
+    | client is discarded and rebuilt with a fresh token. Useful for long-running
+    | queue jobs that reuse the same shop model instance across token expiry.
+    |
+    */
+
+    'refresh_offline_token_before_api_call' => (bool) env('SHOPIFY_REFRESH_OFFLINE_TOKEN_BEFORE_API_CALL', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offline refresh token renewal window (days)
+    |--------------------------------------------------------------------------
+    |
+    | When running shopify-app:refresh-expiring-offline-tokens, shops whose
+    | refresh token expires within this many days are queued for renewal.
+    | Also used by OfflineAccessTokenRefresher to trigger proactive refresh.
+    |
+    */
+
+    'offline_refresh_token_renewal_days' => (int) env('SHOPIFY_OFFLINE_REFRESH_TOKEN_RENEWAL_DAYS', 14),
+
+    /*
+    |--------------------------------------------------------------------------
     | Shopify API Redirect
     |--------------------------------------------------------------------------
     |
@@ -388,16 +457,16 @@ return [
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
-                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://some-app.com/webhook/orders-create')
+                'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://example.com/webhook/orders-create')
             ], [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
-                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
+                'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://example.com/webhook/purchase'),
             ]
             // In certain situations you may wish to map the webhook to a specific class
             // To do this, change the array to an associative array with a 'class' key
             'orders-create' => [
                 'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
-                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://example.com/webhook/orders-create'),
                 'class' => \App\Shopify\Actions\ExampleAppJob::class
             ],
         */],
@@ -414,7 +483,7 @@ return [
     'scripttags' => [
         /*
             [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://some-app.com/some-controller/js-method-response'),
+                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://example.com/some-controller/js-method-response'),
                 'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
                 'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
             ],
@@ -450,8 +519,9 @@ return [
     | Job Queues
     |--------------------------------------------------------------------------
     |
-    | This option is for setting a specific job queue for webhooks, scripttags
-    | and after_authenticate_job.
+    | This option is for setting a specific job queue for webhooks, scripttags,
+    | after_authenticate_job, and offline-token migrate/refresh batch jobs.
+    | Override per run with --queue= on the migrate/refresh Artisan commands.
     |
     */
 
@@ -459,14 +529,17 @@ return [
         'webhooks' => env('WEBHOOKS_JOB_QUEUE', null),
         'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
+        'migrate_expiring_offline_tokens' => env('SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_QUEUE', null),
+        'refresh_expiring_offline_tokens' => env('SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_QUEUE', null),
     ],
     /*
     |--------------------------------------------------------------------------
     | Job Connections
     |--------------------------------------------------------------------------
     |
-    | This option is for setting a specific job connection for webhooks, scripttags
-    | and after_authenticate_job.
+    | This option is for setting a specific job connection for webhooks, scripttags,
+    | after_authenticate_job, and offline-token migrate/refresh batch jobs.
+    | Override per run with --connection= on the migrate/refresh Artisan commands.
     |
     */
 
@@ -474,6 +547,8 @@ return [
         'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
         'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
+        'migrate_expiring_offline_tokens' => env('SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_CONNECTION', null),
+        'refresh_expiring_offline_tokens' => env('SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_CONNECTION', null),
     ],
     /*
     |--------------------------------------------------------------------------
@@ -577,15 +652,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Frontend engine used
+    | Frontend type used
     |--------------------------------------------------------------------------
     |
-    | Available engines: "BLADE", "VUE", or "REACT".
-    | For example, if you use React, you do not need to be redirected to a separate page to get the JWT token.
-    | No changes are made for Vue.js and Blade.
+    | Available types: "SPA" (single-page application), "MPA" (multiple-page application).
+    | For example, if you use SPA, you do not need to be redirected to a separate page to get the JWT token.
     |
     */
-    'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
+    'frontend_type' => env('SHOPIFY_FRONTEND_TYPE', 'MPA'),
 
     'iframe_ancestors' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Forbidden middleware groups
+    |--------------------------------------------------------------------------
+    |
+    | Routes prohibited from being opened in the browser.
+    |
+    */
+    'forbidden_web_middleware_groups' => [
+        'api',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | API route prefixes
+    |--------------------------------------------------------------------------
+    |
+    | Path prefixes that identify API routes. A request whose path starts with
+    | one of these is treated as an API request even when it carries no bearer
+    | token and no AJAX/JSON headers (e.g. a browser opening the route directly).
+    |
+    */
+    'api_route_prefixes' => [
+        'api',
+    ],
 ];

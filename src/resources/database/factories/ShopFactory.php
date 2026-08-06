@@ -7,9 +7,9 @@ $model = Util::getShopifyConfig('user_model');
 
 $factory->define($model, function (Faker $faker) {
     return [
-        'name' => "{$faker->domainWord}.myshopify.com",
-        'password' => str_replace('-', '', $faker->uuid),
-        'email' => $faker->email,
+        'name' => "{$faker->domainWord()}.myshopify.com",
+        'password' => str_replace('-', '', $faker->uuid()),
+        'email' => $faker->email(),
     ];
 });
 

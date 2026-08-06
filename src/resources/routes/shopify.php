@@ -25,8 +25,8 @@ if ($manualRoutes) {
 
 Route::group([
     'domain' => Util::getShopifyConfig('domain'),
-    'prefix' => Util::getShopifyConfig('prefix'), 
-    'middleware' => ['web']
+    'prefix' => Util::getShopifyConfig('prefix'),
+    'middleware' => ['web'],
 ], function () use ($manualRoutes) {
     /*
     |--------------------------------------------------------------------------

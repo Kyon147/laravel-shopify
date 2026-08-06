@@ -1,0 +1,6 @@
+{
+  "asset": {
+      "key": "sections/no-schema.liquid",
+      "value": "<!-- Invalid schema -->"
+    } 
+}
