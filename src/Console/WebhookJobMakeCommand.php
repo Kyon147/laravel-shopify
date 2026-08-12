@@ -10,11 +10,13 @@ use Symfony\Component\Console\Input\InputArgument;
 class WebhookJobMakeCommand extends JobMakeCommand
 {
     /**
-     * The console command name.
+     * The console command signature.
      *
      * @var string
      */
-    protected $name = 'shopify-app:make:webhook';
+    protected $signature = 'shopify-app:make:webhook
+        {name : The name of the class}
+        {topic : The event/topic for the job (orders/create, products/update, etc)}';
 
     /**
      * The console command description.
