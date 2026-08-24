@@ -40,6 +40,14 @@ class OfflineAccessTokenRefresher
             return;
         }
 
+        if (! $shop->hasOfflineAccess()) {
+            return;
+        }
+
+        if (Util::shopIsExcludedFromOfflineTokenLifecycle($shop)) {
+            return;
+        }
+
         if (! $shop->hasExpiringOfflineAccess()) {
             return;
         }

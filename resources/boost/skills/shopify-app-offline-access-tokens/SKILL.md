@@ -16,6 +16,9 @@ You are enabling or operating **Shopify expiring offline access tokens** in **yo
 - `SHOPIFY_OFFLINE_REFRESH_TOKEN_RENEWAL_DAYS` → `offline_refresh_token_renewal_days` — shops whose refresh token expires within this many days are queued for renewal by the refresh CLI (default `14`).
 - `SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_QUEUE` / `SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_CONNECTION` → `job_queues.migrate_expiring_offline_tokens` / `job_connections.migrate_expiring_offline_tokens` — queue targeting for the migrate Artisan command (overridable with `--queue=` / `--connection=`).
 - `SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_QUEUE` / `SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_CONNECTION` → `job_queues.refresh_expiring_offline_tokens` / `job_connections.refresh_expiring_offline_tokens` — same for the refresh Artisan command.
+- `SHOPIFY_OFFLINE_TOKEN_EXCLUDED_SHOPS` → `offline_token_excluded_shops` — comma-separated shop domains skipped for cycle and refresh (not an auth bypass). Default empty. `--shop=` does not override. `$shop->apiHelper()` still builds a client.
+
+Shops with an empty `password` are also skipped for cycle and refresh (merchant must re-authenticate). `auto_migrate_legacy` remains `true` by default; denylisted and empty-password shops are still not cycled.
 
 Read the package README for policy notes (e.g. public apps after Shopify’s cutoff dates).
 

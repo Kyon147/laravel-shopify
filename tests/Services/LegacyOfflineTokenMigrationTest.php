@@ -104,4 +104,74 @@ class LegacyOfflineTokenMigrationTest extends TestCase
         });
         $this->assertCount(1, $matching);
     }
+
+    public function testLazyMigrationSkippedWhenPasswordEmpty(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.auto_migrate_legacy', true);
+
+        $shop = factory($this->model)->create([
+            'password' => '',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring']);
+
+        $helper = $shop->apiHelper();
+
+        $shop->refresh();
+
+        $this->assertSame('', $shop->password);
+        $this->assertNull($shop->shopify_offline_refresh_token);
+        $this->assertNotNull($helper);
+    }
+
+    public function testLazyMigrationSkippedWhenShopIsExcluded(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.auto_migrate_legacy', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        $shop = factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_legacy_token',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring']);
+
+        $helper = $shop->apiHelper();
+
+        $shop->refresh();
+
+        $this->assertSame('shpat_legacy_token', $shop->getAccessToken()->toNative());
+        $this->assertNull($shop->shopify_offline_refresh_token);
+        $this->assertNotNull($helper);
+    }
+
+    public function testLazyMigrationRunsWhenAutoMigrateLeftAtDefault(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $this->assertTrue((bool) $this->app['config']->get('shopify-app.auto_migrate_legacy'));
+
+        $shop = factory($this->model)->create([
+            'password' => 'shpat_legacy_token',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring']);
+
+        $shop->apiHelper();
+
+        $shop->refresh();
+
+        $this->assertSame('shpat_expiring_test_token', $shop->getAccessToken()->toNative());
+        $this->assertNotNull($shop->shopify_offline_refresh_token);
+    }
 }

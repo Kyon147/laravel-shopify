@@ -28,6 +28,8 @@ class MigrateShopToExpiringOfflineAccessToken
 
     public const REASON_SHOP_NOT_FOUND = 'shop_not_found';
 
+    public const REASON_EXCLUDED = 'excluded';
+
     public function __construct(
         protected IShopQuery $shopQuery,
         protected IShopCommand $shopCommand,
@@ -52,6 +54,10 @@ class MigrateShopToExpiringOfflineAccessToken
 
         if (! Util::getShopifyConfig('expiring_offline_tokens', $shop)) {
             return $this->result(skipped: true, reason: self::REASON_FEATURE_DISABLED, shopId: $shop->getId()->toNative());
+        }
+
+        if (Util::shopIsExcludedFromOfflineTokenLifecycle($shop)) {
+            return $this->result(skipped: true, reason: self::REASON_EXCLUDED, shopId: $shop->getId()->toNative());
         }
 
         if ($shop->hasExpiringOfflineAccess()) {

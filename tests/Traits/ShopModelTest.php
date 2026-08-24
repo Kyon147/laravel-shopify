@@ -105,6 +105,19 @@ class ShopModelTest extends TestCase
         $this->assertFalse($shop->hasCorruptExpiringTokenState());
     }
 
+    public function testHasCorruptExpiringTokenStateIsFalseWhenPasswordEmpty(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => '',
+            'shopify_offline_refresh_token' => null,
+            'shopify_offline_access_token_expires_at' => null,
+        ]);
+
+        $this->assertFalse($shop->hasCorruptExpiringTokenState());
+    }
+
     public function testNamespacingAndFreemium(): void
     {
         $this->app['config']->set('shopify-app.billing_freemium_enabled', true);

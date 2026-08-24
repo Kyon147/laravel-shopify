@@ -326,4 +326,64 @@ class OfflineAccessTokenRefresherTest extends TestCase
         $this->assertFalse($refresher->offlineRefreshTokenNeedsRenewal($shop));
         $this->assertTrue($refresher->offlineRefreshTokenNeedsRenewal($shop, 30));
     }
+
+    public function testDoesNotRefreshWhenPasswordEmpty(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => '',
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt_old'),
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subMinutes(5),
+            'shopify_offline_refresh_token_expires_at' => Carbon::now()->addDays(7),
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['oauth_offline_refresh']);
+
+        app(OfflineAccessTokenRefresher::class)->refreshIfNeeded($shop);
+
+        $helper = $shop->apiHelper();
+
+        $shop->refresh();
+
+        $this->assertSame('', $shop->password);
+        $this->assertSame(
+            'shprt_old',
+            Crypt::decryptString($shop->shopify_offline_refresh_token)
+        );
+        $this->assertNotNull($helper);
+    }
+
+    public function testDoesNotRefreshWhenShopIsExcluded(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        $shop = factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_old',
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt_old'),
+            'shopify_offline_access_token_expires_at' => Carbon::now()->subMinutes(5),
+            'shopify_offline_refresh_token_expires_at' => Carbon::now()->addDays(7),
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['oauth_offline_refresh']);
+
+        app(OfflineAccessTokenRefresher::class)->refreshIfNeeded($shop);
+
+        $helper = $shop->apiHelper();
+
+        $shop->refresh();
+
+        $this->assertSame('shpat_old', $shop->getAccessToken()->toNative());
+        $this->assertSame(
+            'shprt_old',
+            Crypt::decryptString($shop->shopify_offline_refresh_token)
+        );
+        $this->assertNotNull($helper);
+    }
 }

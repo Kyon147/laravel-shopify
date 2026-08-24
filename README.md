@@ -54,8 +54,16 @@ For full resources on this package, see the [wiki](../..//wiki).
 [Shopify requires expiring offline access tokens](https://shopify.dev/changelog/expiring-offline-access-tokens-required-for-public-apps-april-1-2026) for **new public apps** created on or after April 1, 2026. This package supports them when enabled:
 
 1. Run package migrations so your shops table includes `shopify_offline_refresh_token`, `shopify_offline_access_token_expires_at`, and `shopify_offline_refresh_token_expires_at`.
-2. Set `SHOPIFY_EXPIRING_OFFLINE_TOKENS=true` in `.env` (see `expiring_offline_tokens`, `auto_migrate_legacy`, `offline_access_token_refresh_skew_seconds`, and `offline_refresh_token_renewal_days` in `config/shopify-app.php`).
+2. Set `SHOPIFY_EXPIRING_OFFLINE_TOKENS=true` in `.env` (see `expiring_offline_tokens`, `auto_migrate_legacy`, `offline_access_token_refresh_skew_seconds`, `offline_refresh_token_renewal_days`, and `offline_token_excluded_shops` in `config/shopify-app.php`).
 3. Keep `APP_KEY` stable: refresh tokens are stored encrypted with Laravel’s encrypter.
+
+Shops with an empty `password` are skipped for cycle and refresh (the merchant must re-authenticate). `SHOPIFY_AUTO_MIGRATE_LEGACY` stays `true` by default so real legacy shops still migrate on the first `apiHelper()` call; empty-password and denylisted shops are never cycled. To skip placeholder or non-Shopify domains:
+
+```
+SHOPIFY_OFFLINE_TOKEN_EXCLUDED_SHOPS=placeholder.myshopify.com,monitoring.myshopify.com
+```
+
+`$shop->api()` / `$shop->apiHelper()` still build a client for those shops; they are not migrated or refreshed. This is not an auth or uninstall bypass. Apps that already published `config/shopify-app.php` must add `offline_token_excluded_shops` to pick up the env var.
 
 Authorization code exchange, session-token exchange, and `refresh_token` grants are handled inside this package (`Osiset\ShopifyApp\Services\ApiHelper` and `OfflineAccessTokenRefresher`), not via `gnikyt/basic-shopify-api` updates. A valid access token is refreshed automatically before `apiHelper()` builds the API session when the offline token is expired or within the configured skew.
 
