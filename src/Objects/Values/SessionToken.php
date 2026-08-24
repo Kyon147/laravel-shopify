@@ -133,10 +133,8 @@ final class SessionToken implements SessionTokenValue
 
     /**
      * Shopify has multiple session tokens, slightly differing in format.
-     *
-     * @var string
      */
-    protected $tokenSource = SessionTokenSource::APP;
+    protected SessionTokenSource $tokenSource = SessionTokenSource::APP;
 
     /**
      * Constructor.
@@ -396,9 +394,9 @@ final class SessionToken implements SessionTokenValue
         ])->false(self::EXCEPTION_EXPIRED);
     }
 
-    protected function determineTokenSource(array $body): int
+    protected function determineTokenSource(array $body): SessionTokenSource
     {
-        if (!isset($body['sid'])) {
+        if (! isset($body['sid'])) {
             return SessionTokenSource::CHECKOUT_EXTENSION;
         }
 

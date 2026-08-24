@@ -10,11 +10,10 @@ use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
-use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel as ThemeSupportLevelEnum;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
 use Osiset\ShopifyApp\Objects\Values\NullAccessToken;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
-use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel;
+use Osiset\ShopifyApp\Objects\Values\ThemeSupportLevel as ThemeSupportLevelValue;
 use Osiset\ShopifyApp\Util;
 
 class InstallShop
@@ -41,8 +40,8 @@ class InstallShop
             $shop->getAccessToken()->toNative()
         ));
         $grantMode = $shop->hasOfflineAccess()
-            ? AuthMode::fromNative(Util::getShopifyConfig('api_grant_mode', $shop))
-            : AuthMode::OFFLINE();
+            ? AuthMode::fromNative(strtoupper((string) Util::getShopifyConfig('api_grant_mode', $shop)))
+            : AuthMode::OFFLINE;
 
         if (empty($code) && empty($idToken)) {
             return [
@@ -65,17 +64,16 @@ class InstallShop
 
             try {
                 $themeSupportLevel = call_user_func($this->verifyThemeSupport, $shop->getId());
-                $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevel::fromNative($themeSupportLevel));
+                $this->shopCommand->setThemeSupportLevel($shop->getId(), ThemeSupportLevelValue::fromNative($themeSupportLevel->value));
             } catch (Exception $e) {
-                $themeSupportLevel = ThemeSupportLevelEnum::NONE;
+                $themeSupportLevel = null;
             }
-
 
             return [
                 'completed' => true,
                 'url' => null,
                 'shop_id' => $shop->getId(),
-                'theme_support_level' => $themeSupportLevel,
+                'theme_support_level' => $themeSupportLevel?->value,
             ];
         } catch (Exception $e) {
             return [
@@ -99,7 +97,7 @@ class InstallShop
     protected function persistShopifyOAuthTokens(IShopModel $shop, $data, AuthMode $grantMode): void
     {
         $expiringEnabled = Util::getShopifyConfig('expiring_offline_tokens', $shop);
-        $isOfflineGrant = $grantMode->isSame(AuthMode::OFFLINE());
+        $isOfflineGrant = $grantMode === AuthMode::OFFLINE;
 
         if ($expiringEnabled && $isOfflineGrant && isset($data['refresh_token'])) {
             $this->shopCommand->setAccessToken(

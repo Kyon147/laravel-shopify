@@ -2,20 +2,21 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
-class FrontendType implements ValueObject
+/**
+ * Frontend type (MPA vs SPA).
+ *
+ * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ */
+enum FrontendType: string
 {
-    use EnumTrait;
+    case MPA = 'MPA';
+    case SPA = 'SPA';
 
     /**
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const MPA = 0;
-
-    /**
-     * @var int
-     */
-    public const SPA = 1;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

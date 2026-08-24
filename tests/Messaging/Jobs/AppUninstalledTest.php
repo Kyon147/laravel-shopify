@@ -29,7 +29,7 @@ class AppUninstalledTest extends TestCase
         factory(Util::getShopifyConfig('models.charge', Charge::class))->states('type_recurring')->create([
             'plan_id' => $plan->getId()->toNative(),
             'user_id' => $shop->getId()->toNative(),
-            'status' => ChargeStatus::ACTIVE()->toNative(),
+            'status' => ChargeStatus::ACTIVE->value,
         ]);
 
         // Ensure shop is not trashed, and has charges

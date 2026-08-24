@@ -2,46 +2,23 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * API call method types.
  *
- * @method static ApiMethod GET()
- * @method static ApiMethod POST()
- * @method static ApiMethod PUT()
- * @method static ApiMethod DELETE()
+ * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
  */
-final class ApiMethod implements ValueObject
+enum ApiMethod: string
 {
-    use EnumTrait;
+    case GET = 'GET';
+    case POST = 'POST';
+    case PUT = 'PUT';
+    case DELETE = 'DELETE';
 
     /**
-     * HTTP method: GET.
-     *
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const GET = 0;
-
-    /**
-     * HTTP method: POST.
-     *
-     * @var int
-     */
-    public const POST = 1;
-
-    /**
-     * HTTP method: PUT.
-     *
-     * @var int
-     */
-    public const PUT = 2;
-
-    /**
-     * HTTP method: DELETE.
-     *
-     * @var int
-     */
-    public const DELETE = 3;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

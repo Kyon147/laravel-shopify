@@ -40,7 +40,7 @@ class ActivatePlan
     {
         $shop = $this->shopQuery->getById($shopId);
         $plan = $this->planQuery->getById($planId);
-        $chargeType = ChargeType::fromNative($plan->getType()->toNative());
+        $chargeType = ChargeType::fromNative($plan->getType()->value);
 
         // Activate the plan on Shopify
         $response = $shop->apiHelper()->activateCharge($chargeType, $chargeRef);
@@ -54,10 +54,10 @@ class ActivatePlan
         $transfer->planId = $planId;
         $transfer->chargeReference = $chargeRef;
         $transfer->chargeType = $chargeType;
-        $transfer->chargeStatus = ChargeStatus::fromNative(strtoupper($response['status']));
+        $transfer->chargeStatus = ChargeStatus::fromShopifyApiStatus($response['status']);
         $transfer->planDetails = $this->chargeHelper->details($plan, $shop, $host);
 
-        if ($plan->isType(PlanType::RECURRING())) {
+        if ($plan->isType(PlanType::RECURRING)) {
             $transfer->activatedOn = new Carbon($response['activated_on']);
             $transfer->billingOn = new Carbon($response['billing_on']);
             $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);

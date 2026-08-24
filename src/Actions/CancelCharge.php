@@ -25,7 +25,7 @@ class CancelCharge
         $helper = $this->chargeHelper->useCharge($chargeRef);
         $charge = $helper->getCharge();
 
-        if (! $charge->isType(ChargeType::CHARGE()) && ! $charge->isType(ChargeType::RECURRING())) {
+        if (! $charge->isType(ChargeType::CHARGE) && ! $charge->isType(ChargeType::RECURRING)) {
             // Not a recurring or one-time charge, someone trying to cancel a usage charge?
             throw new ChargeNotRecurringOrOnetimeException(
                 'Cancel may only be called for single and recurring charges.'

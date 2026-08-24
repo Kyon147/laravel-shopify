@@ -356,11 +356,11 @@ class VerifyShopify
         // All possible methods
         $options = [
             // GET/POST
-            DataSource::INPUT()->toNative() => $request->input('hmac'),
+            DataSource::INPUT->value => $request->input('hmac'),
             // Headers
-            DataSource::HEADER()->toNative() => $request->header('X-Shop-Signature'),
+            DataSource::HEADER->value => $request->header('X-Shop-Signature'),
             // Headers: Referer
-            DataSource::REFERER()->toNative() => function () use ($request): ?string {
+            DataSource::REFERER->value => function () use ($request): ?string {
                 $url = parse_url($request->header('referer', ''), PHP_URL_QUERY);
                 parse_str($url ?? '', $refererQueryParams);
                 if (! $refererQueryParams || ! isset($refererQueryParams['hmac'])) {
@@ -409,7 +409,7 @@ class VerifyShopify
         // All possible methods
         $options = [
             // GET/POST
-            DataSource::INPUT()->toNative() => function () use ($request): array {
+            DataSource::INPUT->value => function () use ($request): array {
                 // Verify
                 $verify = [];
                 foreach ($request->query() as $key => $value) {
@@ -419,7 +419,7 @@ class VerifyShopify
                 return $verify;
             },
             // Headers
-            DataSource::HEADER()->toNative() => function () use ($request): array {
+            DataSource::HEADER->value => function () use ($request): array {
                 // Always present
                 $shop = $request->header('X-Shop-Domain');
                 $signature = $request->header('X-Shop-Signature');
@@ -447,7 +447,7 @@ class VerifyShopify
                 return $verify;
             },
             // Headers: Referer
-            DataSource::REFERER()->toNative() => function () use ($request): array {
+            DataSource::REFERER->value => function () use ($request): array {
                 $url = parse_url($request->header('referer'), PHP_URL_QUERY);
                 parse_str($url, $refererQueryParams);
 

@@ -33,7 +33,7 @@ class ActivateUsageCharge
         // Ensure we have a recurring charge
         $currentCharge = $this->chargeHelper->chargeForPlan($shop->plan->getId(), $shop);
 
-        if (! $currentCharge->isType(ChargeType::RECURRING())) {
+        if (! $currentCharge->isType(ChargeType::RECURRING)) {
             throw new ChargeNotRecurringException('Can only create usage charges for recurring charge.');
         }
 

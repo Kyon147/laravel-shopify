@@ -29,8 +29,8 @@ class ChargeTest extends TestCase
         $this->assertNull($charge->plan);
         $this->assertFalse($charge->isTest());
         $this->assertFalse($charge->isTrial());
-        $this->assertTrue($charge->isType(ChargeType::RECURRING()));
-        $this->assertTrue($charge->isStatus(ChargeStatus::ACCEPTED()));
+        $this->assertTrue($charge->isType(ChargeType::RECURRING));
+        $this->assertTrue($charge->isStatus(ChargeStatus::ACCEPTED));
         $this->assertFalse($charge->isActive());
         $this->assertTrue($charge->isAccepted());
         $this->assertFalse($charge->isDeclined());

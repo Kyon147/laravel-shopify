@@ -2,54 +2,29 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * API types for charges.
  *
- * @method static ChargeType RECURRING()
- * @method static ChargeType CHARGE()
- * @method static ChargeType ONETIME()
- * @method static ChargeType USAGE()
- * @method static ChargeType CREDIT()
+ * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ * {@see self::ONETIME} is not a separate case: use {@see self::CHARGE} (same int as legacy); accept "ONETIME" in {@see fromNative()}.
  */
-final class ChargeType implements ValueObject
+enum ChargeType: string
 {
-    use EnumTrait;
+    case RECURRING = 'RECURRING';
+    case CHARGE = 'CHARGE';
+    case USAGE = 'USAGE';
+    case CREDIT = 'CREDIT';
 
     /**
-     * Charge: Recurring.
-     *
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const RECURRING = 1;
+    public static function fromNative(string $name): self
+    {
+        $upper = strtoupper($name);
 
-    /**
-     * Charge: One-time.
-     *
-     * @var int
-     */
-    public const CHARGE = 2;
-
-    /**
-     * Charge: Alias for onetime.
-     *
-     * @var int
-     */
-    public const ONETIME = 2;
-
-    /**
-     * Charge: Usage.
-     *
-     * @var int
-     */
-    public const USAGE = 3;
-
-    /**
-     * Charge: Credit.
-     *
-     * @var int
-     */
-    public const CREDIT = 4;
+        return match ($upper) {
+            'ONETIME' => self::CHARGE,
+            default => self::from($upper),
+        };
+    }
 }
