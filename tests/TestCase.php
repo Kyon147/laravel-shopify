@@ -158,7 +158,7 @@ abstract class TestCase extends OrchestraTestCase
         return sprintf('%s.%s', $payload, $encodedHmac->toNative());
     }
 
-    protected function runMiddleware(string $middleware, Request $requestInstance = null, Closure $cb = null): array
+    protected function runMiddleware(string $middleware, ?Request $requestInstance = null, ?Closure $cb = null): array
     {
         $called = false;
         $requestInstance = $requestInstance ?? FacadesRequest::instance();

@@ -33,7 +33,6 @@ class WebhookJobMakeCommandTest extends TestCase
         $command = $application->find('shopify-app:make:webhook');
 
         $method = new ReflectionMethod($command, 'getUrlFromName');
-        $method->setAccessible(true);
 
         $jobs = [
             'OrdersCreateJob' => 'orders-create',

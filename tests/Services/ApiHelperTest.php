@@ -260,7 +260,7 @@ class ApiHelperTest extends TestCase
         $transfer->test = true;
         $transfer->trialDays = 7;
 
-        $shop->apiHelper()->createChargeGraphQL($transfer);
+        $shop->apiHelper()->createChargeGraphQL(ChargeType::RECURRING(), $transfer);
     }
 
     public function testOauthAccessTokenPostThrowsApiExceptionOnErrorResponse(): void

@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Test;
 use Illuminate\Support\Facades\Config;
 use LogicException;
 use Osiset\ShopifyApp\Util;
+use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 
 class UtilTest extends TestCase
@@ -135,9 +136,7 @@ class UtilTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider sanitizeTokenRedirectTargetProvider
-     */
+    #[DataProvider('sanitizeTokenRedirectTargetProvider')]
     public function testSanitizeTokenRedirectTarget(?string $target, string $origin, string $expected): void
     {
         $this->assertSame($expected, Util::sanitizeTokenRedirectTarget($target, $origin));

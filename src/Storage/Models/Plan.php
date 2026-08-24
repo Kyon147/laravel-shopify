@@ -14,6 +14,17 @@ use Osiset\ShopifyApp\Util;
  */
 class Plan extends Model
 {
+    protected $fillable = [
+        'type',
+        'name',
+        'price',
+        'interval',
+        'discount_duration',
+        'discount_amount',
+        'discount_percentage',
+        'test',
+    ];
+
     /**
      * The attributes that should be casted to native types.
      *
@@ -24,6 +35,9 @@ class Plan extends Model
         'on_install' => 'bool',
         'capped_amount' => 'float',
         'price' => 'float',
+        'discount_duration' => 'int',
+        'discount_amount' => 'float',
+        'discount_percentage' => 'float',
     ];
 
     /**
@@ -134,5 +148,15 @@ class Plan extends Model
     public function isTest(): bool
     {
         return (bool) $this->test;
+    }
+
+    /**
+     * Checks if this plan has a discount.
+     *
+     * @return bool
+     */
+    public function hasDiscount(): bool
+    {
+        return isset($this->discount_amount) || isset($this->discount_percentage);
     }
 }

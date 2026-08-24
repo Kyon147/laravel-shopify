@@ -215,6 +215,10 @@ class ChargeHelper
             'host' => $host,
         ]);
 
+        $transfer->discountDuration = $plan->discount_duration;
+        $transfer->discountAmount = $plan->discount_amount;
+        $transfer->discountPercentage = $plan->discount_percentage;
+
         return $transfer;
     }
 

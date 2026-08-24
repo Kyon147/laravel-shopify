@@ -1,7 +1,7 @@
 /bin
 /build
 /vendor
-composer.lock
+#composer.lock
 .php-cs-fixer.cache
 .phpunit.result.cache
 .phpunit.cache/

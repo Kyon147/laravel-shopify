@@ -45,7 +45,7 @@ trait BillingController
     ): ViewView {
         // Get the shop
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->get('shop')));
-        $host = urldecode($request->get('host'));
+        $host = urldecode((string) $request->get('host', ''));
 
         // Get the plan URL for redirect
         $url = $getPlanUrl(
@@ -85,7 +85,7 @@ trait BillingController
         // Get the shop
         $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->query('shop')));
         // If we have the host we need to pass it along.
-        $host = urldecode($request->get('host'));
+        $host = urldecode((string) $request->get('host', ''));
         if (!$request->has('charge_id')) {
             return Redirect::route(Util::getShopifyConfig('route_names.home'), [
                 'shop' => $shop->getDomain()->toNative(),

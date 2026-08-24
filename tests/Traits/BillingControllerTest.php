@@ -32,7 +32,7 @@ class BillingControllerTest extends TestCase
     {
         // Stub the responses
         ApiStub::stubResponses([
-            'post_recurring_application_charges',
+            'graphql_app_subscription_create',
             'post_recurring_application_charges_activate',
         ]);
 
@@ -48,7 +48,7 @@ class BillingControllerTest extends TestCase
 
         $response->assertViewHas(
             'url',
-            'https://example.myshopify.com/admin/charges/1029266947/confirm_recurring_application_charge?signature=BAhpBANeWT0%3D--64de8739eb1e63a8f848382bb757b20343eb414f'
+            'https://domain.myshopify.com/admin/charges/4019552312/confirm_recurring_application_charge?signature=BAh7BzoHaWRsKwc4gJXvOhJhdXRvX2FjdGl2YXRlVA%3D%3D--74e39487ff00313ca4409dea7ab00081001c45d5'
         );
     }
 

@@ -368,8 +368,46 @@ class ApiHelper implements IApiHelper
      *
      * @throws Exception
      */
-    public function createChargeGraphQL(PlanDetailsTransfer $payload): ResponseAccess
+    public function createChargeGraphQL(ChargeType $chargeType, PlanDetailsTransfer $payload): ResponseAccess
     {
+        if ($chargeType->toNative() == ChargeType::ONETIME()->toNative()) {
+            $query = '
+            mutation appPurchaseOneTimeCreate(
+                $name: String!,
+                $price: MoneyInput!,
+                $returnUrl: URL!,
+                $test: Boolean
+            ) {
+                appPurchaseOneTimeCreate(
+                    name: $name,
+                    price: $price,
+                    returnUrl: $returnUrl,
+                    test: $test
+                ) {
+                    confirmationUrl
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+            ';
+            $variables = [
+                'name' => $payload->name,
+                'price' => [
+                    'amount' => $payload->price,
+                    'currencyCode' => 'USD',
+                ],
+                'returnUrl' => $payload->returnUrl,
+                'test' => $payload->test,
+            ];
+
+
+            $response = $this->doRequestGraphQL($query, $variables);
+
+            return $response['body']['data']['appPurchaseOneTimeCreate'];
+        }
+
         $query = '
         mutation appSubscriptionCreate(
             $name: String!,
@@ -404,13 +442,25 @@ class ApiHelper implements IApiHelper
             'lineItems' => [
                 [
                     'plan' => [
-                        'appRecurringPricingDetails' => [
-                            'price' => [
-                                'amount' => $payload->price,
-                                'currencyCode' => 'USD',
+                        'appRecurringPricingDetails' => array_merge(
+                            [
+                                'price' => [
+                                    'amount' => $payload->price,
+                                    'currencyCode' => 'USD',
+                                ],
+                                'interval' => $payload->interval,
                             ],
-                            'interval' => $payload->interval,
-                        ],
+                            !$payload->discountDuration || $payload->discountDuration == 0 ? [] :
+                            [
+                               'discount' => [
+                                    'durationLimitInIntervals' => $payload->discountDuration,
+                                    'value' => [
+                                        'amount' => $payload->discountAmount,
+                                        'percentage' => $payload->discountPercentage,
+                                    ],
+                                ],
+                           ],
+                        ),
                     ],
                 ],
             ],

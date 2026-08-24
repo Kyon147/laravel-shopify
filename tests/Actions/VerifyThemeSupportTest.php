@@ -7,6 +7,7 @@ use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Services\ThemeHelper;
+use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
 class VerifyThemeSupportTest extends TestCase
@@ -19,6 +20,9 @@ class VerifyThemeSupportTest extends TestCase
     public function testStoreWithUndefinedMainTheme(): void
     {
         $shop = factory($this->model)->create();
+        $this->setApiStub();
+        ApiStub::stubResponses(['empty']);
+
         $action = $this->app->make(VerifyThemeSupport::class);
 
         $result = call_user_func(

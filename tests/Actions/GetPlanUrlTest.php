@@ -33,7 +33,7 @@ class GetPlanUrlTest extends TestCase
         $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Setup API stub
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
 
         $result = call_user_func(
             $this->action,
