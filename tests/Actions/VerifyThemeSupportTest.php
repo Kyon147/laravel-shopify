@@ -3,27 +3,21 @@
 namespace Osiset\ShopifyApp\Test\Actions;
 
 use Osiset\ShopifyApp\Actions\VerifyThemeSupport;
-use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
-use Osiset\ShopifyApp\Objects\Values\ShopId;
-use Osiset\ShopifyApp\Services\ThemeHelper;
+use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
 class VerifyThemeSupportTest extends TestCase
 {
-    public function setUp(): void
-    {
-        parent::setUp();
-    }
-
     public function testStoreWithUndefinedMainTheme(): void
     {
+        $this->fakeGraphqlApi(['empty_theme']);
         $shop = factory($this->model)->create();
         $action = $this->app->make(VerifyThemeSupport::class);
 
         $result = call_user_func(
             $action,
-            ShopId::fromNative($shop->id)
+            $shop->getId()
         );
 
         $this->assertNotNull($result);
@@ -32,13 +26,73 @@ class VerifyThemeSupportTest extends TestCase
 
     public function testStoreWithFullExtensionSupport(): void
     {
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_two_assets', 'theme_with_two_sections']);
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::FULL);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
+        $action = $this->app->make(VerifyThemeSupport::class);
 
         $result = call_user_func(
             $action,
-            ShopId::fromNative($shop->id)
+            $shop->getId()
+        );
+
+        $this->assertNotNull($result);
+        $this->assertEquals(ThemeSupportLevel::FULL, $result);
+    }
+
+    public function testStoreWithOnlyProductTemplateHasFullSupport(): void
+    {
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_one_asset', 'theme_with_one_section']);
+        $shop = factory($this->model)->create();
+        $action = $this->app->make(VerifyThemeSupport::class);
+
+        $result = call_user_func(
+            $action,
+            $shop->getId()
+        );
+
+        $this->assertNotNull($result);
+        $this->assertEquals(ThemeSupportLevel::FULL, $result);
+    }
+
+    public function testStoreWithOnlyProductTemplateWithoutAppBlockIsUnsupported(): void
+    {
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_one_asset', 'theme_with_empty_sections']);
+        $shop = factory($this->model)->create();
+        $action = $this->app->make(VerifyThemeSupport::class);
+
+        $result = call_user_func(
+            $action,
+            $shop->getId()
+        );
+
+        $this->assertNotNull($result);
+        $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);
+    }
+
+    public function testStoreWithGraphqlTopLevelErrorsIsUnsupported(): void
+    {
+        $this->fakeGraphqlApi(['empty_with_error_graphql']);
+        $shop = factory($this->model)->create();
+        $action = $this->app->make(VerifyThemeSupport::class);
+
+        $result = call_user_func(
+            $action,
+            $shop->getId()
+        );
+
+        $this->assertNotNull($result);
+        $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);
+    }
+
+    public function testStoreWithTemplateContainingJsonComments(): void
+    {
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_json_comments_asset', 'theme_with_one_section']);
+        $shop = factory($this->model)->create();
+        $action = $this->app->make(VerifyThemeSupport::class);
+
+        $result = call_user_func(
+            $action,
+            $shop->getId()
         );
 
         $this->assertNotNull($result);
@@ -48,12 +102,12 @@ class VerifyThemeSupportTest extends TestCase
     public function testStoreWithPartialExtensionSupport(): void
     {
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::PARTIAL);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_three_assets', 'theme_with_one_section']);
+        $action = $this->app->make(VerifyThemeSupport::class);
 
         $result = call_user_func(
             $action,
-            ShopId::fromNative($shop->id)
+            $shop->getId()
         );
 
         $this->assertNotNull($result);
@@ -63,12 +117,12 @@ class VerifyThemeSupportTest extends TestCase
     public function testStoreWithoutExtensionSupport(): void
     {
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::UNSUPPORTED);
-        $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
+        $this->fakeGraphqlApi(['main_theme', 'theme_with_empty_assets', 'theme_with_empty_sections']);
+        $action = $this->app->make(VerifyThemeSupport::class);
 
         $result = call_user_func(
             $action,
-            ShopId::fromNative($shop->id)
+            $shop->getId()
         );
 
         $this->assertNotNull($result);
@@ -77,30 +131,11 @@ class VerifyThemeSupportTest extends TestCase
 
     /**
      * Create ThemeHelper stub
-     *
-     * @param int $level
-     *
-     * @return ThemeHelper
      */
-    protected function createThemeHelperStub(int $level): ThemeHelper
+    protected function fakeGraphqlApi(array $responses): void
     {
-        $themeHelperStub = $this->createStub(ThemeHelper::class);
+        $this->setApiStub();
 
-        $defaultThemeResponse = [];
-
-        if ($level === ThemeSupportLevel::FULL) {
-            $defaultThemeResponse = [0, 1, 2, 3];
-        }
-
-        $themeHelperStub->method('themeIsReady')->willReturn(true);
-        $themeHelperStub->method('templateJSONFiles')->willReturn($defaultThemeResponse);
-        $themeHelperStub->method('mainSections')->willReturn($defaultThemeResponse);
-        $themeHelperStub->method('sectionsWithAppBlock')->willReturn(
-            $level === ThemeSupportLevel::PARTIAL
-            ? array_merge($defaultThemeResponse, [random_int(1, 99)])
-            : $defaultThemeResponse
-        );
-
-        return $themeHelperStub;
+        ApiStub::stubResponses($responses);
     }
 }

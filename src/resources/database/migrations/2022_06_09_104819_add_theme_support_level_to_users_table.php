@@ -15,7 +15,7 @@ class AddThemeSupportLevelToUsersTable extends Migration
     public function up()
     {
         Schema::table(Util::getShopsTable(), function (Blueprint $table) {
-            $table->integer('theme_support_level')->nullable();
+            $table->integer('theme_support_level')->nullable()->after('plan_id');
         });
     }
 

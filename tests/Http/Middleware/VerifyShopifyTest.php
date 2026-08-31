@@ -166,6 +166,7 @@ class VerifyShopifyTest extends TestCase
             [
                 'token' => $this->buildToken(),
                 'shop' => 'non-existent.myshopify.com',
+                'host' => 'loremipsum',
             ],
             // Request Params
             null,

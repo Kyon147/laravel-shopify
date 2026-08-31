@@ -611,24 +611,11 @@ return [
     | Checking theme compatibility
     |--------------------------------------------------------------------------
     |
-    | It is necessary to check if your application is compatible with
-    | the theme app blocks.
+    | It is necessary to check if your application is compatible with the theme app blocks.
     |
     */
 
     'theme_support' => [
-        /*
-         * Specify the name of the template the app will integrate with
-         */
-        'templates' => ['product', 'collection', 'index'],
-        /*
-         * Interval for caching the request: minutes, seconds, hours, days, etc.
-         */
-        'cache_interval' => 'hours',
-        /*
-         * Cache duration
-         */
-        'cache_duration' => 12,
         /*
          * At which levels of theme support the use of "theme app extension" is not available
          * and script tags will be installed.
