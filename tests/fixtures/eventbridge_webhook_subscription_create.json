@@ -1,0 +1,8 @@
+{
+    "data": {
+        "eventBridgeWebhookSubscriptionCreate": {
+            "id": "gid://shopify/WebhookSubscription/1016678842438",
+            "topic": "ORDERS_CREATE"
+        }
+    }
+}
