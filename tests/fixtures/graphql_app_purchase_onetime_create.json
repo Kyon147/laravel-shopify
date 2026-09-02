@@ -1,0 +1,12 @@
+{
+    "data": {
+        "appPurchaseOneTimeCreate": {
+            "userErrors": [],
+            "appPurchaseOneTime": {
+                "createdAt": "2024-11-21T22:47:04Z",
+                "id": "gid://shopify/AppPurchaseOneTime/1017262352"
+            },
+            "confirmationUrl": "https://billingshop.myshopify.com/admin/charges/193172482/1017262352/ApplicationCharge/confirm_application_charge?signature=BAh7BzoHaWRpBBAxojw6EmF1dG9fYWN0aXZhdGVU--a03eedf9ef12d714906af085ebc2aa3d97aa9466"
+        }
+    }
+}

@@ -183,6 +183,15 @@ interface ApiHelper
     public function createChargeGraphQL(PlanDetails $payload): ResponseAccess;
 
     /**
+     * Create a one-time charge using GraphQL.
+     *
+     * @param PlanDetails $payload    The data for the charge creation.
+     *
+     * @return ResponseAccess
+     */
+    public function createOneTimeChargeGraphQL(PlanDetails $payload): ResponseAccess;
+
+    /**
      * Get webhooks for the shop.
      *
      * @param array $params The params to set to the request.

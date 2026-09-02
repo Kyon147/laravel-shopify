@@ -3,7 +3,9 @@
 namespace Osiset\ShopifyApp\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 use Osiset\ShopifyApp\Util;
 
@@ -36,6 +38,7 @@ class StoreUsageCharge extends FormRequest
             // Get the input values needed
             $data = [
                 'price' => $this->request->get('price'),
+                'currency' => $this->request->get('currency'),
                 'description' => $this->request->get('description'),
                 'signature' => $this->request->get('signature'),
             ];
@@ -71,6 +74,7 @@ class StoreUsageCharge extends FormRequest
         return [
             'signature' => 'required|string',
             'price' => 'required|numeric',
+            'currency' => ['required', 'string', new Enum(PlanCurrencyCode::class)],
             'description' => 'required|string',
             'redirect' => 'nullable|string',
         ];

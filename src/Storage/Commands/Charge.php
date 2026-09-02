@@ -61,6 +61,7 @@ class Charge implements ChargeCommand
         $charge->status = $chargeObj->chargeStatus->toNative();
         $charge->name = $chargeObj->planDetails->name;
         $charge->price = $chargeObj->planDetails->price;
+        $charge->currency = $chargeObj->planDetails->currency;
         $charge->interval = $chargeObj->planDetails->interval;
         $charge->test = $chargeObj->planDetails->test;
         $charge->trial_days = $chargeObj->planDetails->trialDays;
@@ -100,6 +101,7 @@ class Charge implements ChargeCommand
         $charge->type = $chargeObj->chargeType->toNative();
         $charge->status = $chargeObj->chargeStatus->toNative();
         $charge->price = $chargeObj->details->price;
+        $charge->currency = $chargeObj->details->currency;
         $charge->description = $chargeObj->details->description;
         $charge->reference_charge = $chargeObj->details->chargeReference->toNative();
 

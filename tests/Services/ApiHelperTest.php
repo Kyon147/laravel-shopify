@@ -11,6 +11,7 @@ use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Enums\PlanInterval;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails as PlanDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
@@ -165,6 +166,7 @@ class ApiHelperTest extends TestCase
         $transfer = new PlanDetailsTransfer();
         $transfer->name = 'Test';
         $transfer->price = 12.00;
+        $transfer->currency = PlanCurrencyCode::USD->value;
         $transfer->interval = PlanInterval::EVERY_30_DAYS()->toNative();
         $transfer->test = true;
         $transfer->trialDays = 7;
@@ -236,6 +238,7 @@ class ApiHelperTest extends TestCase
         $transfer = new UsageChargeDetailsTransfer();
         $transfer->chargeReference = ChargeReference::fromNative(1);
         $transfer->price = 12.00;
+        $transfer->currency = PlanCurrencyCode::USD->value;
         $transfer->description = 'Hello!';
 
         $data = $shop->apiHelper()->createUsageCharge($transfer);
@@ -256,6 +259,7 @@ class ApiHelperTest extends TestCase
         $transfer = new PlanDetailsTransfer();
         $transfer->name = 'Test';
         $transfer->price = 12.00;
+        $transfer->currency = PlanCurrencyCode::USD->value;
         $transfer->interval = PlanInterval::ANNUAL()->toNative();
         $transfer->test = true;
         $transfer->trialDays = 7;

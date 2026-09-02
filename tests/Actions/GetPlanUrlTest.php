@@ -23,7 +23,7 @@ class GetPlanUrlTest extends TestCase
         $this->action = $this->app->make(GetPlanUrl::class);
     }
 
-    public function testRun30Days(): void
+    public function testRun30DaysRecurring(): void
     {
         // Create a plan
         factory(Util::getShopifyConfig('models.plan', Plan::class))->states(['installable', 'type_recurring'])->create();
@@ -33,7 +33,30 @@ class GetPlanUrlTest extends TestCase
         $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Setup API stub
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
+
+        $result = call_user_func(
+            $this->action,
+            $shop->getId(),
+            NullablePlanId::fromNative(null),
+            $hostValue
+        );
+
+        $this->assertNotEmpty($result);
+    }
+
+
+    public function testRun30DaysOneTime(): void
+    {
+        // Create a plan
+        factory(Util::getShopifyConfig('models.plan', Plan::class))->states(['installable', 'type_onetime'])->create();
+
+        // Create the shop with no plan
+        $shop = factory($this->model)->create();
+        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
+        // Setup API stub
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_purchase_onetime_create']);
 
         $result = call_user_func(
             $this->action,

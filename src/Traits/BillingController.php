@@ -13,6 +13,7 @@ use Osiset\ShopifyApp\Actions\GetPlanUrl;
 use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
 use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
 use Osiset\ShopifyApp\Http\Requests\StoreUsageCharge;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
@@ -150,6 +151,7 @@ trait BillingController
         // Create the transfer object
         $ucd = new UsageChargeDetailsTransfer();
         $ucd->price = $validated['price'];
+        $ucd->currency = $validated['currency'] ?? PlanCurrencyCode::USD->value;
         $ucd->description = $validated['description'];
 
         // Activate and save the usage charge

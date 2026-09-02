@@ -18,6 +18,7 @@ use Osiset\ShopifyApp\Objects\Enums\ApiMethod;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Enums\DataSource;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails as PlanDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
@@ -365,7 +366,7 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     *
+     * 
      * @throws Exception
      */
     public function createChargeGraphQL(PlanDetailsTransfer $payload): ResponseAccess
@@ -407,7 +408,7 @@ class ApiHelper implements IApiHelper
                         'appRecurringPricingDetails' => [
                             'price' => [
                                 'amount' => $payload->price,
-                                'currencyCode' => 'USD',
+                                'currencyCode' => $payload->currency ?? PlanCurrencyCode::USD->value,
                             ],
                             'interval' => $payload->interval,
                         ],
@@ -419,6 +420,53 @@ class ApiHelper implements IApiHelper
         $response = $this->doRequestGraphQL($query, $variables);
 
         return $response['body']['data']['appSubscriptionCreate'];
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws Exception
+     */
+    public function createOneTimeChargeGraphQL(PlanDetailsTransfer $payload): ResponseAccess
+    {
+        $query = '
+        mutation appPurchaseOneTimeCreate(
+            $name: String!, 
+            $price: MoneyInput!, 
+            $test: Boolean,
+            $returnUrl: URL!
+        ) {
+            appPurchaseOneTimeCreate(
+                name: $name, 
+                returnUrl: $returnUrl, 
+                price: $price,
+                test: $test
+            ) {
+                appPurchaseOneTime {
+                    id
+                }
+                confirmationUrl
+                userErrors {
+                    field
+                    message
+                }
+            }
+        }
+        ';
+
+        $variables = [
+            'name' => $payload->name,
+            'returnUrl' => $payload->returnUrl,
+            'test' => $payload->test,
+            'price' => [
+                'amount' => $payload->price,
+                'currencyCode' => $payload->currency ?? PlanCurrencyCode::USD->value,
+            ],
+        ];
+
+        $response = $this->doRequestGraphQL($query, $variables);
+
+        return $response['body']['data']['appPurchaseOneTimeCreate'];
     }
 
     /**
@@ -540,6 +588,7 @@ class ApiHelper implements IApiHelper
             [
                 'usage_charge' => [
                     'price' => $payload->price,
+                    'currency' => $payload->currency ?? PlanCurrencyCode::USD->value,
                     'description' => $payload->description,
                 ],
             ]

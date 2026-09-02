@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Test\Storage\Commands;
 use Osiset\ShopifyApp\Contracts\Commands\Charge as IChargeCommand;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Transfers\Charge as ChargeTransfer;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails as PlanDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Transfers\UsageCharge as UsageChargeTransfer;
@@ -53,6 +54,7 @@ class ChargeTest extends TestCase
         // Create details transfer
         $ud = new UsageChargeDetailsTransfer();
         $ud->price = 12.00;
+        $ud->currency = PlanCurrencyCode::USD->value;
         $ud->description = 'Test';
         $ud->chargeReference = ChargeReference::fromNative(123456);
 
@@ -85,6 +87,7 @@ class ChargeTest extends TestCase
         $planDetails = new PlanDetailsTransfer();
         $planDetails->name = 'Test Plan';
         $planDetails->price = 12.00;
+        $planDetails->currency = PlanCurrencyCode::USD->value;
         $planDetails->test = true;
         $planDetails->trialDays = 7;
         $planDetails->cappedAmount = null;

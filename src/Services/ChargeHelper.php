@@ -202,6 +202,7 @@ class ChargeHelper
         $transfer = new PlanDetailsTransfer();
         $transfer->name = $plan->name;
         $transfer->price = $plan->price;
+        $transfer->currency = $plan->getCurrency()->value;
         $transfer->interval = $plan->getInterval()->toNative();
         $transfer->test = $plan->isTest();
         $transfer->trialDays = $this->determineTrialDaysRemaining($plan, $shop);

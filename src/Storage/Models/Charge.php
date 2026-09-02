@@ -27,6 +27,7 @@ class Charge extends Model
         'type',
         'charge_id',
         'plan_id',
+        'currency',
         'status',
     ];
 

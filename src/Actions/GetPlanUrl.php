@@ -21,25 +21,39 @@ class GetPlanUrl
 
     /**
      * TODO: Rethrow an API exception.
+     * TODO: Check the createCharge method and remove it if not required.
      */
     public function __invoke(ShopId $shopId, NullablePlanId $planId, string $host): string
     {
         $shop = $this->shopQuery->getById($shopId);
         $plan = $planId->isNull() ? $this->planQuery->getDefault() : $this->planQuery->getById($planId);
 
-        if ($plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative()) {
+        $chargeType = ChargeType::fromNative($plan->getType()->toNative());
+
+        // If charge is interval and charge type is recurring or onetime / charge then it will use graphql
+        if (
+            $plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative() || 
+            $chargeType->isSame(ChargeType::RECURRING())
+        ) {
             $api = $shop->apiHelper()
                 ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
 
             $confirmationUrl = $api['confirmationUrl'];
-        } else {
+        } 
+        elseif ($chargeType->isSame(ChargeType::CHARGE())) {
+            $api = $shop->apiHelper()
+                ->createOneTimeChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
+
+            $confirmationUrl = $api['confirmationUrl'];
+        } 
+        else {
             $api = $shop->apiHelper()
                 ->createCharge(
-                    ChargeType::fromNative($plan->getType()->toNative()),
+                    $chargeType,
                     $this->chargeHelper->details($plan, $shop, $host)
                 );
 
-            $confirmationUrl = $api['confirmation_url'];
+            $confirmationUrl = $api['confirmation_url'] ?? $api['confirmationUrl'];
         }
 
         return $confirmationUrl;

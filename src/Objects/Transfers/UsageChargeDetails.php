@@ -24,6 +24,13 @@ final class UsageChargeDetails extends AbstractTransfer
     public $price;
 
     /**
+     * Usage charge currency.
+     *
+     * @var string
+     */
+    public $currency;
+
+    /**
      * Usage charge description.
      *
      * @var string

@@ -4,6 +4,8 @@ namespace Osiset\ShopifyApp\Storage\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Enums\PlanInterval;
 use Osiset\ShopifyApp\Objects\Enums\PlanType;
 use Osiset\ShopifyApp\Objects\Values\PlanId;
@@ -74,6 +76,16 @@ class Plan extends Model
     public function getInterval(): PlanInterval
     {
         return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::EVERY_30_DAYS();
+    }
+
+    /**
+     * Gets the currency of the plan.
+     *
+     * @return PlanCurrencyCode
+     */
+    public function getCurrency(): PlanCurrencyCode
+    {
+        return $this->currency ? (PlanCurrencyCode::tryFrom(Str::upper($this->currency)) ?? PlanCurrencyCode::USD) : PlanCurrencyCode::USD;
     }
 
     /**

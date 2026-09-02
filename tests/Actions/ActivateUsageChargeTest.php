@@ -4,6 +4,7 @@ namespace Osiset\ShopifyApp\Test\Actions;
 
 use Osiset\ShopifyApp\Actions\ActivateUsageCharge;
 use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
+use Osiset\ShopifyApp\Objects\Enums\PlanCurrencyCode;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails;
 use Osiset\ShopifyApp\Objects\Values\ChargeId;
 use Osiset\ShopifyApp\Storage\Models\Charge;
@@ -46,6 +47,7 @@ class ActivateUsageChargeTest extends TestCase
         // Create the transfer
         $ucd = new UsageChargeDetails();
         $ucd->price = 12.00;
+        $ucd->currency = PlanCurrencyCode::USD->value;
         $ucd->description = 'Hello!';
 
         // Setup API stub
@@ -87,6 +89,7 @@ class ActivateUsageChargeTest extends TestCase
         // Create the transfer
         $ucd = new UsageChargeDetails();
         $ucd->price = 12.00;
+        $ucd->currency = PlanCurrencyCode::USD->value;
         $ucd->description = 'Hello!';
 
         call_user_func(
@@ -116,6 +119,7 @@ class ActivateUsageChargeTest extends TestCase
         // Create the transfer
         $ucd = new UsageChargeDetails();
         $ucd->price = 12.00;
+        $ucd->currency = PlanCurrencyCode::USD->value;
         $ucd->description = 'Hello!';
 
         // Setup API stub

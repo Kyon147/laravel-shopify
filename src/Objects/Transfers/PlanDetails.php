@@ -22,6 +22,13 @@ final class PlanDetails extends AbstractTransfer
     public $price;
 
     /**
+     * Plan currency.
+     *
+     * @var string
+     */
+    public $currency;
+
+    /**
      * Plan interval.
      *
      * @var string
@@ -70,6 +77,7 @@ final class PlanDetails extends AbstractTransfer
         return [
             'name' => $this->name,
             'price' => $this->price,
+            'currency' => $this->currency,
             'interval' => $this->interval,
             'test' => $this->test,
             'trial_days' => $this->trialDays,
