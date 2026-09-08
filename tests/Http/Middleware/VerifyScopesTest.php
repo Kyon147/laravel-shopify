@@ -60,6 +60,41 @@ class VerifyScopesTest extends TestCase
         $this->assertEquals($result, null);
     }
 
+    public function testMissingScopesFromConfigApiCallback(): void
+    {
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_scopes']);
+
+        $shop = factory($this->model)->create(['name' => 'shop-a.myshopify.com']);
+        factory($this->model)->create(['name' => 'shop-b.myshopify.com']);
+
+        $this->app['config']->set('shopify-app.api_scopes', 'read_products,write_products');
+        $this->app['config']->set('shopify-app.config_api_callback', function (string $key, $configShop) {
+            if ($key !== 'api_scopes') {
+                return config("shopify-app.{$key}");
+            }
+
+            $domain = is_object($configShop) && method_exists($configShop, 'getDomain')
+                ? $configShop->getDomain()->toNative()
+                : (string) $configShop;
+
+            return $domain === 'shop-a.myshopify.com'
+                ? 'read_products,write_products,read_orders'
+                : 'read_products,write_products';
+        });
+
+        $this->auth->login($shop);
+
+        $request = Request::create('/', 'GET', ['shop' => $shop->getDomain()->toNative()]);
+
+        $middleware = new VerifyScopesMiddleware();
+        $result = $middleware->handle($request, function () {
+        });
+
+        $this->assertNotNull($result);
+        $this->assertEquals(302, $result->getStatusCode());
+    }
+
     public function testScopeApiFailure(): void
     {
         $this->setApiStub();

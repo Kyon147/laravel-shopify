@@ -26,6 +26,8 @@ The package registers route middleware aliases (see `ShopifyAppProvider::bootMid
 | `auth.webhook` | Webhook HMAC verification (typically on webhook routes). |
 | `billable` | Billing gate (see billing skill). |
 
+`verify.scopes` resolves `api_scopes` through `config_api_callback` with the current shop, so if **your** app varies scopes per shop it is checked against that shop's set rather than the static config value.
+
 `IframeProtection` is pushed onto the `web` middleware group by the package.
 
 Example (conceptual): wrap **your** app routes in a group using `middleware(['verify.shopify'])` (and `verify.scopes` if you split concerns).
