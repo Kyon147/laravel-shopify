@@ -51,34 +51,82 @@ class VerifyScopes
     }
 
     /**
+     * Fetches the current Shopify app access scopes.
+     *
+     * Successful Shopify API responses are cached to avoid unnecessary
+     * requests on every middleware execution. Failed API responses are
+     * intentionally not cached because Shopify errors may be temporary.
+     * Caching an error response would cause subsequent requests to keep
+     * failing until the cache expires instead of retrying the Shopify API.
+     *
      * @return array{hasErrors: bool, result: string[]}
      */
     private function currentScopes(ShopModel $shop): array
     {
-        /** @var array{errors: bool, status: int, body: \Gnikyt\BasicShopifyAPI\ResponseAccess} */
-        $response = Cache::remember(
-            $this->cacheKey($shop->getDomain()->toNative()),
-            now()->addDay(),
-            fn () => $shop->api()->graph('{
+        $cacheKey = $this->cacheKey($shop->getDomain()->toNative());
+
+        /** @var array{errors: bool, status: int, body: \Gnikyt\BasicShopifyAPI\ResponseAccess}|null $response */
+        $response = Cache::get($cacheKey);
+
+        if ($response === null) {
+            $response = $shop->api()->graph('{
                 currentAppInstallation {
                     accessScopes {
                         handle
                     }
                 }
-            }')
-        );
+            }');
 
-        if (! $response['errors'] && blank(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors'))) {
+            $hasErrors = $response['errors']
+                || filled(
+                    data_get(
+                        $response['body']->toArray(),
+                        'data.currentAppInstallation.userErrors'
+                    )
+                );
+
+            if (! $hasErrors) {
+                Cache::put(
+                    $cacheKey,
+                    $response,
+                    now()->addDay()
+                );
+            }
+        }
+
+        if (
+            ! $response['errors']
+            && blank(
+                data_get(
+                    $response['body']->toArray(),
+                    'data.currentAppInstallation.userErrors'
+                )
+            )
+        ) {
             return [
                 'hasErrors' => false,
                 'result' => array_column(
-                    data_get($response['body'], 'data.currentAppInstallation.accessScopes')->toArray(),
+                    data_get(
+                        $response['body'],
+                        'data.currentAppInstallation.accessScopes'
+                    )->toArray(),
                     'handle'
                 ),
             ];
         }
 
-        Log::error('Fetch current app installation access scopes error: '.json_encode(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors')));
+        // Also removes an error response cached by an older package version.
+        Cache::forget($cacheKey);
+
+        Log::error(
+            'Fetch current app installation access scopes error: '
+            .json_encode(
+                data_get(
+                    $response['body']->toArray(),
+                    'data.currentAppInstallation.userErrors'
+                )
+            )
+        );
 
         return [
             'hasErrors' => true,
