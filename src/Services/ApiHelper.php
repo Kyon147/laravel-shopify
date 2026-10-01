@@ -281,22 +281,6 @@ class ApiHelper implements IApiHelper
      * {@inheritdoc}
      * TODO: Convert to GraphQL.
      */
-    public function createScriptTag(array $payload): ResponseAccess
-    {
-        // Fire the request
-        $response = $this->doRequest(
-            ApiMethod::POST(),
-            '/admin/script_tags.json',
-            ['script_tag' => $payload]
-        );
-
-        return $response['body'];
-    }
-
-    /**
-     * {@inheritdoc}
-     * TODO: Convert to GraphQL.
-     */
     public function deleteScriptTag(int $scriptTagId): ResponseAccess
     {
         // Fire the request

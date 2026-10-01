@@ -473,30 +473,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Shopify ScriptTags
-    |--------------------------------------------------------------------------
-    |
-    | This option is for defining scripttags.
-    |
-    */
-
-    'scripttags' => [
-        /*
-            [
-                'src' => env('SHOPIFY_SCRIPTTAG_1_SRC', 'https://example.com/some-controller/js-method-response'),
-                'event' => env('SHOPIFY_SCRIPTTAG_1_EVENT', 'onload'),
-                'display_scope' => env('SHOPIFY_SCRIPTTAG_1_DISPLAY_SCOPE', 'online_store')
-            ],
-            ...
-        */],
-
-    /*
-    |--------------------------------------------------------------------------
     | After Authenticate Job
     |--------------------------------------------------------------------------
     |
     | This option is for firing a job after a shop has been authenticated.
-    | This, like webhooks and scripttag jobs, will fire every time a shop
+    | This, like webhook jobs, will fire every time a shop
     | authenticates, not just once.
     |
     |
@@ -519,7 +500,7 @@ return [
     | Job Queues
     |--------------------------------------------------------------------------
     |
-    | This option is for setting a specific job queue for webhooks, scripttags,
+    | This option is for setting a specific job queue for webhooks,
     | after_authenticate_job, and offline-token migrate/refresh batch jobs.
     | Override per run with --queue= on the migrate/refresh Artisan commands.
     |
@@ -527,7 +508,6 @@ return [
 
     'job_queues' => [
         'webhooks' => env('WEBHOOKS_JOB_QUEUE', null),
-        'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
         'migrate_expiring_offline_tokens' => env('SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_QUEUE', null),
         'refresh_expiring_offline_tokens' => env('SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_QUEUE', null),
@@ -537,7 +517,7 @@ return [
     | Job Connections
     |--------------------------------------------------------------------------
     |
-    | This option is for setting a specific job connection for webhooks, scripttags,
+    | This option is for setting a specific job connection for webhooks,
     | after_authenticate_job, and offline-token migrate/refresh batch jobs.
     | Override per run with --connection= on the migrate/refresh Artisan commands.
     |
@@ -545,7 +525,6 @@ return [
 
     'job_connections' => [
         'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
-        'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
         'migrate_expiring_offline_tokens' => env('SHOPIFY_MIGRATE_OFFLINE_TOKENS_JOB_CONNECTION', null),
         'refresh_expiring_offline_tokens' => env('SHOPIFY_REFRESH_OFFLINE_TOKENS_JOB_CONNECTION', null),
@@ -630,8 +609,7 @@ return [
          */
         'cache_duration' => 12,
         /*
-         * At which levels of theme support the use of "theme app extension" is not available
-         * and script tags will be installed.
+         * At which levels of theme support the use of "theme app extension" is not available.
          * Available levels: FULL, PARTIAL, UNSUPPORTED.
          */
         'unacceptable_levels' => [
