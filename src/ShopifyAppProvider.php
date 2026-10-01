@@ -13,10 +13,8 @@ use Osiset\ShopifyApp\Actions\AfterAuthorize as AfterAuthorizeAction;
 use Osiset\ShopifyApp\Actions\AuthenticateShop as AuthenticateShopAction;
 use Osiset\ShopifyApp\Actions\CancelCharge as CancelChargeAction;
 use Osiset\ShopifyApp\Actions\CancelCurrentPlan as CancelCurrentPlanAction;
-use Osiset\ShopifyApp\Actions\CreateScripts as CreateScriptsAction;
 use Osiset\ShopifyApp\Actions\CreateWebhooks as CreateWebhooksAction;
 use Osiset\ShopifyApp\Actions\DeleteWebhooks as DeleteWebhooksAction;
-use Osiset\ShopifyApp\Actions\DispatchScripts as DispatchScriptsAction;
 use Osiset\ShopifyApp\Actions\DispatchWebhooks as DispatchWebhooksAction;
 use Osiset\ShopifyApp\Actions\GetPlanUrl as GetPlanUrlAction;
 use Osiset\ShopifyApp\Actions\InstallShop as InstallShopAction;
@@ -24,6 +22,7 @@ use Osiset\ShopifyApp\Actions\VerifyThemeSupport as VerifyThemeSupportAction;
 use Osiset\ShopifyApp\Console\AddVariablesCommand;
 use Osiset\ShopifyApp\Console\MigrateExpiringOfflineTokensCommand;
 use Osiset\ShopifyApp\Console\RefreshExpiringOfflineTokensCommand;
+use Osiset\ShopifyApp\Console\RemoveScriptTagCommand;
 use Osiset\ShopifyApp\Console\WebhookJobMakeCommand;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\Commands\Charge as IChargeCommand;
@@ -40,7 +39,6 @@ use Osiset\ShopifyApp\Http\Middleware\VerifyScopes;
 use Osiset\ShopifyApp\Http\Middleware\VerifyShopify;
 use Osiset\ShopifyApp\Macros\TokenRedirect;
 use Osiset\ShopifyApp\Macros\TokenRoute;
-use Osiset\ShopifyApp\Messaging\Jobs\ScripttagInstaller;
 use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
 use Osiset\ShopifyApp\Services\ApiHelper;
 use Osiset\ShopifyApp\Services\ChargeHelper;
@@ -93,6 +91,7 @@ class ShopifyAppProvider extends ServiceProvider
             AddVariablesCommand::class,
             MigrateExpiringOfflineTokensCommand::class,
             RefreshExpiringOfflineTokensCommand::class,
+            RemoveScriptTagCommand::class,
             WebhookJobMakeCommand::class,
         ]);
 
@@ -151,7 +150,6 @@ class ShopifyAppProvider extends ServiceProvider
             return new AuthenticateShopAction(
                 $app->make(IApiHelper::class),
                 $app->make(InstallShopAction::class),
-                $app->make(DispatchScriptsAction::class),
                 $app->make(DispatchWebhooksAction::class),
                 $app->make(AfterAuthorizeAction::class)
             );
@@ -177,13 +175,6 @@ class ShopifyAppProvider extends ServiceProvider
             return new DispatchWebhooksAction(
                 $app->make(IShopQuery::class),
                 WebhookInstaller::class
-            );
-        });
-
-        $this->app->bind(DispatchScriptsAction::class, function ($app) {
-            return new DispatchScriptsAction(
-                $app->make(IShopQuery::class),
-                ScripttagInstaller::class
             );
         });
 
@@ -225,12 +216,6 @@ class ShopifyAppProvider extends ServiceProvider
 
         $this->app->bind(CreateWebhooksAction::class, function ($app) {
             return new CreateWebhooksAction(
-                $app->make(IShopQuery::class)
-            );
-        });
-
-        $this->app->bind(CreateScriptsAction::class, function ($app) {
-            return new CreateScriptsAction(
                 $app->make(IShopQuery::class)
             );
         });
