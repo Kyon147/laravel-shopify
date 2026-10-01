@@ -36,6 +36,12 @@ class RemoveScriptTagCommand extends Command
         $tags = collect($api->getScriptTags()->toArray());
 
         $id = $this->option('id');
+        if ($id === null && $this->input->hasParameterOption('--id')) {
+            $this->error('--id requires a value.');
+
+            return self::FAILURE;
+        }
+
         if ($id !== null) {
             $tags = $tags->filter(fn (array $tag) => (string) $tag['id'] === (string) $id);
 
