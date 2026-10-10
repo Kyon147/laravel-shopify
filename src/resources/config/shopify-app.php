@@ -557,11 +557,14 @@ return [
     |
     | This option can be used to modify what returns when `getConfig('api_*')`
     | is used. A use-case for this is modifying the return of `api_secret`
-    | or something similar.
+    | or something similar. Every `api_*` key is routed through it, including
+    | `api_scopes`, which is resolved per shop both when building the install
+    | URL and when the `verify.scopes` middleware checks granted scopes.
     |
     | A closure/callable is required.
     | The first argument will be the key string.
-    | The second argument will be something to help identify the shop.
+    | The second argument will be something to help identify the shop. It may
+    | be a shop model, a shop domain string, or null, so handle each case.
     |
     */
 
