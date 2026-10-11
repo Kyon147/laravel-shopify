@@ -482,7 +482,8 @@ class VerifyShopify
          * @return string
          */
         $formatValue = function ($val): string {
-            return is_array($val) ? '["'.implode('", "', $val).'"]' : $val;
+            // ConvertEmptyStringsToNull turns "?foo=" into null, but Shopify signs it as "foo="
+            return is_array($val) ? '["'.implode('", "', $val).'"]' : (string) $val;
         };
 
         // Nested array
