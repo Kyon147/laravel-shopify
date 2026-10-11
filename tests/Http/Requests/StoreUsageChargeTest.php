@@ -32,6 +32,7 @@ class StoreUsageChargeTest extends TestCase
         $data['price'] = '2.00';
 
         $storeUsage = new StoreUsageCharge([], $data);
+        $storeUsage->setMethod('POST');
         $validator = Validator::make($data, $storeUsage->rules());
         $storeUsage->withValidator($validator);
 
@@ -49,6 +50,25 @@ class StoreUsageChargeTest extends TestCase
         $data['signature'] = $signature->toNative();
 
         $storeUsage = new StoreUsageCharge([], $data);
+        $storeUsage->setMethod('POST');
+        $validator = Validator::make($data, $storeUsage->rules());
+        $storeUsage->withValidator($validator);
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function testPassesWithQueryParameters(): void
+    {
+        $data = [
+            'price' => '1.00',
+            'description' => 'Testing',
+            'redirect' => '/',
+        ];
+        $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $this->app['config']->get('shopify-app.api_secret'));
+        $data['signature'] = $signature->toNative();
+
+        // The usage charge route accepts GET, so the data arrives in the query string
+        $storeUsage = new StoreUsageCharge($data, []);
         $validator = Validator::make($data, $storeUsage->rules());
         $storeUsage->withValidator($validator);
 
