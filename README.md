@@ -97,6 +97,18 @@ If your `User` model overrides `$casts`, merge `datetime` casts for the two `*_e
 
 Longer term, consider replacing or forking `gnikyt/basic-shopify-api` for REST/Graph traffic if you need an actively maintained HTTP client; expiring offline OAuth is already decoupled from that dependency.
 
+### Script tags
+
+As of October 1, 2026, Shopify no longer lets apps create or update script tags ([changelog](https://shopify.dev/changelog)). This package no longer installs script tags, and the `scripttags` config option (plus its `job_queues` / `job_connections` keys) has been removed. Use a [theme app extension](https://shopify.dev/docs/apps/build/online-store/theme-app-extensions) instead.
+
+Existing script tags keep running. To remove the ones your app installed on a shop:
+
+```bash
+php artisan shopify-app:remove-script-tag example.myshopify.com            # remove all of the app's script tags
+php artisan shopify-app:remove-script-tag example.myshopify.com --id=123   # remove a single script tag
+php artisan shopify-app:remove-script-tag example.myshopify.com --dry-run  # list without deleting
+```
+
 ## Issue or request?
 
 If you have found a bug or would like to request a feature for discussion, please use the `ISSUE_TEMPLATE` in this repo when creating your issue. Any issue submitted without this template will be closed.

@@ -95,19 +95,6 @@ class ApiHelperTest extends TestCase
         $this->assertCount(2, $data);
     }
 
-    public function testCreateScriptTags(): void
-    {
-        // Create a shop
-        $shop = factory($this->model)->create();
-
-        // Response stubbing
-        $this->setApiStub();
-        ApiStub::stubResponses(['empty']);
-
-        $data = $shop->apiHelper()->createScriptTag([]);
-        $this->assertInstanceOf(ResponseAccess::class, $data);
-    }
-
     public function testDeleteScriptTag(): void
     {
         // Create a shop
