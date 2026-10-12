@@ -44,6 +44,38 @@ class VerifyShopifyTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
+    public function testHmacPassesWithEmptyQueryValue(): void
+    {
+        // Shopify signs an empty value as "foo="
+        $signed = [
+            'foo' => '',
+            'shop' => 'mystore123.myshopify.com',
+            'timestamp' => '1337178173',
+        ];
+        $hmac = hash_hmac('sha256', urldecode(http_build_query($signed)), $this->app['config']->get('shopify-app.api_secret'));
+
+        // Setup request, as seen after ConvertEmptyStringsToNull has run
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            // Query Params
+            array_merge($signed, ['foo' => null, 'hmac' => $hmac]),
+            // Request Params
+            null,
+            // Attributes
+            null,
+            // Cookies
+            null,
+            // Files
+            null,
+            // Server vars
+            ['REQUEST_URI' => '/authenticate']
+        );
+
+        // Run the middleware
+        $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
+        $this->assertTrue($result[0]);
+    }
+
     public function testSkipAuthenticateAndBillingRoutes(): void
     {
         // Setup the request
