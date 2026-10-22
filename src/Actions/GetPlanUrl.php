@@ -27,7 +27,7 @@ class GetPlanUrl
         $shop = $this->shopQuery->getById($shopId);
         $plan = $planId->isNull() ? $this->planQuery->getDefault() : $this->planQuery->getById($planId);
 
-        if ($plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative()) {
+        if ($plan->getInterval()->value === ChargeInterval::ANNUAL->value) {
             $api = $shop->apiHelper()
                 ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
 
@@ -35,7 +35,7 @@ class GetPlanUrl
         } else {
             $api = $shop->apiHelper()
                 ->createCharge(
-                    ChargeType::fromNative($plan->getType()->toNative()),
+                    ChargeType::fromNative($plan->getType()->value),
                     $this->chargeHelper->details($plan, $shop, $host)
                 );
 

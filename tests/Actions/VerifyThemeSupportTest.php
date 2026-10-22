@@ -78,11 +78,9 @@ class VerifyThemeSupportTest extends TestCase
     /**
      * Create ThemeHelper stub
      *
-     * @param int $level
-     *
      * @return ThemeHelper
      */
-    protected function createThemeHelperStub(int $level): ThemeHelper
+    protected function createThemeHelperStub(ThemeSupportLevel $level): ThemeHelper
     {
         $themeHelperStub = $this->createStub(ThemeHelper::class);
 

@@ -15,7 +15,7 @@ class VerifyThemeSupport
     ) {
     }
 
-    public function __invoke(ShopId $shopId): int
+    public function __invoke(ShopId $shopId): ThemeSupportLevel
     {
         $this->themeHelper->extractStoreMainTheme($shopId);
 

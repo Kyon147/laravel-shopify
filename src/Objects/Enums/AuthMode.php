@@ -2,30 +2,21 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * API auth modes.
  *
- * @method static AuthMode OFFLINE()
- * @method static AuthMode PERUSER()
+ * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
  */
-final class AuthMode implements ValueObject
+enum AuthMode: string
 {
-    use EnumTrait;
+    case OFFLINE = 'OFFLINE';
+    case PERUSER = 'PERUSER';
 
     /**
-     * Offline auth mode.
-     *
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const OFFLINE = 0;
-
-    /**
-     * Per-user auth mode.
-     *
-     * @var int
-     */
-    public const PERUSER = 1;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

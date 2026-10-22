@@ -53,13 +53,13 @@ final class ShopDomain implements ShopDomainValue
         // All possible methods
         $options = [
             // GET/POST
-            DataSource::INPUT()->toNative() => $request->input('shop', $request->input('shopDomain')),
+            DataSource::INPUT->value => $request->input('shop', $request->input('shopDomain')),
 
             // Headers
-            DataSource::HEADER()->toNative() => $request->header('X-Shop-Domain'),
+            DataSource::HEADER->value => $request->header('X-Shop-Domain'),
 
             // Headers: Referer
-            DataSource::REFERER()->toNative() => function () use ($request): ?string {
+            DataSource::REFERER->value => function () use ($request): ?string {
                 $url = parse_url($request->header('referer', ''), PHP_URL_QUERY);
                 if (! $url) {
                     return null;

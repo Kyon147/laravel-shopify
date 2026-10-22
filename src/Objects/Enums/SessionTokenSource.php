@@ -2,30 +2,21 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
- * API call method types.
+ * Which Shopify session-token shape is in use.
  *
- * @method static SessionTokenSource APP()
- * @method static SessionTokenSource CHECKOUT_EXTENSION()
+ * Integer backing matches legacy public int constants on the previous class.
  */
-final class SessionTokenSource implements ValueObject
+enum SessionTokenSource: int
 {
-    use EnumTrait;
+    case APP = 0;
+    case CHECKOUT_EXTENSION = 1;
 
     /**
-     * Token form Shopify App
-     *
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const APP = 0;
-
-    /**
-     * Token from UI extension
-     *
-     * @var int
-     */
-    public const CHECKOUT_EXTENSION = 1;
+    public static function fromNative(int $value): self
+    {
+        return self::from($value);
+    }
 }

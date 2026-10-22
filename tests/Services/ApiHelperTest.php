@@ -76,7 +76,7 @@ class ApiHelperTest extends TestCase
         $shop = factory($this->model)->create();
 
         $this->assertNotEmpty(
-            $shop->apiHelper()->buildAuthUrl(AuthMode::OFFLINE(), 'read_content')
+            $shop->apiHelper()->buildAuthUrl(AuthMode::OFFLINE, 'read_content')
         );
     }
 
@@ -132,7 +132,7 @@ class ApiHelperTest extends TestCase
         $this->setApiStub();
         ApiStub::stubResponses(['get_application_charge']);
 
-        $data = $shop->apiHelper()->getCharge(ChargeType::CHARGE(), ChargeReference::fromNative(1234));
+        $data = $shop->apiHelper()->getCharge(ChargeType::CHARGE, ChargeReference::fromNative(1234));
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('iPod Cleaning', $data->name);
         $this->assertSame('accepted', $data['status']);
@@ -147,7 +147,7 @@ class ApiHelperTest extends TestCase
         $this->setApiStub();
         ApiStub::stubResponses(['post_recurring_application_charges_activate']);
 
-        $data = $shop->apiHelper()->activateCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1234));
+        $data = $shop->apiHelper()->activateCharge(ChargeType::RECURRING, ChargeReference::fromNative(1234));
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('Super Mega Plan', $data['name']);
     }
@@ -165,12 +165,12 @@ class ApiHelperTest extends TestCase
         $transfer = new PlanDetailsTransfer();
         $transfer->name = 'Test';
         $transfer->price = 12.00;
-        $transfer->interval = PlanInterval::EVERY_30_DAYS()->toNative();
+        $transfer->interval = PlanInterval::EVERY_30_DAYS->value;
         $transfer->test = true;
         $transfer->trialDays = 7;
 
         $data = $shop->apiHelper()->createCharge(
-            ChargeType::RECURRING(),
+            ChargeType::RECURRING,
             $transfer
         );
         $this->assertInstanceOf(ResponseAccess::class, $data);
@@ -256,7 +256,7 @@ class ApiHelperTest extends TestCase
         $transfer = new PlanDetailsTransfer();
         $transfer->name = 'Test';
         $transfer->price = 12.00;
-        $transfer->interval = PlanInterval::ANNUAL()->toNative();
+        $transfer->interval = PlanInterval::ANNUAL->value;
         $transfer->test = true;
         $transfer->trialDays = 7;
 

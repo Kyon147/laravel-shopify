@@ -202,7 +202,7 @@ class ChargeHelper
         $transfer = new PlanDetailsTransfer();
         $transfer->name = $plan->name;
         $transfer->price = $plan->price;
-        $transfer->interval = $plan->getInterval()->toNative();
+        $transfer->interval = $plan->getInterval()->value;
         $transfer->test = $plan->isTest();
         $transfer->trialDays = $this->determineTrialDaysRemaining($plan, $shop);
         $transfer->cappedAmount = $isCapped ? $plan->capped_amount : null;
@@ -261,7 +261,7 @@ class ChargeHelper
         return $shop
             ->charges()
             ->withTrashed()
-            ->whereIn('type', [ChargeType::RECURRING()->toNative(), ChargeType::CHARGE()->toNative()])
+            ->whereIn('type', [ChargeType::RECURRING->value, ChargeType::CHARGE->value])
             ->where('plan_id', $planId->toNative())
             ->orderBy('created_at', 'desc')
             ->first();

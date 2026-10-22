@@ -69,7 +69,7 @@ final class UsageCharge extends AbstractTransfer
      */
     public function __construct()
     {
-        $this->chargeType = ChargeType::USAGE();
-        $this->chargeStatus = ChargeStatus::ACCEPTED();
+        $this->chargeType = ChargeType::USAGE;
+        $this->chargeStatus = ChargeStatus::ACCEPTED;
     }
 }

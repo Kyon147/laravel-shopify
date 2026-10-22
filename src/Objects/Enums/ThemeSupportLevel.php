@@ -2,41 +2,23 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
- * Online Store 2.0 theme support
+ * Online Store 2.0 theme support level.
+ *
+ * Integer backing matches legacy public int constants on the previous class.
+ * There is no enum case for legacy {@see NONE} (null); represent “unknown / skipped” with null in application code.
  */
-class ThemeSupportLevel implements ValueObject
+enum ThemeSupportLevel: int
 {
-    use EnumTrait;
+    case FULL = 0;
+    case PARTIAL = 1;
+    case UNSUPPORTED = 2;
 
     /**
-     * Support level: fully.
-     *
-     * @var int
+     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
      */
-    public const FULL = 0;
-
-    /**
-     * Support level: partial.
-     *
-     * @var int
-     */
-    public const PARTIAL = 1;
-
-    /**
-     * Support level: unsupported.
-     *
-     * @var int
-     */
-    public const UNSUPPORTED = 2;
-
-    /**
-     * Support level: None.
-     *
-     * @var null
-     */
-    public const NONE = null;
+    public static function fromNative(int $value): self
+    {
+        return self::from($value);
+    }
 }

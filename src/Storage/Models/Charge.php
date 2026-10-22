@@ -36,6 +36,8 @@ class Charge extends Model
      * @var array
      */
     protected $casts = [
+        'type' => ChargeType::class,
+        'status' => ChargeStatus::class,
         'test' => 'bool',
         'capped_amount' => 'float',
         'price' => 'float',
@@ -119,11 +121,11 @@ class Charge extends Model
     public function getTypeApiString($plural = false): string
     {
         $types = [
-            ChargeType::CREDIT()->toNative() => 'application_credit',
-            ChargeType::CHARGE()->toNative() => 'application_charge',
-            ChargeType::RECURRING()->toNative() => 'recurring_application_charge',
+            ChargeType::CREDIT->value => 'application_credit',
+            ChargeType::CHARGE->value => 'application_charge',
+            ChargeType::RECURRING->value => 'recurring_application_charge',
         ];
-        $type = $types[$this->getType()->toNative()];
+        $type = $types[$this->getType()->value];
 
         return $plural ? "{$type}s" : $type;
     }
@@ -145,7 +147,7 @@ class Charge extends Model
      */
     public function getType(): ChargeType
     {
-        return ChargeType::fromNative($this->type);
+        return $this->type;
     }
 
     /**
@@ -157,7 +159,7 @@ class Charge extends Model
      */
     public function isType(ChargeType $type): bool
     {
-        return $this->getType()->isSame($type);
+        return $this->getType() === $type;
     }
 
     /**
@@ -177,7 +179,7 @@ class Charge extends Model
      */
     public function getStatus(): ChargeStatus
     {
-        return ChargeStatus::fromNative($this->status);
+        return $this->status ?? ChargeStatus::PENDING;
     }
 
     /**
@@ -189,7 +191,7 @@ class Charge extends Model
      */
     public function isStatus(ChargeStatus $status): bool
     {
-        return $this->getStatus()->isSame($status);
+        return $this->getStatus() === $status;
     }
 
     /**
@@ -199,7 +201,7 @@ class Charge extends Model
      */
     public function isActive(): bool
     {
-        return $this->isStatus(ChargeStatus::ACTIVE());
+        return $this->isStatus(ChargeStatus::ACTIVE);
     }
 
     /**
@@ -209,7 +211,7 @@ class Charge extends Model
      */
     public function isAccepted(): bool
     {
-        return $this->isStatus(ChargeStatus::ACCEPTED());
+        return $this->isStatus(ChargeStatus::ACCEPTED);
     }
 
     /**
@@ -219,7 +221,7 @@ class Charge extends Model
      */
     public function isDeclined(): bool
     {
-        return $this->isStatus(ChargeStatus::DECLINED());
+        return $this->isStatus(ChargeStatus::DECLINED);
     }
 
     /**
@@ -229,7 +231,7 @@ class Charge extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->cancelled_on !== null || $this->isStatus(ChargeStatus::CANCELLED());
+        return $this->cancelled_on !== null || $this->isStatus(ChargeStatus::CANCELLED);
     }
 
     /**

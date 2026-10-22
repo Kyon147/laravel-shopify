@@ -17,8 +17,8 @@ class PlanTest extends TestCase
 
         $this->assertInstanceOf(PlanId::class, $plan->getId());
         $this->assertCount(0, $plan->charges);
-        $this->assertEquals(PlanType::RECURRING(), $plan->getType());
-        $this->assertTrue($plan->isType(PlanType::RECURRING()));
+        $this->assertEquals(PlanType::RECURRING, $plan->getType());
+        $this->assertTrue($plan->isType(PlanType::RECURRING));
         $this->assertSame('recurring_application_charge', $plan->getTypeApiString());
         $this->assertSame('recurring_application_charges', $plan->getTypeApiString(true));
         $this->assertFalse($plan->hasTrial());

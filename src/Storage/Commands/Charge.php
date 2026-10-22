@@ -57,8 +57,8 @@ class Charge implements ChargeCommand
         $charge->plan_id = $chargeObj->planId->toNative();
         $charge->$shopTableId = $chargeObj->shopId->toNative();
         $charge->charge_id = $chargeObj->chargeReference->toNative();
-        $charge->type = $chargeObj->chargeType->toNative();
-        $charge->status = $chargeObj->chargeStatus->toNative();
+        $charge->type = $chargeObj->chargeType->value;
+        $charge->status = $chargeObj->chargeStatus->value;
         $charge->name = $chargeObj->planDetails->name;
         $charge->price = $chargeObj->planDetails->price;
         $charge->interval = $chargeObj->planDetails->interval;
@@ -97,8 +97,8 @@ class Charge implements ChargeCommand
         $charge = new $chargeClass();
         $charge->$shopTableId = $chargeObj->shopId->toNative();
         $charge->charge_id = $chargeObj->chargeReference->toNative();
-        $charge->type = $chargeObj->chargeType->toNative();
-        $charge->status = $chargeObj->chargeStatus->toNative();
+        $charge->type = $chargeObj->chargeType->value;
+        $charge->status = $chargeObj->chargeStatus->value;
         $charge->price = $chargeObj->details->price;
         $charge->description = $chargeObj->details->description;
         $charge->reference_charge = $chargeObj->details->chargeReference->toNative();
@@ -118,7 +118,7 @@ class Charge implements ChargeCommand
         ?Carbon $trialEndsOn = null
     ): bool {
         $charge = $this->query->getByReference($chargeRef);
-        $charge->status = ChargeStatus::CANCELLED()->toNative();
+        $charge->status = ChargeStatus::CANCELLED->value;
         $charge->cancelled_on = $expiresOn === null ? Carbon::today()->format('Y-m-d') : $expiresOn->format('Y-m-d');
         $charge->expires_on = $trialEndsOn === null ? Carbon::today()->format('Y-m-d') : $trialEndsOn->format('Y-m-d');
 
