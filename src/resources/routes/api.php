@@ -60,6 +60,6 @@ Route::group([
             WebhookController::class.'@handle'
         )
         ->middleware('auth.webhook')
-        ->name(Util::getShopifyConfig('route_names.webhook'));
+        ->name('webhook');
     }
 });
