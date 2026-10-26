@@ -71,12 +71,14 @@ class VerifyShopifyTest extends TestCase
             ['REQUEST_URI' => '/authenticate']
         );
 
+        $newRequest->setRouteResolver(fn () => Route::getRoutes()->getByName('authenticate'));
+
         // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
         $this->assertTrue($result[0]);
     }
 
-    public function testSkipAuthenticateAndBillingRoutes(): void
+    public function testSkipNamedAuthenticationRoute(): void
     {
         // Setup the request
         $currentRequest = Request::instance();
@@ -94,6 +96,8 @@ class VerifyShopifyTest extends TestCase
             // Server vars
             ['REQUEST_URI' => '/authenticate']
         );
+
+        $newRequest->setRouteResolver(fn () => Route::getRoutes()->getByName('authenticate'));
 
         // Run the middleware
         $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
@@ -191,6 +195,9 @@ class VerifyShopifyTest extends TestCase
 
     public function testTokenProcessingAndNotInstalledShop(): void
     {
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(Response::HTTP_FORBIDDEN);
+
         // Setup the request
         $currentRequest = Request::instance();
         $newRequest = $currentRequest->duplicate(
@@ -212,8 +219,7 @@ class VerifyShopifyTest extends TestCase
         );
 
         // Run the middleware
-        $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
-        $this->assertFalse($result[0]);
+        $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
     public function testTokenProcessingAndNotInstalledShopAjax(): void

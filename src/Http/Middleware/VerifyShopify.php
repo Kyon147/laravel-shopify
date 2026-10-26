@@ -16,6 +16,7 @@ use Osiset\ShopifyApp\Contracts\Objects\Values\ShopDomain as ShopDomainValue;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Exceptions\HttpException;
+use Osiset\ShopifyApp\Exceptions\InvalidShopDomainException;
 use Osiset\ShopifyApp\Exceptions\SignatureVerificationException;
 use Osiset\ShopifyApp\Objects\Enums\DataSource;
 use Osiset\ShopifyApp\Objects\Values\NullableSessionId;
@@ -97,20 +98,12 @@ class VerifyShopify
             throw new SignatureVerificationException('Unable to verify signature.');
         }
 
-        // Continue if current route is an auth or billing route
-        if (Str::contains($request->getRequestUri(), ['/authenticate', '/billing'])) {
+        // Only the named authentication entry points may run without a session token.
+        if ($request->routeIs(
+            Util::getShopifyConfig('route_names.authenticate'),
+            Util::getShopifyConfig('route_names.authenticate.token')
+        )) {
             return $next($request);
-        }
-
-        if (!Util::isMPAApplication()) {
-            $shop = $this->getShopIfAlreadyInstalled($request);
-            $storeResult = !$this->isApiRequest($request) && $shop;
-
-            if ($storeResult) {
-                $this->loginFromShop($shop);
-
-                return $next($request);
-            }
         }
 
         $tokenSource = $this->getAccessTokenFromRequest($request);
@@ -145,10 +138,10 @@ class VerifyShopify
             return $this->handleInvalidToken($request, $e);
         }
 
-        // Set the previous shop (if available)
-        if ($request->user()) {
-            $this->previousShop = $request->user();
-        }
+        // Bind every supplied store identifier before authenticating or dispatching an action.
+        $this->bindShopToRequest($request, $token->getShopDomain());
+
+        $this->previousShop = $request->user();
 
         // Login the shop
         $loginResult = $this->loginShopFromToken(
@@ -164,6 +157,60 @@ class VerifyShopify
     }
 
     /**
+     * Reject conflicting store identifiers and expose the verified store to controllers.
+     */
+    protected function bindShopToRequest(Request $request, ShopDomainValue $domain): void
+    {
+        $bags = [$request->query, $request->request, $request->attributes];
+        if ($request->isJson()) {
+            $bags[] = $request->json();
+        }
+
+        $sources = array_map(fn ($bag) => $bag->all(), $bags);
+        $sources[] = $request->route()?->parameters() ?? [];
+        if ($request->headers->has('X-Shop-Domain')) {
+            $sources[] = ['shop' => $request->header('X-Shop-Domain')];
+        }
+
+        parse_str(parse_url($request->header('referer', ''), PHP_URL_QUERY) ?: '', $referer);
+        $sources[] = $referer;
+
+        foreach ($sources as $source) {
+            foreach (['shop', 'shopDomain'] as $key) {
+                if (!array_key_exists($key, $source)) {
+                    continue;
+                }
+
+                $value = $source[$key];
+                if ($value instanceof ShopModel) {
+                    $value = $value->getDomain()->toNative();
+                }
+
+                try {
+                    $matches = is_string($value) && ShopDomain::fromNative($value)->toNative() === $domain->toNative();
+                } catch (InvalidShopDomainException $e) {
+                    $matches = false;
+                }
+
+                if (!$matches) {
+                    throw new HttpException('Request shop does not match session token.', Response::HTTP_FORBIDDEN);
+                }
+            }
+        }
+
+        // Normalize aliases in each input bag so downstream readers agree on the tenant.
+        foreach ($bags as $bag) {
+            foreach (['shop', 'shopDomain'] as $key) {
+                if ($bag->has($key)) {
+                    $bag->set($key, $domain->toNative());
+                }
+            }
+        }
+        $request->query->set('shop', $domain->toNative());
+        $request->merge(['shop' => $domain->toNative()]);
+    }
+
+    /**
      * Handle missing token.
      *
      * @param Request $request The request object.
@@ -174,7 +221,7 @@ class VerifyShopify
      */
     protected function handleMissingToken(Request $request)
     {
-        if ($this->isApiRequest($request)) {
+        if ($this->isApiRequest($request) || !$request->isMethodSafe()) {
             // AJAX, return HTTP exception
             throw new HttpException(SessionToken::EXCEPTION_INVALID, Response::HTTP_BAD_REQUEST);
         }
@@ -195,7 +242,7 @@ class VerifyShopify
     protected function handleInvalidToken(Request $request, AssertionFailedException $e)
     {
         $isExpired = $e->getMessage() === SessionToken::EXCEPTION_EXPIRED;
-        if ($this->isApiRequest($request)) {
+        if ($this->isApiRequest($request) || !$request->isMethodSafe()) {
             // AJAX, return HTTP exception
             throw new HttpException(
                 $e->getMessage(),
@@ -260,7 +307,7 @@ class VerifyShopify
     {
         // Get the shop
         $shop = $this->shopQuery->getByDomain($token->getShopDomain(), [], true);
-        if (! $shop) {
+        if (! $shop || $shop->trashed() || $shop->hasCorruptExpiringTokenState()) {
             return false;
         }
 
@@ -391,9 +438,12 @@ class VerifyShopify
      */
     protected function getAccessTokenFromRequest(Request $request): ?string
     {
-        return $this->isApiRequest($request)
-            ? $request->bearerToken()
-            : $request->get('token');
+        $token = $request->bearerToken() ?? $request->input('token');
+        if ($token !== null && !is_string($token)) {
+            throw new HttpException(SessionToken::EXCEPTION_INVALID, Response::HTTP_BAD_REQUEST);
+        }
+
+        return $token;
     }
 
     /**
@@ -543,37 +593,5 @@ class VerifyShopify
         $shop = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request), [], true);
 
         return $shop && $shop->password && ! $shop->trashed() && ! $shop->hasCorruptExpiringTokenState();
-    }
-
-    /**
-     * Get shop model if there is a store record in the database.
-     *
-     * @param Request $request The request object.
-     *
-     * @return ?ShopModel
-     */
-    protected function getShopIfAlreadyInstalled(Request $request): ?ShopModel
-    {
-        $shop = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request), [], true);
-
-        return $shop && $shop->password && ! $shop->trashed() && ! $shop->hasCorruptExpiringTokenState() ? $shop : null;
-    }
-
-    /**
-     * Login and validate store
-     *
-     * @param ShopModel $shop
-     *
-     * @return void
-     */
-    protected function loginFromShop(ShopModel $shop): void
-    {
-        // Override auth guard
-        if (($guard = Util::getShopifyConfig('shop_auth_guard'))) {
-            $this->auth->setDefaultDriver($guard);
-        }
-
-        // All is well, login the shop
-        $this->auth->login($shop);
     }
 }
