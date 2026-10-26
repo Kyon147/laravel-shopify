@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Http\Middleware;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Redirect;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Util;
@@ -43,9 +44,16 @@ class Billable
             return $next($request);
         }
 
+        // Drop Shopify's signed load params; the HMAC cannot be re-verified once the query is rebuilt
+        $input = Arr::except($request->input(), ['hmac', 'timestamp', 'id_token']);
+        $idToken = $request->query('id_token');
+        if (!isset($input['token']) && is_string($idToken)) {
+            $input['token'] = $idToken;
+        }
+
         $args = [
             Util::getShopifyConfig('route_names.billing'),
-            array_merge($request->input(), [
+            array_merge($input, [
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $request->get('host'),
                 'locale' => $request->get('locale'),
