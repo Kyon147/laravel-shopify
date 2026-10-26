@@ -44,6 +44,48 @@ class VerifyShopifyTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $newRequest);
     }
 
+    public function testHmacPassesOnBillingReturnToTokenRoute(): void
+    {
+        // App Bridge reloads the token page with Shopify signing the whole query, including the target
+        $signed = [
+            'embedded' => '1',
+            'host' => 'YWRtaW4uc2hvcGlmeS5jb20vc3RvcmUvbXlzdG9yZTEyMw',
+            'locale' => 'en',
+            'shop' => 'mystore123.myshopify.com',
+            'target' => '/billing/process/1?host=YWRtaW4uc2hvcGlmeS5jb20vc3RvcmUvbXlzdG9yZTEyMw&charge_id=111',
+            'timestamp' => '1337178173',
+        ];
+        // Shopify escapes "%" and "&" inside values before signing
+        $message = implode('&', array_map(
+            fn ($key, $value) => $key.'='.strtr($value, ['%' => '%25', '&' => '%26']),
+            array_keys($signed),
+            $signed
+        ));
+        $hmac = hash_hmac('sha256', $message, $this->app['config']->get('shopify-app.api_secret'));
+
+        $currentRequest = Request::instance();
+        $newRequest = $currentRequest->duplicate(
+            // Query Params
+            array_merge($signed, ['hmac' => $hmac]),
+            // Request Params
+            null,
+            // Attributes
+            null,
+            // Cookies
+            null,
+            // Files
+            null,
+            // Server vars
+            ['REQUEST_URI' => '/authenticate/token']
+        );
+
+        $newRequest->setRouteResolver(fn () => Route::getRoutes()->getByName('authenticate.token'));
+
+        // Run the middleware
+        $result = $this->runMiddleware(VerifyShopify::class, $newRequest);
+        $this->assertTrue($result[0]);
+    }
+
     public function testHmacPassesWithEmptyQueryValue(): void
     {
         // Shopify signs an empty value as "foo="
