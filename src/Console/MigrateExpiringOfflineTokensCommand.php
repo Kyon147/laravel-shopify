@@ -40,10 +40,18 @@ class MigrateExpiringOfflineTokensCommand extends Command
             $query->where('name', $shopDomain);
         }
 
+        $excluded = Util::getOfflineTokenExcludedShopDomains();
+        if ($excluded !== []) {
+            $query->whereNotIn('name', $excluded);
+        }
+
         if ($this->option('dry-run')) {
             $count = 0;
             $query->chunkById(100, function ($shops) use (&$count) {
                 foreach ($shops as $shop) {
+                    if (Util::shopIsExcludedFromOfflineTokenLifecycle($shop)) {
+                        continue;
+                    }
                     $this->line('  - '.$shop->name.' (id: '.$shop->id.')');
                     $count++;
                 }
@@ -63,6 +71,10 @@ class MigrateExpiringOfflineTokensCommand extends Command
 
         $query->chunkById(100, function ($shops) use (&$dispatched, &$failed) {
             foreach ($shops as $shop) {
+                if (Util::shopIsExcludedFromOfflineTokenLifecycle($shop)) {
+                    continue;
+                }
+
                 try {
                     $this->configureJobDispatch(MigrateShopTokenJob::dispatch($shop));
                     $dispatched++;

@@ -100,6 +100,134 @@ class MigrateExpiringOfflineTokensCommandTest extends TestCase
         Queue::assertPushed(MigrateShopTokenJob::class, 1);
     }
 
+    public function testSkipsShopsWithEmptyPassword(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        factory($this->model)->create([
+            'name' => 'empty-password.myshopify.com',
+            'password' => '',
+            'shopify_offline_refresh_token' => null,
+        ]);
+        factory($this->model)->create([
+            'name' => 'legacy.myshopify.com',
+            'password' => 'shpat_legacy',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this
+            ->artisan('shopify-app:migrate-expiring-offline-tokens')
+            ->expectsOutput('Dispatched 1 migration job(s).')
+            ->assertExitCode(0);
+
+        Queue::assertPushed(MigrateShopTokenJob::class, 1);
+    }
+
+    public function testSkipsExcludedShops(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_placeholder',
+            'shopify_offline_refresh_token' => null,
+        ]);
+        factory($this->model)->create([
+            'name' => 'legacy.myshopify.com',
+            'password' => 'shpat_legacy',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this
+            ->artisan('shopify-app:migrate-expiring-offline-tokens')
+            ->expectsOutput('Dispatched 1 migration job(s).')
+            ->assertExitCode(0);
+
+        Queue::assertPushed(MigrateShopTokenJob::class, 1);
+    }
+
+    public function testShopOptionDoesNotOverrideExclusion(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_placeholder',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this
+            ->artisan('shopify-app:migrate-expiring-offline-tokens --shop=placeholder.myshopify.com')
+            ->expectsOutput('No shops need migration.')
+            ->assertExitCode(0);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function testDryRunOmitsExcludedShops(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_placeholder',
+            'shopify_offline_refresh_token' => null,
+        ]);
+        factory($this->model)->create([
+            'name' => 'legacy.myshopify.com',
+            'password' => 'shpat_legacy',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this
+            ->artisan('shopify-app:migrate-expiring-offline-tokens --dry-run')
+            ->expectsOutputToContain('legacy.myshopify.com')
+            ->expectsOutput('Dry run — 1 shop(s) would be migrated.')
+            ->assertExitCode(0);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function testSkipsExcludedShopsWhenNameCaseDiffers(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        factory($this->model)->create([
+            'name' => 'Placeholder.myshopify.com',
+            'password' => 'shpat_placeholder',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this
+            ->artisan('shopify-app:migrate-expiring-offline-tokens')
+            ->expectsOutput('No shops need migration.')
+            ->assertExitCode(0);
+
+        Queue::assertNothingPushed();
+    }
+
     public function testReportsWhenNoShopsNeedMigration(): void
     {
         Queue::fake();

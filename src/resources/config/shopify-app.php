@@ -235,6 +235,9 @@ return [
     | request continues with the legacy token. Disable to require explicit
     | migration via the Artisan command or MigrateShopToExpiringOfflineAccessToken.
     |
+    | Default stays true so real legacy shops "just work". Denylisted shops and
+    | shops with an empty password are never cycled, even when this is true.
+    |
     */
 
     'auto_migrate_legacy' => (bool) env('SHOPIFY_AUTO_MIGRATE_LEGACY', true),
@@ -276,6 +279,24 @@ return [
     */
 
     'offline_refresh_token_renewal_days' => (int) env('SHOPIFY_OFFLINE_REFRESH_TOKEN_RENEWAL_DAYS', 14),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offline token excluded shops
+    |--------------------------------------------------------------------------
+    |
+    | Shop domains (name / *.myshopify.com) skipped for offline-token cycle
+    | and refresh (Artisan commands, auto-migrate, and refreshIfNeeded).
+    | Does not block api() / apiHelper() from building a client, and is not
+    | an auth or uninstall bypass. Apps with a published config copy must
+    | add this key to pick up the env var.
+    |
+    */
+
+    'offline_token_excluded_shops' => array_values(array_filter(array_map(
+        static fn (string $domain): string => strtolower(trim($domain)),
+        explode(',', (string) env('SHOPIFY_OFFLINE_TOKEN_EXCLUDED_SHOPS', ''))
+    ))),
 
     /*
     |--------------------------------------------------------------------------

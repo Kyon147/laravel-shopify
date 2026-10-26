@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use LogicException;
+use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Objects\Enums\FrontendType;
 use Osiset\ShopifyApp\Objects\Values\Hmac;
 
@@ -196,6 +197,52 @@ class Util
         }
 
         return Arr::get($config, $key);
+    }
+
+    /**
+     * Shop domains excluded from offline-token cycle and refresh.
+     *
+     * @return array<int, string>
+     */
+    public static function getOfflineTokenExcludedShopDomains(): array
+    {
+        $raw = self::getShopifyConfig('offline_token_excluded_shops') ?? [];
+
+        if (is_string($raw)) {
+            $raw = explode(',', $raw);
+        }
+
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $domains = [];
+        foreach ($raw as $domain) {
+            $normalized = strtolower(trim((string) $domain));
+            if ($normalized === '') {
+                continue;
+            }
+
+            $domains[$normalized] = $normalized;
+        }
+
+        return array_values($domains);
+    }
+
+    /**
+     * Whether this shop should skip offline-token cycle and refresh.
+     *
+     * Does not block building an API client.
+     *
+     * @param IShopModel $shop
+     *
+     * @return bool
+     */
+    public static function shopIsExcludedFromOfflineTokenLifecycle(IShopModel $shop): bool
+    {
+        $domain = strtolower($shop->getDomain()->toNative());
+
+        return in_array($domain, self::getOfflineTokenExcludedShopDomains(), true);
     }
 
     /**
