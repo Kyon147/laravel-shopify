@@ -106,7 +106,8 @@ class VerifyShopify
             return $next($request);
         }
 
-        $tokenSource = $this->getAccessTokenFromRequest($request);
+        $tokenSource = $this->getAccessTokenFromRequest($request)
+            ?? $this->getIdTokenFromRequest($request, $hmacResult);
 
         if ($tokenSource === null) {
             if (!Util::isMPAApplication() && $this->isApiRequest($request)) {
@@ -353,6 +354,7 @@ class VerifyShopify
                 'timestamp',
                 'session',
                 'shop',
+                'id_token',
             ]);
 
             if ($filteredQuery->isNotEmpty()) {
@@ -444,6 +446,36 @@ class VerifyShopify
         }
 
         return $token;
+    }
+
+    /**
+     * Get the session token Shopify appends to signed embedded app loads (if available).
+     *
+     * @param Request   $request    The request object.
+     * @param bool|null $hmacResult The result of the HMAC verification.
+     *
+     * @return string|null
+     */
+    protected function getIdTokenFromRequest(Request $request, ?bool $hmacResult): ?string
+    {
+        // Only trust id_token on safe requests whose own query string Shopify signed
+        $queryHmac = $request->query('hmac');
+        if (
+            $hmacResult !== true
+            || !in_array($request->getRealMethod(), ['GET', 'HEAD'], true)
+            || !is_string($queryHmac)
+            || $queryHmac === ''
+            || $this->getHmacFromRequest($request)['source'] !== DataSource::INPUT()->toNative()
+        ) {
+            return null;
+        }
+
+        $token = $request->query('id_token');
+        if ($token !== null && !is_string($token)) {
+            throw new HttpException(SessionToken::EXCEPTION_INVALID, Response::HTTP_BAD_REQUEST);
+        }
+
+        return $token === '' ? null : $token;
     }
 
     /**
