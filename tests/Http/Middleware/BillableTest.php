@@ -146,4 +146,29 @@ class BillableTest extends TestCase
         $this->assertEquals(402, $response[1]->getStatusCode());
         $this->assertArrayHasKey('forceRedirectUrl', $response[1]->getData(true));
     }
+
+    public function testRedirectDropsSignedLoadParamsAndForwardsIdToken(): void
+    {
+        $shop = factory($this->model)->create();
+        $this->auth->login($shop);
+        $this->app['config']->set('shopify-app.billing_enabled', true);
+
+        $request = Request::create('/', 'GET', [
+            'embedded' => '1',
+            'hmac' => 'deadbeef',
+            'host' => 'abc',
+            'id_token' => 'header.payload.signature',
+            'timestamp' => '1337178173',
+        ]);
+
+        [$called, $response] = $this->runMiddleware(BillableMiddleware::class, $request);
+
+        $this->assertFalse($called);
+        parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $query);
+        $this->assertArrayNotHasKey('hmac', $query);
+        $this->assertArrayNotHasKey('timestamp', $query);
+        $this->assertArrayNotHasKey('id_token', $query);
+        $this->assertSame('header.payload.signature', $query['token']);
+        $this->assertSame('1', $query['embedded']);
+    }
 }

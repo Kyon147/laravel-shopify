@@ -109,4 +109,19 @@ class AuthControllerTest extends TestCase
             return str_starts_with($target, '/orders?shop=example.myshopify.com');
         });
     }
+
+    public function testTokenStripsSessionTokensFromTarget(): void
+    {
+        $response = $this->call('get', '/authenticate/token', [
+            'shop' => 'example.myshopify.com',
+            'target' => '/orders?embedded=1&id_token=old.id.token&token=old.session.token',
+            'host' => 'ZXhhbXBsZS5teXNob3BpZnkuY29t',
+        ]);
+
+        $response->assertViewHas('target', function (string $target): bool {
+            return str_starts_with($target, '/orders?')
+                && ! str_contains($target, 'id_token')
+                && ! str_contains($target, 'old.session.token');
+        });
+    }
 }
