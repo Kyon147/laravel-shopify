@@ -12,6 +12,7 @@ use Osiset\ShopifyApp\Contracts\Queries\Plan as IPlanQuery;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
+use Osiset\ShopifyApp\Objects\Enums\ChargeInterval;
 use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Enums\PlanType;
@@ -127,9 +128,11 @@ class ActivatePlan
             || $this->decimalAmount($charge['price'] ?? null) === null
             || $this->decimalAmount($charge['price']) !== $this->decimalAmount($details->price)
             || (bool) ($charge['test'] ?? false) !== $details->test
-            || (string) ($charge['trial_days'] ?? 0) !== (string) $details->trialDays
-            || $this->decimalAmount($charge['capped_amount'] ?? 0) !== $this->decimalAmount($details->cappedAmount ?? 0)
-            || ($charge['terms'] ?? null) !== $details->terms
+            // Shopify stores a missing trial as 0
+            || (int) ($charge['trial_days'] ?? 0) !== (int) ($details->trialDays ?? 0)
+            // Annual charges are created through GraphQL without a cap, and Shopify never reads terms back
+            || ($details->interval !== ChargeInterval::ANNUAL()->toNative()
+                && $this->decimalAmount($charge['capped_amount'] ?? 0) !== $this->decimalAmount($details->cappedAmount ?? 0))
         ) {
             throw new HttpException('Charge does not match the requested plan.', Response::HTTP_FORBIDDEN);
         }

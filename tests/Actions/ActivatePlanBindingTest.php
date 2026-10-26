@@ -117,7 +117,6 @@ class ActivatePlanBindingTest extends TestCase
             'different name' => [['name' => 'Another plan'], $mismatch],
             'different trial' => [['trial_days' => 30], $mismatch],
             'different usage cap' => [['capped_amount' => '100'], $mismatch],
-            'different usage terms' => [['terms' => 'Different terms'], $mismatch],
             'pending' => [['status' => 'pending'], $unapproved],
             'declined' => [['status' => 'declined'], $unapproved],
             'cancelled' => [['status' => 'cancelled'], $unapproved],
