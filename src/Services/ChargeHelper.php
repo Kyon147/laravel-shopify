@@ -170,7 +170,7 @@ class ChargeHelper
         }
 
         return $this->isActiveTrial() ?
-            Carbon::today()->diffInDays($this->charge->trial_ends_on) :
+            (int) Carbon::today()->diffInDays($this->charge->trial_ends_on) :
             0;
     }
 
@@ -299,7 +299,7 @@ class ChargeHelper
         // Ensure cancelled date happened before the trial was supposed to end
         if ($this->charge->isCancelled() && $cancelledDate->lte($trialEndsDate)) {
             // Diffeence the two dates and subtract from the total trial days to get whats remaining
-            return $this->charge->trial_days - ($this->charge->trial_days - $cancelledDate->diffInDays($trialEndsDate));
+            return (int) ($this->charge->trial_days - ($this->charge->trial_days - $cancelledDate->diffInDays($trialEndsDate)));
         }
 
         return 0;
