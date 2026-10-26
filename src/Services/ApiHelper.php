@@ -138,12 +138,36 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     *
-     * @codeCoverageIgnore No need to retest.
      */
     public function verifyRequest(array $request): bool
     {
-        return $this->api->verifyRequest($request);
+        $secret = $this->api->getOptions()->getApiSecret();
+        if ($secret === null
+            || ! isset($request['shop'], $request['timestamp'], $request['hmac'])
+            || ! is_string($request['hmac'])
+        ) {
+            // Missing secret or params, keep the existing behaviour
+            return $this->api->verifyRequest($request);
+        }
+
+        $params = $request;
+        unset($params['hmac']);
+        foreach ($params as $value) {
+            if (! is_scalar($value) && $value !== null) {
+                // Arrays are not escaped by Shopify the same way, keep the existing behaviour
+                return $this->api->verifyRequest($request);
+            }
+        }
+
+        // Rebuild the message the way Shopify signs it, escaping "%" and "&" (and "=" in keys)
+        ksort($params);
+        $pairs = [];
+        foreach ($params as $key => $value) {
+            $pairs[] = str_replace(['%', '&', '='], ['%25', '%26', '%3D'], (string) $key)
+                .'='.str_replace(['%', '&'], ['%25', '%26'], (string) $value);
+        }
+
+        return hash_equals(hash_hmac('sha256', implode('&', $pairs), $secret), $request['hmac']);
     }
 
     /**
