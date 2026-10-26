@@ -2,30 +2,23 @@
 
 namespace Osiset\ShopifyApp\Test\Traits;
 
-use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Str;
-use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
+use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Storage\Models\Charge;
 use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
+use Osiset\ShopifyApp\Test\Stubs\BillingApi;
 use Osiset\ShopifyApp\Test\TestCase;
 use Osiset\ShopifyApp\Util;
 
 class BillingControllerTest extends TestCase
 {
-    /**
-     * @var AuthManager
-     */
-    protected $auth;
-
     public function setUp(): void
     {
         parent::setUp();
 
         // Stub in our API class
         $this->setApiStub();
-
-        $this->auth = $this->app->make(AuthManager::class);
     }
 
     public function testSendsShopToBillingScreen(): void
@@ -38,7 +31,7 @@ class BillingControllerTest extends TestCase
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
 
         // Create a on-install plan
         factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring', 'installable')->create();
@@ -46,6 +39,7 @@ class BillingControllerTest extends TestCase
         // Run the call
         $response = $this->call('get', '/billing', ['shop' => $shop->getDomain()->toNative()]);
 
+        $response->assertOk();
         $response->assertViewHas(
             'url',
             'https://example.myshopify.com/admin/charges/1029266947/confirm_recurring_application_charge?signature=BAhpBANeWT0%3D--64de8739eb1e63a8f848382bb757b20343eb414f'
@@ -54,27 +48,26 @@ class BillingControllerTest extends TestCase
 
     public function testReactFrontendShopAcceptsBilling(): void
     {
-        // Stub the responses
-        ApiStub::stubResponses([
-            'post_recurring_application_charges',
-            'post_recurring_application_charges_activate',
-        ]);
+        BillingApi::install();
 
         config(['shopify-app.frontend_type' => 'SPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
         $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Make the plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring')->create();
+
+        $this->call('get', '/billing/'.$plan->id, ['shop' => $shop->name, 'host' => $hostValue])->assertOk();
+        BillingApi::approve($shop->name, 1001);
 
         // Run the call
         $response = $this->call(
             'get',
             "/billing/process/{$plan->id}",
             [
-                'charge_id' => 1,
+                'charge_id' => 1001,
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $hostValue,
             ]
@@ -93,27 +86,25 @@ class BillingControllerTest extends TestCase
 
     public function testBladeFrontendShopAcceptsBilling(): void
     {
-        // Stub the responses
-        ApiStub::stubResponses([
-            'post_recurring_application_charges',
-            'post_recurring_application_charges_activate',
-        ]);
+        BillingApi::install();
 
         config(['shopify-app.frontend_type' => 'MPA']);
 
         // Create the shop and log them in
         $shop = factory($this->model)->create();
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
 
         // Make the plan
         $plan = factory(Util::getShopifyConfig('models.plan', Plan::class))->states('type_recurring')->create();
         $hostValue = urlencode(base64_encode($shop->getDomain()->toNative().'/admin'));
+        $this->call('get', '/billing/'.$plan->id, ['shop' => $shop->name, 'host' => $hostValue])->assertOk();
+        BillingApi::approve($shop->name, 1001);
         // Run the call
         $response = $this->call(
             'get',
             "/billing/process/{$plan->id}",
             [
-                'charge_id' => 1,
+                'charge_id' => 1001,
                 'shop' => $shop->getDomain()->toNative(),
                 'host' => $hostValue,
             ]
@@ -148,7 +139,7 @@ class BillingControllerTest extends TestCase
         ]);
 
         // Login the shop
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
 
         // Setup the data for the usage charge and the signature for it
         $secret = $this->app['config']->get('shopify-app.api_secret');
@@ -185,7 +176,7 @@ class BillingControllerTest extends TestCase
             'plan_id' => null,
         ]);
         //Log in
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
         $hostValue = urlencode(base64_encode($shop->getDomain()->toNative().'/admin'));
         $url = 'https://example-app.com/billing/process/9999?shop='.$shop->name.'&host='.$hostValue;
         // Try to go to bill without a charge id which happens when you cancel the charge
@@ -219,7 +210,7 @@ class BillingControllerTest extends TestCase
         ]);
 
         // Login the shop
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
 
         // Set up the data for the usage charge and the signature for it
         $secret = $this->app['config']->get('shopify-app.api_secret');
@@ -237,11 +228,8 @@ class BillingControllerTest extends TestCase
         $this->assertDatabaseHas('charges', ['description' => 'One email']);
     }
 
-    public function testUsageChargeFailWithoutShopParam(): void
+    public function testUsageChargeUsesAuthenticatedShopWithoutShopParam(): void
     {
-        $this->withoutExceptionHandling();
-        $this->expectException(MissingShopDomainException::class);
-
         // Stub the responses
         ApiStub::stubResponses([
             'post_recurring_application_charges_usage_charges_alt',
@@ -260,7 +248,7 @@ class BillingControllerTest extends TestCase
             ]);
 
         // Login the shop
-        $this->auth->login($shop);
+        $this->authenticateShop($shop);
 
         // Set up the data for the usage charge and the signature for it
         $secret = $this->app['config']->get('shopify-app.api_secret');
@@ -277,6 +265,18 @@ class BillingControllerTest extends TestCase
             '/billing/usage-charge',
             array_merge($data, ['signature' => $signature->toNative()])
         );
-        $this->assertDatabaseMissing('charges', ['description' => 'One email']);
+        $response->assertRedirect($data['redirect']);
+        $this->assertDatabaseHas('charges', ['description' => 'One email', 'user_id' => $shop->id]);
+    }
+
+    protected function authenticateShop(ShopModel $shop): void
+    {
+        $domain = $shop->getDomain()->toNative();
+        $this->withServerVariables([
+            'HTTP_AUTHORIZATION' => 'Bearer '.$this->buildToken([
+                'dest' => 'https://'.$domain,
+                'iss' => 'https://'.$domain.'/admin',
+            ]),
+        ]);
     }
 }
