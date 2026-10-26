@@ -49,6 +49,18 @@ For more information, tutorials, etc., please view the project's [wiki](../../wi
 
 For full resources on this package, see the [wiki](../..//wiki).
 
+### Request authentication
+
+Routes protected by `verify.shopify` require a valid Shopify session token in both SPA and MPA applications. Send it in `Authorization: Bearer <token>` or the `token` input. A store name, installed-store record, or Laravel session cookie alone does not authenticate a protected action.
+
+The token determines the authenticated store. Any supplied `shop`, `shopDomain`, or `X-Shop-Domain` must identify that same store, including values in query parameters, form or JSON bodies, route parameters, and referer query parameters. Conflicting values return HTTP 403 before the controller runs. Controllers should use `$request->user()` to select their store; application-specific store IDs and resource IDs still need ownership checks.
+
+Browser GET requests without a token are redirected through the existing App Bridge token page. Billing callbacks follow this flow and retain their plan and charge parameters. POST and other non-safe requests must carry a token; they cannot use the token-page redirect to replay their bodies. Billing actions also require a valid authenticated store, even when used in custom routes.
+
+When upgrading, update SPA requests and billing forms that relied on a store name or cookie to include a session token. Only the configured authentication and token-bootstrap route names are exempt from session-token authentication.
+
+Billing callbacks also retrieve the charge using the authenticated store's credentials and verify Shopify's stored return URL against the intended store and plan before changing billing state. The charge ID, billing terms, and approval status must match; changing the callback plan or substituting another charge returns HTTP 403. Already active charges do not need a second activation call. Custom billing flows must create charges with the same return URL and terms as `ChargeHelper::details()`. Changes to the app URL, callback host value, or plan terms during approval can require restarting approval. This check adds a Shopify charge lookup, with no database migration or new dependency.
+
 ### Expiring offline access tokens
 
 [Shopify requires expiring offline access tokens](https://shopify.dev/changelog/expiring-offline-access-tokens-required-for-public-apps-april-1-2026) for **new public apps** created on or after April 1, 2026. This package supports them when enabled:
