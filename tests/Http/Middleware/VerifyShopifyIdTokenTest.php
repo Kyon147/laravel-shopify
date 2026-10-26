@@ -200,6 +200,51 @@ class VerifyShopifyIdTokenTest extends TestCase
         $this->runMiddleware(VerifyShopify::class, $request);
     }
 
+    public static function nonGetMethodProvider(): array
+    {
+        return [
+            'OPTIONS' => ['OPTIONS'],
+            'TRACE' => ['TRACE'],
+        ];
+    }
+
+    /**
+     * @dataProvider nonGetMethodProvider
+     */
+    public function testIdTokenOnlyAuthenticatesGetAndHead(string $method): void
+    {
+        [$called] = $this->runMiddleware(VerifyShopify::class, $this->makeRequest($this->signedLoad(), $method));
+
+        $this->assertFalse($called);
+        $this->assertGuest();
+    }
+
+    public function testHeadWithIdTokenLogsIn(): void
+    {
+        [$called] = $this->runMiddleware(VerifyShopify::class, $this->makeRequest($this->signedLoad(), 'HEAD'));
+
+        $this->assertTrue($called);
+        $this->assertSame('shop-name.myshopify.com', Auth::user()->name);
+    }
+
+    public function testMethodOverrideToGetDoesNotEnableIdToken(): void
+    {
+        Request::enableHttpMethodParameterOverride();
+        $request = Request::create('/orders', 'POST', ['_method' => 'GET']);
+        $request->query->replace($this->signedLoad());
+        $called = false;
+
+        try {
+            // Newer Symfony ignores an override to GET, so this is rejected as a tokenless POST instead
+            [$called] = $this->runMiddleware(VerifyShopify::class, $request);
+        } catch (HttpException $e) {
+            $this->assertSame(400, $e->getCode());
+        }
+
+        $this->assertFalse($called);
+        $this->assertGuest();
+    }
+
     public function testMethodOverrideDoesNotReadIdTokenFromBody(): void
     {
         Request::enableHttpMethodParameterOverride();

@@ -462,7 +462,7 @@ class VerifyShopify
         $queryHmac = $request->query('hmac');
         if (
             $hmacResult !== true
-            || !$request->isMethodSafe()
+            || !in_array($request->getRealMethod(), ['GET', 'HEAD'], true)
             || !is_string($queryHmac)
             || $queryHmac === ''
             || $this->getHmacFromRequest($request)['source'] !== DataSource::INPUT()->toNative()
