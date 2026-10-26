@@ -5,6 +5,9 @@ namespace Osiset\ShopifyApp\Test\Http\Middleware;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Http\Middleware\Billable as BillableMiddleware;
+use Osiset\ShopifyApp\Objects\Values\NullableSessionId;
+use Osiset\ShopifyApp\Objects\Values\SessionContext;
+use Osiset\ShopifyApp\Objects\Values\SessionToken;
 use Osiset\ShopifyApp\Storage\Models\Charge;
 use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Test\TestCase;
@@ -147,28 +150,64 @@ class BillableTest extends TestCase
         $this->assertArrayHasKey('forceRedirectUrl', $response[1]->getData(true));
     }
 
-    public function testRedirectDropsSignedLoadParamsAndForwardsIdToken(): void
+    /**
+     * Log in a shop the way VerifyShopify does, with the token the request was verified with.
+     */
+    protected function loginWithToken(string $token)
     {
         $shop = factory($this->model)->create();
+        $shop->setSessionContext(new SessionContext(
+            SessionToken::fromNative($token),
+            NullableSessionId::fromNative(null),
+            $shop->getAccessToken()
+        ));
         $this->auth->login($shop);
         $this->app['config']->set('shopify-app.billing_enabled', true);
 
-        $request = Request::create('/', 'GET', [
+        return $shop;
+    }
+
+    protected function billingRedirectQuery(array $query): array
+    {
+        [$called, $response] = $this->runMiddleware(BillableMiddleware::class, Request::create('/', 'GET', $query));
+
+        $this->assertFalse($called);
+        parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $redirectQuery);
+
+        return $redirectQuery;
+    }
+
+    public function testRedirectDropsSignedLoadParamsAndForwardsIdToken(): void
+    {
+        $token = $this->buildToken();
+        $this->loginWithToken($token);
+
+        $query = $this->billingRedirectQuery([
             'embedded' => '1',
             'hmac' => 'deadbeef',
             'host' => 'abc',
-            'id_token' => 'header.payload.signature',
+            'id_token' => $token,
             'timestamp' => '1337178173',
         ]);
 
-        [$called, $response] = $this->runMiddleware(BillableMiddleware::class, $request);
-
-        $this->assertFalse($called);
-        parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $query);
         $this->assertArrayNotHasKey('hmac', $query);
         $this->assertArrayNotHasKey('timestamp', $query);
         $this->assertArrayNotHasKey('id_token', $query);
-        $this->assertSame('header.payload.signature', $query['token']);
+        $this->assertSame($token, $query['token']);
         $this->assertSame('1', $query['embedded']);
+    }
+
+    public function testRedirectDoesNotForwardAnIdTokenThatWasNotUsed(): void
+    {
+        // Verified with a bearer token; the id_token in the query was ignored
+        $this->loginWithToken($this->buildToken());
+
+        $query = $this->billingRedirectQuery([
+            'host' => 'abc',
+            'id_token' => $this->buildToken(['jti' => 'stale']),
+        ]);
+
+        $this->assertArrayNotHasKey('id_token', $query);
+        $this->assertArrayNotHasKey('token', $query);
     }
 }

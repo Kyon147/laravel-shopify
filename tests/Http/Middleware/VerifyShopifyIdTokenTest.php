@@ -110,6 +110,22 @@ class VerifyShopifyIdTokenTest extends TestCase
         $this->assertGuest();
     }
 
+    public function testEmptyQueryHmacWithSignedRefererDoesNotEnableIdToken(): void
+    {
+        // ?hmac= is normalised to null, so the signed Referer is what gets verified
+        $signed = $this->sign(['shop' => 'shop-name.myshopify.com', 'timestamp' => (string) $this->now->getTimestamp()]);
+        $request = $this->makeRequest(
+            ['hmac' => null, 'id_token' => $this->buildToken(), 'shop' => 'shop-name.myshopify.com'],
+            'GET',
+            ['HTTP_REFERER' => 'https://admin.shopify.com/?'.http_build_query($signed)]
+        );
+
+        [$called] = $this->runMiddleware(VerifyShopify::class, $request);
+
+        $this->assertFalse($called);
+        $this->assertGuest();
+    }
+
     public function testExpiredIdTokenRedirectsWithoutLeakingIt(): void
     {
         $expired = $this->buildToken([

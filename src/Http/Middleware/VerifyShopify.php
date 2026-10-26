@@ -459,7 +459,14 @@ class VerifyShopify
     protected function getIdTokenFromRequest(Request $request, ?bool $hmacResult): ?string
     {
         // Only trust id_token on safe requests whose own query string Shopify signed
-        if ($hmacResult !== true || !$request->isMethodSafe() || !$request->query->has('hmac')) {
+        $queryHmac = $request->query('hmac');
+        if (
+            $hmacResult !== true
+            || !$request->isMethodSafe()
+            || !is_string($queryHmac)
+            || $queryHmac === ''
+            || $this->getHmacFromRequest($request)['source'] !== DataSource::INPUT()->toNative()
+        ) {
             return null;
         }
 

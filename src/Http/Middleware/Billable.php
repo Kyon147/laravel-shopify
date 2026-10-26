@@ -46,8 +46,15 @@ class Billable
 
         // Drop Shopify's signed load params; the HMAC cannot be re-verified once the query is rebuilt
         $input = Arr::except($request->input(), ['hmac', 'timestamp', 'id_token']);
+        // Forward the id_token only when it is the token this request was verified with
         $idToken = $request->query('id_token');
-        if (!isset($input['token']) && is_string($idToken)) {
+        $context = $shop->getSessionContext();
+        if (
+            !isset($input['token'])
+            && is_string($idToken)
+            && $context !== null
+            && $idToken === $context->getSessionToken()->toNative()
+        ) {
             $input['token'] = $idToken;
         }
 
