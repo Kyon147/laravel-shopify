@@ -36,6 +36,7 @@ Example (conceptual): wrap **your** app routes in a group using `middleware(['ve
 
 - High-level auth flow: package `AuthController`, `Actions/InstallShop`, `Actions/AuthenticateShop` — **do not edit vendor**; override behavior via config, listeners, or **your** routes if the package documents extension points.
 - SPA / session token: package views under `src/resources/views/auth/` — use or replace in **your** app as documented, not by patching the package.
+- Token page loading state: to restyle what merchants see while `/authenticate/token` fetches a session token, override `partials/token_loading.blade.php` (markup) and `partials/token_loading_styles.blade.php` (head) under **your** `resources/views/vendor/shopify-app/`. Keep the package's `auth/token.blade.php`: its script performs the session-token handoff.
 
 ## Do / Don’t
 
