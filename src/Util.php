@@ -60,12 +60,12 @@ class Util
      * Array parameters such as `name[]=value1&name[]=value2` becomes `['name[]' => ['value1', 'value2']] in Shopify.
      * See: https://github.com/rack/rack/blob/f9ad97fd69a6b3616d0a99e6bedcfb9de2f81f6c/lib/rack/query_parser.rb#L36
      *
-     * @param string $queryString The query string.
+     * @param string|null $queryString The query string.
      * @param string|null $delimiter The delimiter.
      *
      * @return mixed
      */
-    public static function parseQueryString(string $queryString, ?string $delimiter = null): array
+    public static function parseQueryString(?string $queryString = null, ?string $delimiter = null): array
     {
         $commonSeparator = [';' => '/[;]\s*/', ';,' => '/[;,]\s*/', '&' => '/[&]\s*/'];
         $defaultSeparator = '/[&;]\s*/';

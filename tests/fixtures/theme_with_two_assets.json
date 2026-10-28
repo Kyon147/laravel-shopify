@@ -1,0 +1,22 @@
+{
+    "data": {
+        "theme": {
+            "files": {
+                "nodes": [
+                    {
+                        "filename": "templates/product.json",
+                        "body": {
+                            "content": "{\"sections\":{\"main\":{\"type\":\"main-product\",\"settings\":{}}},\"order\":[\"main\"]}"
+                        }
+                    },
+                    {
+                        "filename": "templates/collection.json",
+                        "body": {
+                            "content": "{\"sections\":{\"main\":{\"type\":\"main-collection\",\"settings\":{}}},\"order\":[\"main\"]}"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

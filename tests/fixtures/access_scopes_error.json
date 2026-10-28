@@ -1,10 +1,12 @@
 {
+    "errors": [
+        {
+            "message": "Could not get access scopes"
+        }
+    ],
     "data": {
         "currentAppInstallation": {
-            "accessScopes": [],
-            "userErrors": {
-                "message": "Could not get access copes"
-            }
+            "accessScopes": []
         }
     }
 }
