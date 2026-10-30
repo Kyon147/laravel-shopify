@@ -33,7 +33,7 @@
         "php": "^8.2",
         "ext-json": "*",
         "funeralzone/valueobjects": "^0.5",
-        "firebase/php-jwt": "^6.10",
+        "firebase/php-jwt": "^7.0",
         "gnikyt/basic-shopify-api": "^9.0 || ^10.0 || ^11.0",
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^12.0 || ^13.0"
