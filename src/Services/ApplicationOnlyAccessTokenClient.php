@@ -71,7 +71,11 @@ class ApplicationOnlyAccessTokenClient
             usleep((2 ** ($attempt - 1)) * 1_000_000);
         }
 
-        throw $lastException ?? new RuntimeException('Application-only token request failed.');
+        if ($lastException === null) {
+            throw new RuntimeException('Application-only token request failed.');
+        }
+
+        throw $lastException;
     }
 
     /**
