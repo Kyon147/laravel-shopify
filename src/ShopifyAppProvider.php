@@ -43,6 +43,8 @@ use Osiset\ShopifyApp\Macros\TokenRoute;
 use Osiset\ShopifyApp\Messaging\Jobs\ScripttagInstaller;
 use Osiset\ShopifyApp\Messaging\Jobs\WebhookInstaller;
 use Osiset\ShopifyApp\Services\ApiHelper;
+use Osiset\ShopifyApp\Services\ApplicationOnlyAccessTokenClient;
+use Osiset\ShopifyApp\Services\ApplicationOnlyOfflineAccessSynchronizer;
 use Osiset\ShopifyApp\Services\ChargeHelper;
 use Osiset\ShopifyApp\Services\OfflineAccessTokenRefresher;
 use Osiset\ShopifyApp\Services\ThemeHelper;
@@ -130,10 +132,22 @@ class ShopifyAppProvider extends ServiceProvider
             return new ShopCommand($app->make(IShopQuery::class));
         });
 
+        $this->app->singleton(ApplicationOnlyAccessTokenClient::class, function () {
+            return new ApplicationOnlyAccessTokenClient();
+        });
+
+        $this->app->singleton(ApplicationOnlyOfflineAccessSynchronizer::class, function ($app) {
+            return new ApplicationOnlyOfflineAccessSynchronizer(
+                $app->make(ApplicationOnlyAccessTokenClient::class),
+                $app->make(IShopCommand::class),
+            );
+        });
+
         $this->app->singleton(OfflineAccessTokenRefresher::class, function ($app) {
             return new OfflineAccessTokenRefresher(
                 $app->make(IApiHelper::class),
-                $app->make(IShopCommand::class)
+                $app->make(IShopCommand::class),
+                $app->make(ApplicationOnlyOfflineAccessSynchronizer::class),
             );
         });
 
