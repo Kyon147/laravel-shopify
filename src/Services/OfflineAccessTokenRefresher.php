@@ -11,6 +11,7 @@ use Osiset\ShopifyApp\Contracts\Commands\Shop as IShopCommand;
 use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Exceptions\OAuthTokenRefreshException;
 use Osiset\ShopifyApp\Objects\Values\AccessToken;
+use Osiset\ShopifyApp\Support\ApplicationOnlyOfflineAccess;
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -20,7 +21,8 @@ class OfflineAccessTokenRefresher
 {
     public function __construct(
         protected IApiHelper $apiHelper,
-        protected IShopCommand $shopCommand
+        protected IShopCommand $shopCommand,
+        protected ?ApplicationOnlyOfflineAccessSynchronizer $applicationOnlySynchronizer = null,
     ) {
     }
 
@@ -52,6 +54,14 @@ class OfflineAccessTokenRefresher
             $shop->refresh();
 
             if (! $this->offlineTokenNeedsRefresh($shop, $renewalDays)) {
+                return;
+            }
+
+            if (ApplicationOnlyOfflineAccess::shopUses($shop)) {
+                $this->applicationOnlySynchronizer()->syncOrFail($shop);
+
+                $shop->refresh();
+
                 return;
             }
 
@@ -147,6 +157,10 @@ class OfflineAccessTokenRefresher
             return false;
         }
 
+        if (ApplicationOnlyOfflineAccess::shopUses($shop)) {
+            return false;
+        }
+
         $expiresAt = $shop->shopify_offline_refresh_token_expires_at ?? null;
         if ($expiresAt === null) {
             return false;
@@ -178,5 +192,14 @@ class OfflineAccessTokenRefresher
     {
         return $this->offlineAccessTokenNeedsRefresh($shop)
             || $this->offlineRefreshTokenNeedsRenewal($shop, $renewalDays);
+    }
+
+    protected function applicationOnlySynchronizer(): ApplicationOnlyOfflineAccessSynchronizer
+    {
+        if ($this->applicationOnlySynchronizer === null) {
+            $this->applicationOnlySynchronizer = app(ApplicationOnlyOfflineAccessSynchronizer::class);
+        }
+
+        return $this->applicationOnlySynchronizer;
     }
 }
