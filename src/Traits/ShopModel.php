@@ -260,10 +260,13 @@ trait ShopModel
      */
     protected function buildApiHelper(): void
     {
-        if (Util::getShopifyConfig('auto_migrate_legacy', $this)
+        $skipLifecycle = ! $this->hasOfflineAccess()
+            || Util::shopIsExcludedFromOfflineTokenLifecycle($this);
+
+        if (! $skipLifecycle
+            && Util::getShopifyConfig('auto_migrate_legacy', $this)
             && Util::getShopifyConfig('expiring_offline_tokens', $this)
             && ! $this->hasExpiringOfflineAccess()
-            && $this->hasOfflineAccess()
         ) {
             try {
                 app(MigrateShopToExpiringOfflineAccessToken::class)($this);
@@ -276,7 +279,9 @@ trait ShopModel
             }
         }
 
-        app(OfflineAccessTokenRefresher::class)->refreshIfNeeded($this);
+        if (! $skipLifecycle) {
+            app(OfflineAccessTokenRefresher::class)->refreshIfNeeded($this);
+        }
 
         $session = new Session(
             $this->getDomain()->toNative(),

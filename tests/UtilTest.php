@@ -157,4 +157,52 @@ class UtilTest extends TestCase
             'port mismatch' => ['http://localhost:8080/foo', 'http://localhost', '/'],
         ];
     }
+
+    public function testGetOfflineTokenExcludedShopDomainsEmptyWhenMissing(): void
+    {
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', null);
+
+        $this->assertSame([], Util::getOfflineTokenExcludedShopDomains());
+    }
+
+    public function testGetOfflineTokenExcludedShopDomainsNormalizesArray(): void
+    {
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            ' Placeholder.myshopify.com ',
+            'other.myshopify.com',
+            'placeholder.myshopify.com',
+            '',
+        ]);
+
+        $this->assertSame(
+            ['placeholder.myshopify.com', 'other.myshopify.com'],
+            Util::getOfflineTokenExcludedShopDomains()
+        );
+    }
+
+    public function testGetOfflineTokenExcludedShopDomainsNormalizesCommaString(): void
+    {
+        $this->app['config']->set(
+            'shopify-app.offline_token_excluded_shops',
+            ' Placeholder.myshopify.com , other.myshopify.com,Placeholder.myshopify.com '
+        );
+
+        $this->assertSame(
+            ['placeholder.myshopify.com', 'other.myshopify.com'],
+            Util::getOfflineTokenExcludedShopDomains()
+        );
+    }
+
+    public function testShopIsExcludedFromOfflineTokenLifecycle(): void
+    {
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        $excluded = factory($this->model)->create(['name' => 'Placeholder.myshopify.com']);
+        $included = factory($this->model)->create(['name' => 'real-shop.myshopify.com']);
+
+        $this->assertTrue(Util::shopIsExcludedFromOfflineTokenLifecycle($excluded));
+        $this->assertFalse(Util::shopIsExcludedFromOfflineTokenLifecycle($included));
+    }
 }

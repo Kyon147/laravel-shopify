@@ -63,4 +63,54 @@ class MigrateShopToExpiringOfflineAccessTokenTest extends TestCase
         $this->assertTrue($result['skipped']);
         $this->assertSame(MigrateShopToExpiringOfflineAccessToken::REASON_FEATURE_DISABLED, $result['reason']);
     }
+
+    public function testSkipsWhenPasswordEmpty(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+
+        $shop = factory($this->model)->create([
+            'password' => '',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring']);
+
+        $result = $this->app->make(MigrateShopToExpiringOfflineAccessToken::class)($shop);
+
+        $this->assertFalse($result['migrated']);
+        $this->assertTrue($result['skipped']);
+        $this->assertSame(MigrateShopToExpiringOfflineAccessToken::REASON_NO_OFFLINE_TOKEN, $result['reason']);
+
+        $shop->refresh();
+        $this->assertSame('', $shop->password);
+        $this->assertNull($shop->shopify_offline_refresh_token);
+    }
+
+    public function testSkipsWhenShopIsExcluded(): void
+    {
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set('shopify-app.offline_token_excluded_shops', [
+            'placeholder.myshopify.com',
+        ]);
+
+        $shop = factory($this->model)->create([
+            'name' => 'placeholder.myshopify.com',
+            'password' => 'shpat_legacy_token',
+            'shopify_offline_refresh_token' => null,
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token_expiring']);
+
+        $result = $this->app->make(MigrateShopToExpiringOfflineAccessToken::class)($shop);
+
+        $this->assertFalse($result['migrated']);
+        $this->assertTrue($result['skipped']);
+        $this->assertSame(MigrateShopToExpiringOfflineAccessToken::REASON_EXCLUDED, $result['reason']);
+
+        $shop->refresh();
+        $this->assertSame('shpat_legacy_token', $shop->getAccessToken()->toNative());
+        $this->assertNull($shop->shopify_offline_refresh_token);
+    }
 }
