@@ -12,6 +12,10 @@ class Api extends BasicShopifyAPI
 {
     public static $stubFiles = [];
 
+    public static $lastGraphQuery;
+
+    public static $lastGraphVariables;
+
     public static function stubResponses(array $stubFiles): void
     {
         self::$stubFiles = $stubFiles;
@@ -44,6 +48,9 @@ class Api extends BasicShopifyAPI
 
     public function graph(string $query, array $variables = [], bool $sync = true): array
     {
+        self::$lastGraphQuery = $query;
+        self::$lastGraphVariables = $variables;
+
         try {
             $filename = array_shift(self::$stubFiles);
             $response = json_decode(file_get_contents(__DIR__."/../fixtures/{$filename}.json"), true);

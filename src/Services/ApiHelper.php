@@ -375,6 +375,9 @@ class ApiHelper implements IApiHelper
                             ...on WebhookHttpEndpoint {
                                 callbackUrl
                             }
+                            ...on WebhookEventBridgeEndpoint {
+                                arn
+                            }
                         }
                     }
                 }
@@ -408,8 +411,13 @@ class ApiHelper implements IApiHelper
      */
     public function createWebhook(array $payload): ResponseAccess
     {
-        $addressType = str_starts_with($payload['address'], 'arn:') ? 'arn' : 'callbackUrl';
-        $isEventBridge = $addressType === 'arn';
+        // Shopify only accepts a partner event source ARN for EventBridge webhooks, e.g.
+        // arn:aws:events:<region>::event-source/aws.partner/shopify.com/<api-client-id>/<source-name>
+        $isEventBridge = (bool) preg_match(
+            '/^arn:aws:events:[a-z0-9-]+::event-source\/aws\.partner\/shopify\.com\/.+$/',
+            $payload['address']
+        );
+        $addressType = $isEventBridge ? 'arn' : 'callbackUrl';
 
         // Determine mutation details based on address type
         $mutationName = $isEventBridge ? 'eventBridgeWebhookSubscriptionCreate' : 'webhookSubscriptionCreate';
