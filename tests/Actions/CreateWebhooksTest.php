@@ -92,4 +92,35 @@ class CreateWebhooksTest extends TestCase
         $this->assertCount(1, $result['created']);
         $this->assertCount(0, $result['deleted']);
     }
+
+    public function testShouldNotCreateOrDeleteExistingEventBridgeWebhook(): void
+    {
+        // Create the config
+        $webhooks = [
+            [
+                'topic' => 'ORDERS_CREATE',
+                'address' => 'arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource',
+            ],
+        ];
+        $this->app['config']->set('shopify-app.webhooks', $webhooks);
+
+        // Setup API stub; no create/delete call should happen, so only get_webhooks is stubbed
+        $this->setApiStub();
+        ApiStub::stubResponses([
+            'get_webhooks_eventbridge',
+        ]);
+
+        // Create the shop
+        $shop = factory($this->model)->create();
+
+        // Run
+        $result = call_user_func(
+            $this->action,
+            $shop->getId(),
+            $webhooks
+        );
+
+        $this->assertCount(0, $result['created']);
+        $this->assertCount(0, $result['deleted']);
+    }
 }

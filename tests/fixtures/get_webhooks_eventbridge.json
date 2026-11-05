@@ -1,0 +1,20 @@
+{
+    "data": {
+        "webhookSubscriptions": {
+            "edges": [
+                {
+                    "node": {
+                        "id": "gid://shopify/WebhookSubscription/1016678842439",
+                        "topic": "ORDERS_CREATE",
+                        "endpoint": {
+                            "arn": "arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource"
+                        },
+                        "created_at": "2017-03-20T16:02:17-04:00",
+                        "updated_at": "2017-03-20T16:02:17-04:00",
+                        "format": "JSON"
+                    }
+                }
+            ]
+        }
+    }
+}

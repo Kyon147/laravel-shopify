@@ -200,14 +200,37 @@ class ApiHelperTest extends TestCase
 
         // Response stubbing
         $this->setApiStub();
-        ApiStub::stubResponses(['post_webhook']);
+        ApiStub::stubResponses(['post_webhook', 'eventbridge_webhook_subscription_create']);
+
 
         $data = $shop->apiHelper()->createWebhook([
             'topic' => 'ORDERS_CREATE',
             'address' => 'https://localhost/webhook/orders-create',
         ]);
+
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
+        $this->assertStringContainsString('mutation webhookSubscriptionCreate', ApiStub::$lastGraphQuery);
+        $this->assertSame(
+            'https://localhost/webhook/orders-create',
+            ApiStub::$lastGraphVariables['webhookSubscription']['callbackUrl']
+        );
+
+        $dataArn = $shop->apiHelper()->createWebhook([
+            'topic' => 'ORDERS_CREATE',
+            'address' => 'arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource',
+        ]);
+
+        $this->assertInstanceOf(ResponseAccess::class, $dataArn);
+        $this->assertSame(
+            'ORDERS_CREATE',
+            $dataArn['data']['eventBridgeWebhookSubscriptionCreate']['webhookSubscription']['topic']
+        );
+        $this->assertStringContainsString('mutation eventBridgeWebhookSubscriptionCreate', ApiStub::$lastGraphQuery);
+        $this->assertSame(
+            'arn:aws:events:us-east-1::event-source/aws.partner/shopify.com/client_id_x/EventBridgeSource',
+            ApiStub::$lastGraphVariables['webhookSubscription']['arn']
+        );
     }
 
     public function testDeleteWebhook(): void

@@ -35,7 +35,7 @@ class CreateWebhooks
         }
 
         foreach (data_get($webhooks, 'data.webhookSubscriptions.container.edges', []) as $webhook) {
-            if (! in_array(data_get($webhook, 'node.endpoint.callbackUrl'), $used)) {
+            if (! in_array($this->endpointAddress($webhook), $used)) {
                 $apiHelper->deleteWebhook(data_get($webhook, 'node.id'));
                 $deleted[] = $webhook;
             }
@@ -50,11 +50,19 @@ class CreateWebhooks
     private function checkExists(array $webhook, ResponseAccess $webhooks)
     {
         foreach (data_get($webhooks, 'data.webhookSubscriptions.container.edges', []) as $shopWebhook) {
-            if (data_get($shopWebhook, 'node.endpoint.callbackUrl') === $webhook['address']) {
+            if ($this->endpointAddress($shopWebhook) === $webhook['address']) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Gets the webhook's address, whether it's a callback URL (HTTP) or an ARN (EventBridge).
+     */
+    private function endpointAddress($webhook)
+    {
+        return data_get($webhook, 'node.endpoint.callbackUrl') ?? data_get($webhook, 'node.endpoint.arn');
     }
 }
