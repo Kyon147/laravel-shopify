@@ -44,7 +44,7 @@ Route::group([
             HomeController::class.'@index'
         )
         ->middleware(['verify.shopify', 'billable'])
-        ->name(Util::getShopifyConfig('route_names.home'));
+        ->name('home');
     }
 
     /*
@@ -62,7 +62,7 @@ Route::group([
             '/authenticate',
             AuthController::class.'@authenticate'
         )
-        ->name(Util::getShopifyConfig('route_names.authenticate'));
+        ->name('authenticate');
     }
 
     /*
@@ -82,7 +82,7 @@ Route::group([
             AuthController::class.'@token'
         )
         ->middleware(['verify.shopify'])
-        ->name(Util::getShopifyConfig('route_names.authenticate.token'));
+        ->name('authenticate.token');
     }
 
     /*
@@ -101,7 +101,7 @@ Route::group([
         )
         ->middleware(['verify.shopify'])
         ->where('plan', '^([0-9]+|)$')
-        ->name(Util::getShopifyConfig('route_names.billing'));
+        ->name('billing');
     }
 
     /*
@@ -121,7 +121,7 @@ Route::group([
         )
         ->middleware(['verify.shopify'])
         ->where('plan', '^([0-9]+|)$')
-        ->name(Util::getShopifyConfig('route_names.billing.process'));
+        ->name('billing.process');
     }
 
     /*
@@ -140,6 +140,6 @@ Route::group([
             BillingController::class.'@usageCharge'
         )
         ->middleware(['verify.shopify'])
-        ->name(Util::getShopifyConfig('route_names.billing.usage_charge'));
+        ->name('billing.usage_charge');
     }
 });
