@@ -519,6 +519,7 @@ class ApiHelper implements IApiHelper
         ];
 
         $response = $this->doRequestGraphQL($query, $variables);
+        $this->throwOnUserErrors($response['body'], 'webhookSubscriptionCreate');
 
         return $response['body'];
     }
@@ -547,6 +548,7 @@ class ApiHelper implements IApiHelper
         ];
 
         $response = $this->doRequestGraphQL($query, $variables);
+        $this->throwOnUserErrors($response['body'], 'webhookSubscriptionDelete');
 
         return $response['body'];
     }
@@ -618,6 +620,44 @@ class ApiHelper implements IApiHelper
         }
 
         return $response;
+    }
+
+    /**
+     * Throw when Shopify refused a mutation through its `userErrors`.
+     *
+     * Such a refusal comes back as HTTP 200 without top-level `errors`, so `doRequestGraphQL()`
+     * does not see it: without this check a refused webhook subscription (an invalid address,
+     * a topic the app has no scope for) looks exactly like a created one.
+     *
+     * @param ResponseAccess $body     The response body.
+     * @param string         $mutation The mutation's field in `data`.
+     *
+     * @throws ApiException
+     *
+     * @return void
+     */
+    protected function throwOnUserErrors(ResponseAccess $body, string $mutation): void
+    {
+        $userErrors = data_get($body, "data.{$mutation}.userErrors", []);
+        if ($userErrors instanceof ResponseAccess) {
+            $userErrors = $userErrors->toArray();
+        }
+
+        if (empty($userErrors)) {
+            return;
+        }
+
+        $messages = array_map(
+            static function ($error): string {
+                $field = implode('.', (array) data_get($error, 'field', []));
+                $message = (string) data_get($error, 'message', 'Unknown error');
+
+                return $field === '' ? $message : "{$field}: {$message}";
+            },
+            (array) $userErrors
+        );
+
+        throw new ApiException("{$mutation} failed: ".implode('; ', $messages));
     }
 
     /**

@@ -210,6 +210,39 @@ class ApiHelperTest extends TestCase
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
     }
 
+    public function testCreateWebhookThrowsOnUserErrors(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('webhookSubscriptionCreate failed: webhookSubscription.callbackUrl: Address must use a valid domain name');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['post_webhook_user_errors']);
+
+        $shop->apiHelper()->createWebhook([
+            'topic' => 'ORDERS_CREATE',
+            'address' => 'https://shop.test/webhook/orders-create',
+        ]);
+    }
+
+    public function testDeleteWebhookThrowsOnUserErrors(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('webhookSubscriptionDelete failed: id: Webhook subscription does not exist');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['delete_webhook_user_errors']);
+
+        $shop->apiHelper()->deleteWebhook('gid://shopify/WebhookSubscription/1');
+    }
+
     public function testDeleteWebhook(): void
     {
         // Create a shop
