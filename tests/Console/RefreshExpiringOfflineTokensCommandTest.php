@@ -6,11 +6,43 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Queue;
 use Osiset\ShopifyApp\Messaging\Jobs\RefreshShopOfflineTokenJob;
+use Osiset\ShopifyApp\Support\ApplicationOnlyOfflineAccess;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
 class RefreshExpiringOfflineTokensCommandTest extends TestCase
 {
+    public function testSkipsApplicationOnlyShopsWithinRenewalWindow(): void
+    {
+        Queue::fake();
+
+        $this->app['config']->set('shopify-app.expiring_offline_tokens', true);
+        $this->app['config']->set(
+            'shopify-app.application_only_refresh_sentinel',
+            'shopify-app:application-only-offline-access-v1',
+        );
+
+        factory($this->model)->create([
+            'password' => 'shpat_app_only',
+            'shopify_offline_refresh_token' => Crypt::encryptString(
+                ApplicationOnlyOfflineAccess::refreshTokenSentinel(),
+            ),
+            'shopify_offline_refresh_token_expires_at' => Carbon::now()->addDays(7),
+        ]);
+        factory($this->model)->create([
+            'password' => 'shpat_refresh',
+            'shopify_offline_refresh_token' => Crypt::encryptString('shprt_real'),
+            'shopify_offline_refresh_token_expires_at' => Carbon::now()->addDays(7),
+        ]);
+
+        $this
+            ->artisan('shopify-app:refresh-expiring-offline-tokens')
+            ->expectsOutput('Dispatched 1 renewal job(s).')
+            ->assertExitCode(0);
+
+        Queue::assertPushed(RefreshShopOfflineTokenJob::class, 1);
+    }
+
     public function testDispatchesJobsForShopsWithinRenewalWindow(): void
     {
         Queue::fake();

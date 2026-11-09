@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Carbon;
 use Osiset\ShopifyApp\Messaging\Jobs\RefreshShopOfflineTokenJob;
+use Osiset\ShopifyApp\Support\ApplicationOnlyOfflineAccess;
 use Osiset\ShopifyApp\Util;
 
 class RefreshExpiringOfflineTokensCommand extends Command
@@ -17,7 +18,7 @@ class RefreshExpiringOfflineTokensCommand extends Command
         {--queue= : Queue name for dispatched jobs (overrides config)}
         {--connection= : Queue connection for dispatched jobs (overrides config)}';
 
-    protected $description = 'Dispatch queue jobs to renew expiring offline tokens before the refresh token expires (optional; requires SHOPIFY_EXPIRING_OFFLINE_TOKENS)';
+    protected $description = 'Dispatch queue jobs to renew expiring offline refresh tokens (skips application-only shops; requires SHOPIFY_EXPIRING_OFFLINE_TOKENS)';
 
     public function handle(): int
     {
@@ -59,6 +60,10 @@ class RefreshExpiringOfflineTokensCommand extends Command
             $count = 0;
             $query->chunkById(100, function ($shops) use (&$count) {
                 foreach ($shops as $shop) {
+                    if (ApplicationOnlyOfflineAccess::shopEligibleForScheduledRefreshTokenRenewal($shop) === false) {
+                        continue;
+                    }
+
                     $this->line('  - '.$shop->name.' (id: '.$shop->id.')');
                     $count++;
                 }
@@ -78,6 +83,10 @@ class RefreshExpiringOfflineTokensCommand extends Command
 
         $query->chunkById(100, function ($shops) use (&$dispatched, &$failed, $days) {
             foreach ($shops as $shop) {
+                if (ApplicationOnlyOfflineAccess::shopEligibleForScheduledRefreshTokenRenewal($shop) === false) {
+                    continue;
+                }
+
                 try {
                     $this->configureJobDispatch(RefreshShopOfflineTokenJob::dispatch($shop, $days));
                     $dispatched++;

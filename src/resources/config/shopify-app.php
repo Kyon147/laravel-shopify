@@ -279,6 +279,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application-only offline access (client assertion)
+    |--------------------------------------------------------------------------
+    |
+    | Used to acquire and renew short-lived offline tokens without a refresh
+    | grant. The encrypted refresh column stores application_only_refresh_sentinel.
+    |
+    | @see https://shopify.dev/docs/apps/build/authentication-authorization/application-only-access-tokens
+    |
+    */
+
+    'application_only' => [
+        'key_id' => env('SHOPIFY_APPLICATION_ONLY_KEY_ID', ''),
+        'private_key_b64' => env('SHOPIFY_APPLICATION_ONLY_PRIVATE_KEY_B64', ''),
+        'private_key_path' => env('SHOPIFY_APPLICATION_ONLY_PRIVATE_KEY_PATH', ''),
+    ],
+
+    'application_only_refresh_sentinel' => env(
+        'SHOPIFY_APPLICATION_ONLY_REFRESH_SENTINEL',
+        'shopify-app:application-only-offline-access-v1'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Shopify API Redirect
     |--------------------------------------------------------------------------
     |
