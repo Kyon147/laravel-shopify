@@ -3,6 +3,7 @@
 namespace Osiset\ShopifyApp\Test\Actions;
 
 use Osiset\ShopifyApp\Actions\CreateWebhooks;
+use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
@@ -91,5 +92,29 @@ class CreateWebhooksTest extends TestCase
 
         $this->assertCount(1, $result['created']);
         $this->assertCount(0, $result['deleted']);
+    }
+
+    public function testShouldNotDeleteExistingWebhooksWhenCreatingIsRefused(): void
+    {
+        $webhooks = [
+            [
+                'topic' => 'ORDERS_CREATE',
+                'address' => 'https://shop.test/webhooks/orders-create',
+            ],
+        ];
+
+        // Setup API stub: the existing list, then a refused create. No delete is stubbed, so
+        // reaching the deletes would fail the test with an empty stub queue.
+        $this->setApiStub();
+        ApiStub::stubResponses([
+            'get_webhooks',
+            'post_webhook_user_errors',
+        ]);
+
+        $shop = factory($this->model)->create();
+
+        $this->expectException(ApiException::class);
+
+        call_user_func($this->action, $shop->getId(), $webhooks);
     }
 }
