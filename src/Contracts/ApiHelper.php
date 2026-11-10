@@ -120,17 +120,6 @@ interface ApiHelper
     public function getScriptTags(array $params = []): ResponseAccess;
 
     /**
-     * Create a script tag for the shop.
-     *
-     * @param array $payload The data for the script tag creation.
-     *
-     * @throws RequestException
-     *
-     * @return ResponseAccess
-     */
-    public function createScriptTag(array $payload): ResponseAccess;
-
-    /**
      * Delete a script.
      *
      * @param int $scriptTagId The script tag ID to delete.
