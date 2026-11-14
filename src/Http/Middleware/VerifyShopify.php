@@ -382,9 +382,18 @@ class VerifyShopify
      */
     protected function installRedirect(ShopDomainValue $shopDomain): RedirectResponse
     {
+        $request = request();
+
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
+            [
+                'shop' => $shopDomain->toNative(),
+                'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
+                // Forward the id_token of a load Shopify signed, when it has one, so InstallShop can
+                // exchange it for an offline token. InstallShop falls back to OAuth if that fails.
+                'id_token' => $this->getIdTokenFromRequest($request, $this->verifyHmac($request)),
+            ]
         );
     }
 
