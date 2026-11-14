@@ -231,7 +231,7 @@ class ApiHelperTest extends TestCase
     public function testDeleteWebhookThrowsOnUserErrors(): void
     {
         $this->expectException(ApiException::class);
-        $this->expectExceptionMessage('webhookSubscriptionDelete failed: id: Webhook subscription does not exist');
+        $this->expectExceptionMessage('webhookSubscriptionDelete failed: id: Access denied for webhookSubscriptionDelete field.');
 
         // Create a shop
         $shop = factory($this->model)->create();
@@ -241,6 +241,20 @@ class ApiHelperTest extends TestCase
         ApiStub::stubResponses(['delete_webhook_user_errors']);
 
         $shop->apiHelper()->deleteWebhook('gid://shopify/WebhookSubscription/1');
+    }
+
+    public function testDeleteWebhookIgnoresAlreadyDeletedSubscription(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['delete_webhook_not_found']);
+
+        $data = $shop->apiHelper()->deleteWebhook('gid://shopify/WebhookSubscription/1');
+
+        $this->assertNull($data['data']['webhookSubscriptionDelete']['deletedWebhookSubscriptionId']);
     }
 
     public function testDeleteWebhook(): void

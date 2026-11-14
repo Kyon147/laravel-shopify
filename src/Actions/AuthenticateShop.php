@@ -7,6 +7,7 @@ use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Util;
+use Throwable;
 
 class AuthenticateShop
 {
@@ -44,7 +45,14 @@ class AuthenticateShop
             call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
         }
 
-        call_user_func($this->dispatchWebhooksAction, $result['shop_id'], false);
+        // On the sync queue the webhook installer runs right here. Its failure must not stop
+        // the install after the token is saved: nothing would run the steps below again.
+        try {
+            call_user_func($this->dispatchWebhooksAction, $result['shop_id'], false);
+        } catch (Throwable $e) {
+            report($e);
+        }
+
         call_user_func($this->afterAuthorizeAction, $result['shop_id']);
 
         event(new AppInstalledEvent($result['shop_id']));

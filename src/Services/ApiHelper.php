@@ -548,7 +548,13 @@ class ApiHelper implements IApiHelper
         ];
 
         $response = $this->doRequestGraphQL($query, $variables);
-        $this->throwOnUserErrors($response['body'], 'webhookSubscriptionDelete');
+        // A subscription that no longer exists is what the delete was for: it can already be
+        // gone when two installers run at once or when it is removed after getWebhooks().
+        $this->throwOnUserErrors(
+            $response['body'],
+            'webhookSubscriptionDelete',
+            static fn (string $message): bool => stripos($message, 'does not exist') !== false
+        );
 
         return $response['body'];
     }
@@ -631,16 +637,24 @@ class ApiHelper implements IApiHelper
      *
      * @param ResponseAccess $body     The response body.
      * @param string         $mutation The mutation's field in `data`.
+     * @param callable|null  $ignore   Returns true for an error message that is not a failure.
      *
      * @throws ApiException
      *
      * @return void
      */
-    protected function throwOnUserErrors(ResponseAccess $body, string $mutation): void
+    protected function throwOnUserErrors(ResponseAccess $body, string $mutation, ?callable $ignore = null): void
     {
         $userErrors = data_get($body, "data.{$mutation}.userErrors", []);
         if ($userErrors instanceof ResponseAccess) {
             $userErrors = $userErrors->toArray();
+        }
+
+        if ($ignore !== null) {
+            $userErrors = array_filter(
+                (array) $userErrors,
+                static fn ($error): bool => ! $ignore((string) data_get($error, 'message', ''))
+            );
         }
 
         if (empty($userErrors)) {

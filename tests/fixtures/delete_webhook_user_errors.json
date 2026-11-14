@@ -4,7 +4,7 @@
             "userErrors": [
                 {
                     "field": ["id"],
-                    "message": "Webhook subscription does not exist"
+                    "message": "Access denied for webhookSubscriptionDelete field."
                 }
             ],
             "deletedWebhookSubscriptionId": null
