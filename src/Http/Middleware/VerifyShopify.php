@@ -390,8 +390,8 @@ class VerifyShopify
                 'shop' => $shopDomain->toNative(),
                 'host' => $request->get('host'),
                 'locale' => $request->get('locale'),
-                // On a managed install, hand Shopify's signed session token to InstallShop, which
-                // exchanges it for the offline token without the OAuth redirect (#415, lost in #421).
+                // Forward the id_token of a load Shopify signed, when it has one, so InstallShop can
+                // exchange it for an offline token. InstallShop falls back to OAuth if that fails.
                 'id_token' => $this->getIdTokenFromRequest($request, $this->verifyHmac($request)),
             ]
         );

@@ -295,11 +295,36 @@ class VerifyShopifyIdTokenTest extends TestCase
 
     public function testSignedLoadForUninstalledShopForwardsIdTokenToInstall(): void
     {
-        $idToken = $this->buildToken([
-            'iss' => 'https://new-shop.myshopify.com/admin',
-            'dest' => 'https://new-shop.myshopify.com',
+        $this->assertSignedLoadForwardsIdTokenToInstall('new-shop.myshopify.com');
+    }
+
+    public function testSignedLoadForShopWithoutAccessTokenForwardsIdTokenToInstall(): void
+    {
+        factory($this->model)->create(['name' => 'no-token.myshopify.com', 'password' => '']);
+
+        $this->assertSignedLoadForwardsIdTokenToInstall('no-token.myshopify.com');
+    }
+
+    public function testSignedLoadForSoftDeletedShopForwardsIdTokenToInstall(): void
+    {
+        factory($this->model)->create([
+            'name' => 'reinstall.myshopify.com',
+            'deleted_at' => $this->now->getTimestamp(),
         ]);
-        $request = $this->makeRequest($this->signedLoad(['shop' => 'new-shop.myshopify.com', 'id_token' => $idToken]));
+
+        $this->assertSignedLoadForwardsIdTokenToInstall('reinstall.myshopify.com');
+    }
+
+    /**
+     * Run a signed load for the shop and assert it is sent to the install route with its id_token.
+     */
+    protected function assertSignedLoadForwardsIdTokenToInstall(string $shopDomain): void
+    {
+        $idToken = $this->buildToken([
+            'iss' => "https://{$shopDomain}/admin",
+            'dest' => "https://{$shopDomain}",
+        ]);
+        $request = $this->makeRequest($this->signedLoad(['shop' => $shopDomain, 'id_token' => $idToken]));
         // installRedirect() reads the current request, as it does for host and locale
         $this->app->instance('request', $request);
 
@@ -309,7 +334,7 @@ class VerifyShopifyIdTokenTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $forwarded);
         $this->assertStringContainsString('/authenticate?', $response->getTargetUrl());
-        $this->assertSame('new-shop.myshopify.com', $forwarded['shop']);
+        $this->assertSame($shopDomain, $forwarded['shop']);
         $this->assertSame($idToken, $forwarded['id_token'] ?? null);
         $this->assertGuest();
     }
