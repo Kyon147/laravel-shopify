@@ -87,4 +87,45 @@ class IframeProtectionTest extends TestCase
         $this->assertNotEmpty($currentHeader);
         $this->assertEquals($expectedHeader, $currentHeader);
     }
+
+    public function testIframeProtectionWithCachedString(): void
+    {
+        $expectedHeader = 'frame-ancestors https://cached-shop.myshopify.com https://admin.shopify.com';
+
+        \Illuminate\Support\Facades\Cache::put('frame-ancestors_test-shop', 'cached-shop.myshopify.com', 20);
+
+        $request = new Request(['shop' => 'test-shop']);
+        $shopQuery = $this->createMock(ShopQuery::class);
+        $shopQuery->expects($this->never())->method('getByDomain');
+        $next = function () {
+            return new Response('Test Response');
+        };
+
+        $middleware = new IframeProtection($shopQuery);
+        $response = $middleware->handle($request, $next);
+        $currentHeader = $response->headers->get('content-security-policy');
+
+        $this->assertEquals($expectedHeader, $currentHeader);
+    }
+
+    public function testIframeProtectionWithCachedIncompleteObject(): void
+    {
+        $expectedHeader = 'frame-ancestors https://*.myshopify.com https://admin.shopify.com';
+
+        $incompleteObject = unserialize('O:21:"NonExistingDummyClass":0:{}');
+        \Illuminate\Support\Facades\Cache::put('frame-ancestors_test-shop', $incompleteObject, 20);
+
+        $request = new Request(['shop' => 'test-shop']);
+        $shopQuery = $this->createMock(ShopQuery::class);
+        $shopQuery->expects($this->never())->method('getByDomain');
+        $next = function () {
+            return new Response('Test Response');
+        };
+
+        $middleware = new IframeProtection($shopQuery);
+        $response = $middleware->handle($request, $next);
+        $currentHeader = $response->headers->get('content-security-policy');
+
+        $this->assertEquals($expectedHeader, $currentHeader);
+    }
 }

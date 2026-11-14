@@ -47,22 +47,29 @@ class IframeProtection
         $response = $next($request);
         $ancestors = Util::getShopifyConfig('iframe_ancestors');
 
+        // Sadece alan adını (string) cache'e atarak serileştirme hatasını engelliyoruz
         $shop = Cache::remember(
-            'frame-ancestors_'.$request->get('shop'),
+            'frame-ancestors_' . $request->get('shop'),
             now()->addMinutes(20),
             function () use ($request) {
-                return $this->shopQuery->getByDomain(ShopDomain::fromRequest($request));
+                $shopModel = $this->shopQuery->getByDomain(ShopDomain::fromRequest($request));
+                return $shopModel ? $shopModel->name : null;
             }
         );
 
-        $domain = $shop
-            ? $shop->name
-            : '*.myshopify.com';
+        // Eğer eski cache'ten yarım/bozuk bir nesne gelirse uygulamayı çökertmeden yakalıyoruz
+        if (is_object($shop) && get_class($shop) === '__PHP_Incomplete_Class') {
+            $shop = null;
+        }
+
+        $domain = is_string($shop)
+            ? $shop
+            : (($shop && isset($shop->name)) ? $shop->name : '*.myshopify.com');
 
         $iframeAncestors = "frame-ancestors https://$domain https://admin.shopify.com";
 
         if (!blank($ancestors)) {
-            $iframeAncestors .= ' '.$ancestors;
+            $iframeAncestors .= ' ' . $ancestors;
         }
 
         $response->headers->set(
