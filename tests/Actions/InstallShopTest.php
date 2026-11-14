@@ -217,4 +217,48 @@ class InstallShopTest extends TestCase
             'password' => '12345678',
         ]);
     }
+
+    public function testManagedAppInstallFallsBackToOAuthWhenTokenExchangeFails(): void
+    {
+        $this->setApiStub();
+        ApiStub::stubResponses(['oauth_access_token_invalid_subject_token']);
+
+        $result = call_user_func(
+            $this->action,
+            ShopDomain::fromNative('test.myshopify.com'),
+            null,
+            $this->buildToken(['dest' => 'https://test.myshopify.com'])
+        );
+
+        $this->assertFalse($result['completed']);
+        $this->assertNotNull($result['shop_id']);
+        $this->assertStringContainsString(
+            'test.myshopify.com/admin/oauth/authorize?client_id='.Util::getShopifyConfig('api_key'),
+            $result['url']
+        );
+    }
+
+    public function testManagedAppInstallRestoresSoftDeletedShop(): void
+    {
+        $shop = factory($this->model)->create([
+            'deleted_at' => $this->now->getTimestamp(),
+        ]);
+
+        $this->setApiStub();
+        ApiStub::stubResponses(['access_token']);
+
+        $result = call_user_func(
+            $this->action,
+            $shop->getDomain(),
+            null,
+            $this->buildToken(['dest' => 'https://'.$shop->getDomain()->toNative()])
+        );
+
+        $shop->refresh();
+
+        $this->assertTrue($result['completed']);
+        $this->assertSame($shop->getId()->toNative(), $result['shop_id']->toNative());
+        $this->assertFalse($shop->trashed());
+        $this->assertSame('12345678', $shop->getAccessToken()->toNative());
+    }
 }

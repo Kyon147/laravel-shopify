@@ -45,11 +45,7 @@ class InstallShop
             : AuthMode::OFFLINE();
 
         if (empty($code) && empty($idToken)) {
-            return [
-                'completed' => false,
-                'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
-                'shop_id' => $shop->getId(),
-            ];
+            return $this->authRedirect($shop, $apiHelper, $grantMode);
         }
 
         try {
@@ -78,6 +74,11 @@ class InstallShop
                 'theme_support_level' => $themeSupportLevel,
             ];
         } catch (Exception $e) {
+            if ($idToken !== null) {
+                // The token exchange failed, so send the merchant through OAuth instead.
+                return $this->authRedirect($shop, $apiHelper, $grantMode);
+            }
+
             return [
                 'completed' => false,
                 'url' => null,
@@ -85,6 +86,24 @@ class InstallShop
                 'theme_support_level' => null,
             ];
         }
+    }
+
+    /**
+     * The result that sends the merchant through the OAuth authorization redirect.
+     *
+     * @param IShopModel $shop
+     * @param IApiHelper $apiHelper
+     * @param AuthMode   $grantMode
+     *
+     * @return array
+     */
+    protected function authRedirect(IShopModel $shop, IApiHelper $apiHelper, AuthMode $grantMode): array
+    {
+        return [
+            'completed' => false,
+            'url' => $apiHelper->buildAuthUrl($grantMode, Util::getShopifyConfig('api_scopes', $shop)),
+            'shop_id' => $shop->getId(),
+        ];
     }
 
     /**
