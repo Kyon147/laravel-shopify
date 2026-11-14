@@ -519,6 +519,7 @@ class ApiHelper implements IApiHelper
         ];
 
         $response = $this->doRequestGraphQL($query, $variables);
+        $this->throwOnUserErrors($response['body'], 'webhookSubscriptionCreate');
 
         return $response['body'];
     }
@@ -547,6 +548,13 @@ class ApiHelper implements IApiHelper
         ];
 
         $response = $this->doRequestGraphQL($query, $variables);
+        // A subscription that no longer exists is what the delete was for: it can already be
+        // gone when two installers run at once or when it is removed after getWebhooks().
+        $this->throwOnUserErrors(
+            $response['body'],
+            'webhookSubscriptionDelete',
+            static fn (string $message): bool => stripos($message, 'does not exist') !== false
+        );
 
         return $response['body'];
     }
@@ -618,6 +626,52 @@ class ApiHelper implements IApiHelper
         }
 
         return $response;
+    }
+
+    /**
+     * Throw when Shopify refused a mutation through its `userErrors`.
+     *
+     * Such a refusal comes back as HTTP 200 without top-level `errors`, so `doRequestGraphQL()`
+     * does not see it: without this check a refused webhook subscription (an invalid address,
+     * a topic the app has no scope for) looks exactly like a created one.
+     *
+     * @param ResponseAccess $body     The response body.
+     * @param string         $mutation The mutation's field in `data`.
+     * @param callable|null  $ignore   Returns true for an error message that is not a failure.
+     *
+     * @throws ApiException
+     *
+     * @return void
+     */
+    protected function throwOnUserErrors(ResponseAccess $body, string $mutation, ?callable $ignore = null): void
+    {
+        $userErrors = data_get($body, "data.{$mutation}.userErrors", []);
+        if ($userErrors instanceof ResponseAccess) {
+            $userErrors = $userErrors->toArray();
+        }
+
+        if ($ignore !== null) {
+            $userErrors = array_filter(
+                (array) $userErrors,
+                static fn ($error): bool => ! $ignore((string) data_get($error, 'message', ''))
+            );
+        }
+
+        if (empty($userErrors)) {
+            return;
+        }
+
+        $messages = array_map(
+            static function ($error): string {
+                $field = implode('.', (array) data_get($error, 'field', []));
+                $message = (string) data_get($error, 'message', 'Unknown error');
+
+                return $field === '' ? $message : "{$field}: {$message}";
+            },
+            (array) $userErrors
+        );
+
+        throw new ApiException("{$mutation} failed: ".implode('; ', $messages));
     }
 
     /**

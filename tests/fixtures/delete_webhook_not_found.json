@@ -1,0 +1,13 @@
+{
+    "data": {
+        "webhookSubscriptionDelete": {
+            "userErrors": [
+                {
+                    "field": ["id"],
+                    "message": "Webhook subscription does not exist"
+                }
+            ],
+            "deletedWebhookSubscriptionId": null
+        }
+    }
+}

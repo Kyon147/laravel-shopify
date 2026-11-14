@@ -1,0 +1,13 @@
+{
+    "data": {
+        "webhookSubscriptionCreate": {
+            "userErrors": [
+                {
+                    "field": ["webhookSubscription", "callbackUrl"],
+                    "message": "Address must use a valid domain name"
+                }
+            ],
+            "webhookSubscription": null
+        }
+    }
+}
