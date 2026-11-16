@@ -233,6 +233,26 @@ class Charge extends Model
     }
 
     /**
+     * Checks if the charge expired before the merchant approved it.
+     *
+     * @return bool
+     */
+    public function isExpired(): bool
+    {
+        return $this->isStatus(ChargeStatus::EXPIRED());
+    }
+
+    /**
+     * Checks if the charge is frozen (on hold until the shop pays Shopify again).
+     *
+     * @return bool
+     */
+    public function isFrozen(): bool
+    {
+        return $this->isStatus(ChargeStatus::FROZEN());
+    }
+
+    /**
      * Checks if the charge is "active" (non-API check).
      *
      * @return bool
