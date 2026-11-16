@@ -290,14 +290,15 @@ class VerifyShopify
             return null;
         }
 
-        if ($hmac['source'] === DataSource::REFERER()->toNative() && $this->getAccessTokenFromRequest($request) !== null) {
+        // We have HMAC, validate it
+        $data = $this->getRequestData($request, $hmac['source']);
+        $valid = $this->apiHelper->verifyRequest($data);
+
+        if (! $valid && $hmac['source'] === DataSource::REFERER()->toNative()) {
             return null;
         }
 
-        // We have HMAC, validate it
-        $data = $this->getRequestData($request, $hmac['source']);
-
-        return $this->apiHelper->verifyRequest($data);
+        return $valid;
     }
 
     /**

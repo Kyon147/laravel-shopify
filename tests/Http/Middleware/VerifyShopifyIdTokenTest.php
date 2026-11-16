@@ -322,12 +322,16 @@ class VerifyShopifyIdTokenTest extends TestCase
         $this->assertSame('shop-name.myshopify.com', Auth::user()->name);
     }
 
-    public function testChangedRefererWithoutTokenStillFailsHmac(): void
+    public function testChangedRefererWithoutTokenRedirectsToTokenPage(): void
     {
-        $request = $this->makeRequest([], 'POST', ['HTTP_REFERER' => $this->paginatedReferer()]);
+        $request = $this->makeRequest([], 'GET', ['HTTP_REFERER' => $this->paginatedReferer()]);
 
-        $this->expectException(SignatureVerificationException::class);
-        $this->runMiddleware(VerifyShopify::class, $request);
+        [$called, $response] = $this->runMiddleware(VerifyShopify::class, $request);
+
+        $this->assertFalse($called);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('/authenticate/token', $response->getTargetUrl());
+        $this->assertGuest();
     }
 
     public function testInvalidBearerTokenWithChangedRefererIsRejected(): void
@@ -340,6 +344,7 @@ class VerifyShopifyIdTokenTest extends TestCase
         ]);
 
         $this->expectException(HttpException::class);
+        $this->expectExceptionCode(403);
         $this->runMiddleware(VerifyShopify::class, $request);
     }
 }
