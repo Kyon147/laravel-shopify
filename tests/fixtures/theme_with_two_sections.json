@@ -1,0 +1,22 @@
+{
+    "data": {
+        "theme": {
+            "files": {
+                "nodes": [
+                    {
+                        "filename": "sections/main-product.liquid",
+                        "body": {
+                            "content": "<div>{{ product.title }}</div>\n{% schema %}\n{\"name\":\"Main product\",\"blocks\":[{\"type\":\"@app\"}]}\n{% endschema %}"
+                        }
+                    },
+                    {
+                        "filename": "sections/main-collection.liquid",
+                        "body": {
+                            "content": "<div>{{ collection.title }}</div>\n{% schema %}\n{\"name\":\"Main collection\",\"blocks\":[{\"type\":\"@app\"}]}\n{% endschema %}"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

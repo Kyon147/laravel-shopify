@@ -68,7 +68,7 @@ class VerifyScopes
             }')
         );
 
-        if (! $response['errors'] && blank(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors'))) {
+        if (! $response['errors']) {
             return [
                 'hasErrors' => false,
                 'result' => array_column(
@@ -78,7 +78,7 @@ class VerifyScopes
             ];
         }
 
-        Log::error('Fetch current app installation access scopes error: '.json_encode(data_get($response['body']->toArray(), 'data.currentAppInstallation.userErrors')));
+        Log::error('Fetch current app installation access scopes error: '.json_encode($response['errors']));
 
         return [
             'hasErrors' => true,
