@@ -292,8 +292,13 @@ class VerifyShopify
 
         // We have HMAC, validate it
         $data = $this->getRequestData($request, $hmac['source']);
+        $valid = $this->apiHelper->verifyRequest($data);
 
-        return $this->apiHelper->verifyRequest($data);
+        if (! $valid && $hmac['source'] === DataSource::REFERER()->toNative()) {
+            return null;
+        }
+
+        return $valid;
     }
 
     /**
