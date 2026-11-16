@@ -80,7 +80,8 @@ class ActivatePlan
             throw new HttpException('Charge has already been applied.', Response::HTTP_FORBIDDEN);
         }
 
-        // Modern Shopify charges are already active after approval. Support legacy acceptance too.
+        // Modern Shopify charges are already active after approval. A legacy accepted charge is read
+        // back once more and only proceeds once Shopify reports it active.
         if ($response['status'] === 'accepted') {
             $response = $shop->apiHelper()->activateCharge($chargeType, $chargeRef);
             $this->verifyCharge($response, $chargeRef, $details);
@@ -100,9 +101,15 @@ class ActivatePlan
         $transfer->planDetails = $details;
 
         if ($plan->isType(PlanType::RECURRING())) {
-            $transfer->activatedOn = new Carbon($response['activated_on']);
-            $transfer->billingOn = new Carbon($response['billing_on']);
-            $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
+            // The GraphQL Admin API returns no activation or trial end date. The charge was approved
+            // just now, and the trial ends that many days later, as the REST Admin API reported it.
+            $transfer->activatedOn = isset($response['activated_on'])
+                ? new Carbon($response['activated_on'])
+                : Carbon::today();
+            $transfer->billingOn = isset($response['billing_on']) ? new Carbon($response['billing_on']) : null;
+            $transfer->trialEndsOn = isset($response['trial_ends_on'])
+                ? new Carbon($response['trial_ends_on'])
+                : $transfer->activatedOn->copy()->addDays((int) ($response['trial_days'] ?? 0));
         } else {
             $transfer->activatedOn = Carbon::today();
             $transfer->billingOn = null;
@@ -123,7 +130,7 @@ class ActivatePlan
     protected function verifyCharge(ResponseAccess $charge, ChargeReference $reference, PlanDetails $details): void
     {
         if ((string) ($charge['id'] ?? '') !== (string) $reference->toNative()
-            || ($charge['return_url'] ?? null) !== $details->returnUrl
+            || !$this->sameUrl($charge['return_url'] ?? null, $details->returnUrl)
             || ($charge['name'] ?? null) !== $details->name
             || $this->decimalAmount($charge['price'] ?? null) === null
             || $this->decimalAmount($charge['price']) !== $this->decimalAmount($details->price)
@@ -136,6 +143,46 @@ class ActivatePlan
         ) {
             throw new HttpException('Charge does not match the requested plan.', Response::HTTP_FORBIDDEN);
         }
+    }
+
+    /**
+     * Compare the return URL Shopify stored with the one built for the plan, part by part, since the
+     * GraphQL and REST Admin APIs may encode the same stored URL differently.
+     */
+    protected function sameUrl(mixed $actual, ?string $expected): bool
+    {
+        if (!is_string($actual) || !is_string($expected)) {
+            return false;
+        }
+
+        if ($actual === $expected) {
+            return true;
+        }
+
+        $parts = static function (string $url): ?array {
+            $parsed = parse_url($url);
+            if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+                return null;
+            }
+
+            parse_str($parsed['query'] ?? '', $query);
+            ksort($query);
+
+            return [
+                strtolower($parsed['scheme']),
+                strtolower($parsed['host']),
+                $parsed['port'] ?? null,
+                $parsed['user'] ?? null,
+                $parsed['pass'] ?? null,
+                rawurldecode($parsed['path'] ?? ''),
+                $query,
+                $parsed['fragment'] ?? null,
+            ];
+        };
+
+        $actualParts = $parts($actual);
+
+        return $actualParts !== null && $actualParts === $parts($expected);
     }
 
     /**

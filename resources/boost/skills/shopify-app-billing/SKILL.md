@@ -27,6 +27,7 @@ Combine with `verify.shopify` when the route also requires an authenticated shop
 
 - Package `BillingController` and `Traits/BillingController` show how billing endpoints are structured — **extend or wrap** from **your** `App\Http\Controllers` if you need custom UX, keeping the package’s config and charge flow intact.
 - API calls for plans/charges typically go through the shop model’s integration with `apiHelper()` and related storage — reference `src/Services/ApiHelper.php` and models under `src/Storage/Models/` in vendor for behavior, implement app-specific logic in **your** namespaces.
+- Charges are created, and subscriptions read and billed for usage, through the GraphQL Admin API. `apiHelper()->getCharge()` still returns the REST-style keys (`id`, `status`, `price`, `return_url`, …); for a subscription, `activated_on`, `trial_ends_on` and `cancelled_on` are null because GraphQL does not provide them.
 
 ## Do / Don’t
 

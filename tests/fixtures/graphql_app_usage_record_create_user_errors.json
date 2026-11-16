@@ -1,0 +1,13 @@
+{
+    "data": {
+        "appUsageRecordCreate": {
+            "userErrors": [
+                {
+                    "field": ["price"],
+                    "message": "Total price exceeds balance remaining"
+                }
+            ],
+            "appUsageRecord": null
+        }
+    }
+}

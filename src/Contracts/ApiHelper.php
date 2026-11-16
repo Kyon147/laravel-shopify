@@ -140,34 +140,37 @@ interface ApiHelper
     public function deleteScriptTag(int $scriptTagId);
 
     /**
-     * Get the charge record.
+     * Get the charge record, with the keys the REST Admin API used for it.
+     * A recurring charge is read through GraphQL, which has no activation, trial end or cancellation date.
      *
      * @param ChargeType      $chargeType The type of charge (plural).
      * @param ChargeReference $chargeRef  The charge ID.
      *
-     * @throws RequestException
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When the charge does not exist for this shop.
      *
      * @return ResponseAccess
      */
     public function getCharge(ChargeType $chargeType, ChargeReference $chargeRef): ResponseAccess;
 
     /**
-     * Activate a charge.
+     * Read back a charge after approval. Shopify activates a charge when the merchant approves it.
      *
      * @param ChargeType      $chargeType The type of charge (plural).
      * @param ChargeReference $chargeRef  The charge ID.
      *
-     * @throws RequestException
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When the charge does not exist for this shop.
      *
      * @return ResponseAccess
      */
     public function activateCharge(ChargeType $chargeType, ChargeReference $chargeRef): ResponseAccess;
 
     /**
-     * Create a charge.
+     * Create a recurring or one-time charge, returning its details, `id`, `status` and `confirmation_url`.
      *
      * @param ChargeType  $chargeType The type of charge (plural).
      * @param PlanDetails $payload    The data for the charge creation.
+     *
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When Shopify refuses the charge (userErrors).
      *
      * @return ResponseAccess
      */
@@ -219,6 +222,8 @@ interface ApiHelper
      * Creates a usage charge for a recurring charge.
      *
      * @param UsageChargeDetails $payload The data for the usage charge creation.
+     *
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When Shopify refuses the usage charge (userErrors).
      *
      * @return ResponseAccess|bool Array if success, bool for error.
      */

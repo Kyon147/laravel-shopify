@@ -50,7 +50,7 @@ class ActivateUsageChargeTest extends TestCase
 
         // Setup API stub
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges_usage_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_node', 'graphql_app_usage_record_create']);
 
         // Activate the charge
         $result = call_user_func(
@@ -120,7 +120,7 @@ class ActivateUsageChargeTest extends TestCase
 
         // Setup API stub
         $this->setApiStub();
-        ApiStub::stubResponses(['empty']);
+        ApiStub::stubResponses(['graphql_app_subscription_node', 'empty']);
 
         // Activate the charge
         $result = call_user_func(
