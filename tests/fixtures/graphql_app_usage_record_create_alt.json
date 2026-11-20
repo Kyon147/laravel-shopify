@@ -1,0 +1,23 @@
+{
+    "data": {
+        "appUsageRecordCreate": {
+            "userErrors": [],
+            "appUsageRecord": {
+                "id": "gid://shopify/AppUsageRecord/1034618209",
+                "createdAt": "2026-11-16T10:05:00Z",
+                "subscriptionLineItem": {
+                    "plan": {
+                        "pricingDetails": {
+                            "balanceUsed": {
+                                "amount": "23.0"
+                            },
+                            "cappedAmount": {
+                                "amount": "100.0"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -33,7 +33,7 @@ class GetPlanUrlTest extends TestCase
         $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
         // Setup API stub
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
 
         $result = call_user_func(
             $this->action,
@@ -42,7 +42,29 @@ class GetPlanUrlTest extends TestCase
             $hostValue
         );
 
-        $this->assertNotEmpty($result);
+        $this->assertStringContainsString('/admin/charges/4019552312/confirm_recurring_application_charge', $result);
+    }
+
+    public function testRunOneTime(): void
+    {
+        // Create a plan
+        factory(Util::getShopifyConfig('models.plan', Plan::class))->states(['installable', 'type_onetime'])->create();
+
+        // Create the shop with no plan
+        $shop = factory($this->model)->create();
+        $hostValue = base64_encode($shop->getDomain()->toNative().'/admin');
+        // Setup API stub
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_purchase_one_time_create']);
+
+        $result = call_user_func(
+            $this->action,
+            $shop->getId(),
+            NullablePlanId::fromNative(null),
+            $hostValue
+        );
+
+        $this->assertStringContainsString('/admin/charges/1017262351/confirm_application_charge', $result);
     }
 
     public function testRunAnnual(): void

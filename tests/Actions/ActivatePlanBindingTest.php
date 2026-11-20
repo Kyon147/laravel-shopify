@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Test\Actions;
 use Illuminate\Support\Facades\Event;
 use Osiset\ShopifyApp\Actions\ActivatePlan;
 use Osiset\ShopifyApp\Actions\GetPlanUrl;
+use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
@@ -47,7 +48,7 @@ class ActivatePlanBindingTest extends TestCase
         $this->assertNull($shop->fresh()->plan_id);
         $this->assertDatabaseCount('charges', 0);
         $this->assertCount(1, BillingApi::$requests);
-        $this->assertSame('GET', BillingApi::$requests[0][1]);
+        $this->assertSame('query', BillingApi::$requests[0][1]);
         $this->assertSame('accepted', BillingApi::$charges[$shop->name][1001]['status']);
         Event::assertNotDispatched(PlanActivatedEvent::class);
     }
@@ -96,7 +97,7 @@ class ActivatePlanBindingTest extends TestCase
         $this->assertNull($oldCharge->fresh()->cancelled_on);
         $this->assertDatabaseCount('charges', 1);
         $this->assertCount(1, BillingApi::$requests);
-        $this->assertSame('GET', BillingApi::$requests[0][1]);
+        $this->assertSame('query', BillingApi::$requests[0][1]);
         Event::assertNotDispatched(PlanActivatedEvent::class);
     }
 
@@ -132,6 +133,8 @@ class ActivatePlanBindingTest extends TestCase
         [$shop, $plan, $host] = $this->createCharge($type);
         BillingApi::$charges[$shop->name][1001]['price'] = $price;
         BillingApi::approve($shop->name, 1001, $status);
+        // Shopify activates a legacy accepted charge by the time it is read back
+        BillingApi::$readBack = $status === 'accepted' ? ['status' => 'active'] : [];
         BillingApi::$requests = [];
 
         $id = ($this->app->make(ActivatePlan::class))($shop->getId(), $plan->getId(), ChargeReference::fromNative(1001), $host);
@@ -162,31 +165,138 @@ class ActivatePlanBindingTest extends TestCase
     }
 
     /**
+     * An accepted charge is read back once more: the GraphQL Admin API has no activation mutation.
+     *
      * @dataProvider invalidActivationProvider
      */
-    public function testFailedActivationDoesNotAssignPlan(array $overrides): void
+    public function testFailedActivationDoesNotAssignPlan(string $type, array $readBack, string $error): void
     {
-        [$shop, $plan, $host] = $this->createCharge();
+        [$shop, $plan, $host] = $this->createCharge($type);
         BillingApi::approve($shop->name, 1001, 'accepted');
-        BillingApi::$activationOverrides = $overrides;
+        BillingApi::$readBack = $readBack;
+        BillingApi::$requests = [];
 
         $response = $this->getJson('/billing/process/'.$plan->id.'?'.http_build_query([
             'shop' => $shop->name, 'charge_id' => 1001, 'host' => $host,
         ]), ['Authorization' => 'Bearer '.$this->buildToken()]);
 
         $response->assertForbidden();
+        $response->assertExactJson(['error' => $error]);
         $this->assertNull($shop->fresh()->plan_id);
         $this->assertDatabaseCount('charges', 0);
+        $this->assertCount(2, BillingApi::$requests);
         Event::assertNotDispatched(PlanActivatedEvent::class);
     }
 
     public static function invalidActivationProvider(): array
     {
+        $mismatch = 'Charge does not match the requested plan.';
+        $inactive = 'Charge has not been activated.';
+
         return [
-            'not active' => [['status' => 'declined']],
-            'changed association' => [['return_url' => 'https://localhost/billing/process/999']],
-            'changed amount' => [['price' => 1]],
+            'still accepted' => ['recurring', [], $inactive],
+            'still accepted one-time' => ['onetime', [], $inactive],
+            'not active' => ['recurring', ['status' => 'declined'], $inactive],
+            'changed association' => ['recurring', ['status' => 'active', 'return_url' => 'https://localhost/billing/process/999'], $mismatch],
+            'changed one-time association' => ['onetime', ['status' => 'active', 'return_url' => 'https://localhost/billing/process/999'], $mismatch],
+            'changed amount' => ['recurring', ['status' => 'active', 'price' => 1], $mismatch],
         ];
+    }
+
+    public function testOneTimeChargeCannotActivateAnotherPlanWithIdenticalTerms(): void
+    {
+        [$shop, $basic, $host] = $this->createCharge('onetime');
+        $twin = factory(Plan::class)->states('type_onetime')->create([
+            'name' => $basic->name, 'price' => 10, 'trial_days' => 0, 'test' => false,
+        ]);
+        BillingApi::approve($shop->name, 1001);
+        BillingApi::$requests = [];
+
+        try {
+            ($this->app->make(ActivatePlan::class))($shop->getId(), $twin->getId(), ChargeReference::fromNative(1001), $host);
+            $this->fail('A one-time charge must stay bound to the plan it was created for.');
+        } catch (HttpException $exception) {
+            $this->assertSame(403, $exception->getCode());
+            $this->assertSame('Charge does not match the requested plan.', $exception->getMessage());
+        }
+
+        $this->assertNull($shop->fresh()->plan_id);
+        $this->assertDatabaseCount('charges', 0);
+        // Only the REST Admin API returns a one-time charge's return URL
+        $this->assertSame('GET', BillingApi::$requests[0][1]);
+    }
+
+    public function testReturnUrlMatchesWhenShopifyEncodesItDifferently(): void
+    {
+        [$shop, $plan, $host] = $this->createCharge();
+        $returnUrl = BillingApi::$charges[$shop->name][1001]['return_url'];
+        $this->assertStringContainsString('%3D', $returnUrl);
+        BillingApi::$charges[$shop->name][1001]['return_url'] = str_replace('%3D', '=', $returnUrl);
+        BillingApi::approve($shop->name, 1001);
+
+        ($this->app->make(ActivatePlan::class))($shop->getId(), $plan->getId(), ChargeReference::fromNative(1001), $host);
+
+        $this->assertSame($plan->id, (int) $shop->fresh()->plan_id);
+    }
+
+    public function testChargeFromAnotherStoreIsNotFound(): void
+    {
+        [$shop, $plan, $host] = $this->createCharge();
+        BillingApi::approve($shop->name, 1001);
+        $other = factory($this->model)->create(['name' => 'other-shop.myshopify.com', 'plan_id' => null]);
+
+        try {
+            ($this->app->make(ActivatePlan::class))($other->getId(), $plan->getId(), ChargeReference::fromNative(1001), $host);
+            $this->fail('A charge that belongs to another store must not be found.');
+        } catch (ApiException $exception) {
+            $this->assertStringContainsString('was not found', $exception->getMessage());
+        }
+
+        $this->assertNull($other->fresh()->plan_id);
+        $this->assertDatabaseCount('charges', 0);
+        Event::assertNotDispatched(PlanActivatedEvent::class);
+    }
+
+    /**
+     * @dataProvider chargeTypeProvider
+     */
+    public function testChargesAreCreatedThroughGraphQL(string $type): void
+    {
+        $this->createCharge($type);
+
+        $this->assertSame(
+            [$type === 'onetime' ? 'appPurchaseOneTimeCreate' : 'appSubscriptionCreate'],
+            array_column(BillingApi::$requests, 2)
+        );
+    }
+
+    public static function chargeTypeProvider(): array
+    {
+        return [
+            'recurring' => ['recurring'],
+            'one-time' => ['onetime'],
+        ];
+    }
+
+    public function testCappedMonthlyPlanSubscribesWithUsagePricing(): void
+    {
+        [$shop] = $this->createCharge('usage');
+
+        $charge = BillingApi::$charges[$shop->name][1001];
+        $this->assertSame(100, (int) $charge['capped_amount']);
+        $this->assertSame('One email', $charge['terms']);
+    }
+
+    public function testAnnualPlanSubscribesWithoutUsagePricing(): void
+    {
+        [$shop, $plan] = $this->createCharge('annual');
+        $plan->forceFill(['capped_amount' => 100, 'terms' => 'One email'])->save();
+        BillingApi::$charges = [];
+        ($this->app->make(GetPlanUrl::class))($shop->getId(), NullablePlanId::fromNative($plan->id), base64_encode($shop->name.'/admin'));
+
+        $charge = BillingApi::$charges[$shop->name][1002];
+        $this->assertSame('ANNUAL', $charge['interval']);
+        $this->assertNull($charge['capped_amount']);
     }
 
     /**

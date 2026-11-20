@@ -59,7 +59,7 @@ class BillingTenantTest extends TestCase
     public function testSignedUsageChargeCannotBeRetargetedToAnotherStore(): void
     {
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges_usage_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_node', 'graphql_app_usage_record_create']);
         factory($this->model)->create(['name' => 'shop-name.myshopify.com']);
         $plan = factory(Plan::class)->states('type_recurring')->create();
         $victim = factory($this->model)->create(['name' => 'victim.myshopify.com', 'plan_id' => $plan->id]);
@@ -79,7 +79,7 @@ class BillingTenantTest extends TestCase
         $this->assertDatabaseCount('charges', 1);
         $this->assertDatabaseMissing('charges', ['charge_id' => 1034618208]);
         $this->assertSame($charge->status, $charge->fresh()->status);
-        $this->assertSame(['post_recurring_application_charges_usage_charges'], ApiStub::$stubFiles);
+        $this->assertSame(['graphql_app_subscription_node', 'graphql_app_usage_record_create'], ApiStub::$stubFiles);
     }
 
     /**

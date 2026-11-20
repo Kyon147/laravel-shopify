@@ -1,0 +1,46 @@
+{
+    "data": {
+        "node": {
+            "__typename": "AppSubscription",
+            "id": "gid://shopify/AppSubscription/1029266947",
+            "name": "Super Mega Plan",
+            "returnUrl": "https://example-app.com/billing/process/1?shop=example.myshopify.com",
+            "status": "ACTIVE",
+            "test": false,
+            "trialDays": 7,
+            "createdAt": "2026-11-16T10:00:00Z",
+            "currentPeriodEnd": "2026-12-23T10:00:00Z",
+            "lineItems": [
+                {
+                    "id": "gid://shopify/AppSubscriptionLineItem/1029266947?v=1&index=0",
+                    "plan": {
+                        "pricingDetails": {
+                            "__typename": "AppRecurringPricing",
+                            "interval": "EVERY_30_DAYS",
+                            "price": {
+                                "amount": "15.0",
+                                "currencyCode": "USD"
+                            }
+                        }
+                    }
+                },
+                {
+                    "id": "gid://shopify/AppSubscriptionLineItem/1029266947?v=1&index=1",
+                    "plan": {
+                        "pricingDetails": {
+                            "__typename": "AppUsagePricing",
+                            "terms": "One email",
+                            "cappedAmount": {
+                                "amount": "100.0",
+                                "currencyCode": "USD"
+                            },
+                            "balanceUsed": {
+                                "amount": "11.0"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "data": {
+        "node": {
+            "__typename": "AppSubscription",
+            "id": "gid://shopify/AppSubscription/1029266948",
+            "name": "Basic Plan",
+            "returnUrl": "https://example-app.com/billing/process/1?shop=example.myshopify.com",
+            "status": "ACTIVE",
+            "test": false,
+            "trialDays": 0,
+            "createdAt": "2026-11-16T10:00:00Z",
+            "currentPeriodEnd": "2026-12-16T10:00:00Z",
+            "lineItems": [
+                {
+                    "id": "gid://shopify/AppSubscriptionLineItem/1029266948?v=1&index=0",
+                    "plan": {
+                        "pricingDetails": {
+                            "__typename": "AppRecurringPricing",
+                            "interval": "EVERY_30_DAYS",
+                            "price": {
+                                "amount": "10.0",
+                                "currencyCode": "USD"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

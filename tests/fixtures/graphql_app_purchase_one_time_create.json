@@ -1,0 +1,12 @@
+{
+    "data": {
+        "appPurchaseOneTimeCreate": {
+            "userErrors": [],
+            "confirmationUrl": "https://example.myshopify.com/admin/charges/1017262351/confirm_application_charge?signature=BAh7BzoHaWRpBA8xojw6EmF1dG9fYWN0aXZhdGVU--ab4c3552f108c44459644438ded2f812ebcf4f36",
+            "appPurchaseOneTime": {
+                "id": "gid://shopify/AppPurchaseOneTime/1017262351",
+                "status": "PENDING"
+            }
+        }
+    }
+}
