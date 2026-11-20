@@ -13,6 +13,8 @@ use Funeralzone\ValueObjects\ValueObject;
  * @method static ChargeStatus DECLINED()
  * @method static ChargeStatus CANCELLED()
  * @method static ChargeStatus PENDING()
+ * @method static ChargeStatus EXPIRED()
+ * @method static ChargeStatus FROZEN()
  */
 final class ChargeStatus implements ValueObject
 {
@@ -52,4 +54,22 @@ final class ChargeStatus implements ValueObject
      * @var int
      */
     public const PENDING = 4;
+
+    /**
+     * Status: Expired.
+     *
+     * Not approved by the merchant within two days of being created.
+     *
+     * @var int
+     */
+    public const EXPIRED = 5;
+
+    /**
+     * Status: Frozen.
+     *
+     * On hold because the shop has not paid Shopify; it becomes active again once payments resume.
+     *
+     * @var int
+     */
+    public const FROZEN = 6;
 }
