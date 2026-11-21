@@ -366,4 +366,48 @@ class VerifyShopifyIdTokenTest extends TestCase
         $this->assertFalse($called);
         $this->assertGuest();
     }
+
+    protected function paginatedReferer(): string
+    {
+        return 'https://example.com/orders?'.http_build_query($this->signedLoad() + ['page' => '2']);
+    }
+
+    public function testBearerTokenIsUsedWhenRefererUrlChangedAfterSignedLoad(): void
+    {
+        $request = $this->makeRequest([], 'POST', [
+            'HTTP_AUTHORIZATION' => "Bearer {$this->buildToken()}",
+            'HTTP_REFERER' => $this->paginatedReferer(),
+        ]);
+
+        [$called] = $this->runMiddleware(VerifyShopify::class, $request);
+
+        $this->assertTrue($called);
+        $this->assertSame('shop-name.myshopify.com', Auth::user()->name);
+    }
+
+    public function testChangedRefererWithoutTokenRedirectsToTokenPage(): void
+    {
+        $request = $this->makeRequest([], 'GET', ['HTTP_REFERER' => $this->paginatedReferer()]);
+
+        [$called, $response] = $this->runMiddleware(VerifyShopify::class, $request);
+
+        $this->assertFalse($called);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('/authenticate/token', $response->getTargetUrl());
+        $this->assertGuest();
+    }
+
+    public function testInvalidBearerTokenWithChangedRefererIsRejected(): void
+    {
+        $expired = $this->buildToken(['exp' => $this->now->getTimestamp() - 120]);
+        $request = $this->makeRequest([], 'POST', [
+            'HTTP_AUTHORIZATION' => "Bearer {$expired}",
+            'HTTP_REFERER' => $this->paginatedReferer(),
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(403);
+        $this->runMiddleware(VerifyShopify::class, $request);
+    }
 }
