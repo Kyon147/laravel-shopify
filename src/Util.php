@@ -199,6 +199,27 @@ class Util
     }
 
     /**
+     * Run a signature check with the API secret, then with the old API secret if one is set.
+     * Shopify can sign with either secret while a client secret rotation is in progress.
+     *
+     * @param callable $verify Receives a secret and returns if the signature matches it.
+     * @param mixed    $shop   The shop domain (string, ShopDomain, etc).
+     *
+     * @return bool
+     */
+    public static function verifyWithApiSecrets(callable $verify, $shop = null): bool
+    {
+        $secret = self::getShopifyConfig('api_secret', $shop);
+        if ($verify($secret)) {
+            return true;
+        }
+
+        $oldSecret = self::getShopifyConfig('api_secret_old', $shop);
+
+        return ! empty($oldSecret) && $oldSecret !== $secret && $verify($oldSecret);
+    }
+
+    /**
      * Convert a REST-format webhook topic ("resource/event")
      * to a GraphQL-format webhook topic ("RESOURCE_EVENT").
      *

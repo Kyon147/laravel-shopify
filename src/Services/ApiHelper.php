@@ -150,12 +150,39 @@ class ApiHelper implements IApiHelper
             return $this->api->verifyRequest($request);
         }
 
+        if ($this->verifyRequestWithSecret($request, $secret)) {
+            return true;
+        }
+
+        // Shopify can sign with the old secret while a client secret rotation is in progress
+        $oldSecret = Util::getShopifyConfig('api_secret_old', $request['shop']);
+
+        return ! empty($oldSecret) && $oldSecret !== $secret && $this->verifyRequestWithSecret($request, $oldSecret);
+    }
+
+    /**
+     * Verify the HMAC of a request against a single secret.
+     *
+     * @param array  $request The request parameters.
+     * @param string $secret  The secret to verify against.
+     *
+     * @return bool
+     */
+    protected function verifyRequestWithSecret(array $request, string $secret): bool
+    {
         $params = $request;
         unset($params['hmac']);
         foreach ($params as $value) {
             if (! is_scalar($value) && $value !== null) {
-                // Arrays are not escaped by Shopify the same way, keep the existing behaviour
-                return $this->api->verifyRequest($request);
+                if ($secret === $this->api->getOptions()->getApiSecret()) {
+                    // Arrays are not escaped by Shopify the same way, keep the existing behaviour
+                    return $this->api->verifyRequest($request);
+                }
+
+                // Build the same message as the API library, signed with the given secret
+                ksort($params);
+
+                return hash_equals(hash_hmac('sha256', urldecode(http_build_query($params)), $secret), $request['hmac']);
             }
         }
 

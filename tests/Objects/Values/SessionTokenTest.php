@@ -158,4 +158,32 @@ class SessionTokenTest extends TestCase
         $token = $this->buildToken(['exp' => Carbon::now()->subDay()]);
         SessionToken::fromNative($token);
     }
+
+    public function testShouldProcessForTokenSignedWithOldSecret(): void
+    {
+        $token = $this->buildToken();
+        $this->rotateApiSecret();
+
+        $st = SessionToken::fromNative($token);
+
+        $this->assertSame($this->tokenDefaults['dest'], $st->getDestination());
+    }
+
+    public function testShouldThrowExceptionForTokenSignedWithOldSecretWhenNotConfigured(): void
+    {
+        $this->expectException(AssertionFailedException::class);
+
+        $token = $this->buildToken();
+        $this->rotateApiSecret(false);
+        SessionToken::fromNative($token);
+    }
+
+    public function testShouldThrowExceptionForInvalidSignatureWithOldSecretConfigured(): void
+    {
+        $this->expectException(AssertionFailedException::class);
+
+        $token = $this->buildToken();
+        $this->rotateApiSecret();
+        SessionToken::fromNative(substr($token, 0, -4).'AAAA');
+    }
 }

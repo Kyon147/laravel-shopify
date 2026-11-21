@@ -129,6 +129,16 @@ abstract class TestCase extends OrchestraTestCase
         });
     }
 
+    /**
+     * Swap in a new API secret, as if the client secret was rotated after the request was signed.
+     */
+    protected function rotateApiSecret(bool $keepOldSecret = true): void
+    {
+        $oldSecret = $this->app['config']->get('shopify-app.api_secret');
+        $this->app['config']->set('shopify-app.api_secret', 'rotated-secret');
+        $this->app['config']->set('shopify-app.api_secret_old', $keepOldSecret ? $oldSecret : '');
+    }
+
     protected function setApiStub(): void
     {
         $this->app['config']->set(

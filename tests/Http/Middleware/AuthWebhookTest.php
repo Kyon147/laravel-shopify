@@ -2,6 +2,7 @@
 
 namespace Osiset\ShopifyApp\Test\Http\Middleware;
 
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Request;
 use Osiset\ShopifyApp\Http\Middleware\AuthWebhook as AuthWebhookMiddleware;
@@ -92,5 +93,60 @@ class AuthWebhookTest extends TestCase
 
         // Assert we get a proper response
         $this->assertTrue($result[0]);
+    }
+
+    public function testRunsWithOldSecretDuringRotation(): void
+    {
+        $request = $this->webhookRequest($this->signWebhook());
+        $this->rotateApiSecret();
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthWebhookMiddleware::class, $request);
+
+        $this->assertTrue($result[0]);
+    }
+
+    public function testDenysOldSecretWhenNotConfigured(): void
+    {
+        $request = $this->webhookRequest($this->signWebhook());
+        $this->rotateApiSecret(false);
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthWebhookMiddleware::class, $request);
+
+        $this->assertFalse($result[0]);
+        $this->assertSame(Response::HTTP_UNAUTHORIZED, $result[1]->status());
+    }
+
+    public function testDenysInvalidHmacWithOldSecretConfigured(): void
+    {
+        $request = $this->webhookRequest(base64_encode(str_repeat('0', 32)));
+        $this->rotateApiSecret();
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthWebhookMiddleware::class, $request);
+
+        $this->assertFalse($result[0]);
+        $this->assertSame(Response::HTTP_UNAUTHORIZED, $result[1]->status());
+    }
+
+    protected function signWebhook(): string
+    {
+        return base64_encode(hash_hmac('sha256', Request::instance()->getContent(), $this->app['config']->get('shopify-app.api_secret'), true));
+    }
+
+    protected function webhookRequest(string $hmac): HttpRequest
+    {
+        return Request::instance()->duplicate(
+            [],
+            null,
+            null,
+            null,
+            null,
+            array_merge(Request::server(), [
+                'HTTP_X_Shopify_Hmac_Sha256' => $hmac,
+                'HTTP_X_Shopify_Shop_Domain' => 'example.myshopify.com',
+            ])
+        );
     }
 }
