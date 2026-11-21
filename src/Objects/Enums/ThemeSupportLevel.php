@@ -10,9 +10,9 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum ThemeSupportLevel: int
 {
-    case FULL = 0;
-    case PARTIAL = 1;
-    case UNSUPPORTED = 2;
+    case Full = 0;
+    case Partial = 1;
+    case Unsupported = 2;
 
     /**
      * Create from a stored value.

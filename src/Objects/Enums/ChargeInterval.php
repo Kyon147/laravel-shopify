@@ -9,8 +9,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum ChargeInterval: string
 {
-    case EVERY_30_DAYS = 'EVERY_30_DAYS';
-    case ANNUAL = 'ANNUAL';
+    case Every30Days = 'EVERY_30_DAYS';
+    case Annual = 'ANNUAL';
 
     /**
      * Create from a stored or API value, ignoring case.

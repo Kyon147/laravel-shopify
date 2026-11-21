@@ -118,7 +118,7 @@ class Charge implements ChargeCommand
         ?Carbon $trialEndsOn = null
     ): bool {
         $charge = $this->query->getByReference($chargeRef);
-        $charge->status = ChargeStatus::CANCELLED->value;
+        $charge->status = ChargeStatus::Cancelled->value;
         $charge->cancelled_on = $expiresOn === null ? Carbon::today()->format('Y-m-d') : $expiresOn->format('Y-m-d');
         $charge->expires_on = $trialEndsOn === null ? Carbon::today()->format('Y-m-d') : $trialEndsOn->format('Y-m-d');
 

@@ -196,7 +196,7 @@ class AuthenticateShopTest extends TestCase
                 'completed' => true,
                 'url' => null,
                 'shop_id' => ShopId::fromNative(1),
-                'theme_support_level' => ThemeSupportLevel::UNSUPPORTED->value,
+                'theme_support_level' => ThemeSupportLevel::Unsupported->value,
             ]);
         });
         $this->mock(DispatchScripts::class, function ($mock) {
@@ -220,8 +220,8 @@ class AuthenticateShopTest extends TestCase
     public static function unacceptableLevelsProvider(): array
     {
         return [
-            'enum case' => [[ThemeSupportLevel::UNSUPPORTED]],
-            'integer value' => [[ThemeSupportLevel::UNSUPPORTED->value]],
+            'enum case' => [[ThemeSupportLevel::Unsupported]],
+            'integer value' => [[ThemeSupportLevel::Unsupported->value]],
         ];
     }
 

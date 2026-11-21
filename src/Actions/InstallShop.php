@@ -41,7 +41,7 @@ class InstallShop
         ));
         $grantMode = $shop->hasOfflineAccess()
             ? AuthMode::fromNative((string) Util::getShopifyConfig('api_grant_mode', $shop))
-            : AuthMode::OFFLINE;
+            : AuthMode::Offline;
 
         if (empty($code) && empty($idToken)) {
             return $this->authRedirect($shop, $apiHelper, $grantMode);
@@ -116,7 +116,7 @@ class InstallShop
     protected function persistShopifyOAuthTokens(IShopModel $shop, $data, AuthMode $grantMode): void
     {
         $expiringEnabled = Util::getShopifyConfig('expiring_offline_tokens', $shop);
-        $isOfflineGrant = $grantMode === AuthMode::OFFLINE;
+        $isOfflineGrant = $grantMode === AuthMode::Offline;
 
         if ($expiringEnabled && $isOfflineGrant && isset($data['refresh_token'])) {
             $this->shopCommand->setAccessToken(

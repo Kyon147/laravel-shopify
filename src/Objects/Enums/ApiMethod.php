@@ -9,10 +9,10 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum ApiMethod: string
 {
-    case GET = 'GET';
-    case POST = 'POST';
-    case PUT = 'PUT';
-    case DELETE = 'DELETE';
+    case Get = 'GET';
+    case Post = 'POST';
+    case Put = 'PUT';
+    case Delete = 'DELETE';
 
     /**
      * Create from a stored or API value, ignoring case.

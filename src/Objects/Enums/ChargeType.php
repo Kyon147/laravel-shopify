@@ -6,15 +6,15 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  * API types for charges.
  *
  * Backing values are the names the package has always stored.
- * There is no ONETIME case: {@see fromNative()} maps "ONETIME" to {@see self::CHARGE},
+ * There is no ONETIME case: {@see fromNative()} maps "ONETIME" to {@see self::Charge},
  * which the package has always stored for one-time charges.
  */
 enum ChargeType: string
 {
-    case RECURRING = 'RECURRING';
-    case CHARGE = 'CHARGE';
-    case USAGE = 'USAGE';
-    case CREDIT = 'CREDIT';
+    case Recurring = 'RECURRING';
+    case Charge = 'CHARGE';
+    case Usage = 'USAGE';
+    case Credit = 'CREDIT';
 
     /**
      * Create from a stored or API value, ignoring case.
@@ -24,7 +24,7 @@ enum ChargeType: string
         $upper = strtoupper($name);
 
         return match ($upper) {
-            'ONETIME' => self::CHARGE,
+            'ONETIME' => self::Charge,
             default => self::from($upper),
         };
     }

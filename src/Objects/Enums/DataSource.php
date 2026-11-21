@@ -9,9 +9,9 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum DataSource: string
 {
-    case INPUT = 'INPUT';
-    case HEADER = 'HEADER';
-    case REFERER = 'REFERER';
+    case Input = 'INPUT';
+    case Header = 'HEADER';
+    case Referer = 'REFERER';
 
     /**
      * Create from a stored or API value, ignoring case.

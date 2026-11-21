@@ -245,7 +245,7 @@ class Util
             self::getShopifyConfig('frontend_type') ?? 'MPA'
         );
 
-        return $frontendType !== FrontendType::SPA;
+        return $frontendType !== FrontendType::Spa;
     }
 
     public static function hasAppLegacySupport(string $feature): bool

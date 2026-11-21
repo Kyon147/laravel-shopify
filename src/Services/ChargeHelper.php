@@ -261,7 +261,7 @@ class ChargeHelper
         return $shop
             ->charges()
             ->withTrashed()
-            ->whereIn('type', [ChargeType::RECURRING->value, ChargeType::CHARGE->value])
+            ->whereIn('type', [ChargeType::Recurring->value, ChargeType::Charge->value])
             ->where('plan_id', $planId->toNative())
             ->orderBy('created_at', 'desc')
             ->first();

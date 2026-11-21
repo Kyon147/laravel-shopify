@@ -9,8 +9,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum FrontendType: string
 {
-    case MPA = 'MPA';
-    case SPA = 'SPA';
+    case Mpa = 'MPA';
+    case Spa = 'SPA';
 
     /**
      * Create from a stored or API value, ignoring case.

@@ -75,7 +75,7 @@ class Plan extends Model
     public function getInterval(): PlanInterval
     {
         // Not cast: a plan stored with an empty interval is a 30-day plan, as it always has been
-        return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::EVERY_30_DAYS;
+        return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::Every30Days;
     }
 
     /**
@@ -100,8 +100,8 @@ class Plan extends Model
     public function getTypeApiString($plural = false): string
     {
         $types = [
-            PlanType::ONETIME->value => 'application_charge',
-            PlanType::RECURRING->value => 'recurring_application_charge',
+            PlanType::OneTime->value => 'application_charge',
+            PlanType::Recurring->value => 'recurring_application_charge',
         ];
         $type = $types[$this->getType()->value];
 

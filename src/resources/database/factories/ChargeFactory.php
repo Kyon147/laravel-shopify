@@ -14,7 +14,7 @@ $factory->define($chargeModel, function (Faker $faker) {
         'charge_id' => $faker->randomNumber(8),
         'name' => $faker->word(),
         'price' => $faker->randomFloat(),
-        'status' => ChargeStatus::ACCEPTED->value,
+        'status' => ChargeStatus::Accepted->value,
     ];
 });
 
@@ -23,19 +23,19 @@ $factory->state($chargeModel, 'test', [
 ]);
 
 $factory->state($chargeModel, 'type_recurring', [
-    'type' => ChargeType::RECURRING->value,
+    'type' => ChargeType::Recurring->value,
 ]);
 
 $factory->state($chargeModel, 'type_onetime', [
-    'type' => ChargeType::CHARGE->value,
+    'type' => ChargeType::Charge->value,
 ]);
 
 $factory->state($chargeModel, 'type_usage', [
-    'type' => ChargeType::USAGE->value,
+    'type' => ChargeType::Usage->value,
 ]);
 
 $factory->state($chargeModel, 'type_credit', [
-    'type' => ChargeType::CREDIT->value,
+    'type' => ChargeType::Credit->value,
 ]);
 
 $factory->state($chargeModel, 'trial', function ($faker) {

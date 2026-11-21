@@ -9,8 +9,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum SessionTokenSource: int
 {
-    case APP = 0;
-    case CHECKOUT_EXTENSION = 1;
+    case App = 0;
+    case CheckoutExtension = 1;
 
     /**
      * Create from a stored value.

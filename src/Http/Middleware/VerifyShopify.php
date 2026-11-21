@@ -294,7 +294,7 @@ class VerifyShopify
         $data = $this->getRequestData($request, $hmac['source']);
         $valid = $this->apiHelper->verifyRequest($data);
 
-        if (! $valid && $hmac['source'] === DataSource::REFERER->value) {
+        if (! $valid && $hmac['source'] === DataSource::Referer->value) {
             return null;
         }
 
@@ -419,11 +419,11 @@ class VerifyShopify
         // All possible methods
         $options = [
             // GET/POST
-            DataSource::INPUT->value => $request->input('hmac'),
+            DataSource::Input->value => $request->input('hmac'),
             // Headers
-            DataSource::HEADER->value => $request->header('X-Shop-Signature'),
+            DataSource::Header->value => $request->header('X-Shop-Signature'),
             // Headers: Referer
-            DataSource::REFERER->value => function () use ($request): ?string {
+            DataSource::Referer->value => function () use ($request): ?string {
                 $url = parse_url($request->header('referer', ''), PHP_URL_QUERY);
                 parse_str($url ?? '', $refererQueryParams);
                 if (! $refererQueryParams || ! isset($refererQueryParams['hmac'])) {
@@ -479,7 +479,7 @@ class VerifyShopify
             || !in_array($request->getRealMethod(), ['GET', 'HEAD'], true)
             || !is_string($queryHmac)
             || $queryHmac === ''
-            || $this->getHmacFromRequest($request)['source'] !== DataSource::INPUT->value
+            || $this->getHmacFromRequest($request)['source'] !== DataSource::Input->value
         ) {
             return null;
         }
@@ -505,7 +505,7 @@ class VerifyShopify
         // All possible methods
         $options = [
             // GET/POST
-            DataSource::INPUT->value => function () use ($request): array {
+            DataSource::Input->value => function () use ($request): array {
                 // Verify
                 $verify = [];
                 foreach ($request->query() as $key => $value) {
@@ -515,7 +515,7 @@ class VerifyShopify
                 return $verify;
             },
             // Headers
-            DataSource::HEADER->value => function () use ($request): array {
+            DataSource::Header->value => function () use ($request): array {
                 // Always present
                 $shop = $request->header('X-Shop-Domain');
                 $signature = $request->header('X-Shop-Signature');
@@ -543,7 +543,7 @@ class VerifyShopify
                 return $verify;
             },
             // Headers: Referer
-            DataSource::REFERER->value => function () use ($request): array {
+            DataSource::Referer->value => function () use ($request): array {
                 $url = parse_url($request->header('referer'), PHP_URL_QUERY);
                 parse_str($url, $refererQueryParams);
 

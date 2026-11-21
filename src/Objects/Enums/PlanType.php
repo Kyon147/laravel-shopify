@@ -9,8 +9,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum PlanType: string
 {
-    case RECURRING = 'RECURRING';
-    case ONETIME = 'ONETIME';
+    case Recurring = 'RECURRING';
+    case OneTime = 'ONETIME';
 
     /**
      * Create from a stored or API value, ignoring case.

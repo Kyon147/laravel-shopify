@@ -18,8 +18,8 @@ class PlanTest extends TestCase
 
         $this->assertInstanceOf(PlanId::class, $plan->getId());
         $this->assertCount(0, $plan->charges);
-        $this->assertEquals(PlanType::RECURRING, $plan->getType());
-        $this->assertTrue($plan->isType(PlanType::RECURRING));
+        $this->assertEquals(PlanType::Recurring, $plan->getType());
+        $this->assertTrue($plan->isType(PlanType::Recurring));
         $this->assertSame('recurring_application_charge', $plan->getTypeApiString());
         $this->assertSame('recurring_application_charges', $plan->getTypeApiString(true));
         $this->assertFalse($plan->hasTrial());
@@ -37,7 +37,7 @@ class PlanTest extends TestCase
                 'interval' => $interval,
             ]);
 
-            $this->assertSame(PlanInterval::EVERY_30_DAYS, $plan->fresh()->getInterval());
+            $this->assertSame(PlanInterval::Every30Days, $plan->fresh()->getInterval());
         }
     }
 }

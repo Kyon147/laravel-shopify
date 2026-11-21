@@ -658,10 +658,10 @@ return [
         /*
          * At which levels of theme support the use of "theme app extension" is not available
          * and script tags will be installed.
-         * Available levels: FULL, PARTIAL, UNSUPPORTED.
+         * Available levels: ThemeSupportLevel::Full, ::Partial and ::Unsupported (enum cases or their ->value).
          */
         'unacceptable_levels' => [
-            Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel::UNSUPPORTED->value,
+            Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel::Unsupported->value,
         ],
     ],
 

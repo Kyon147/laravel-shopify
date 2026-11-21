@@ -99,7 +99,7 @@ class ActivatePlan
         $transfer->chargeStatus = ChargeStatus::fromNative($response['status']);
         $transfer->planDetails = $details;
 
-        if ($plan->isType(PlanType::RECURRING)) {
+        if ($plan->isType(PlanType::Recurring)) {
             $transfer->activatedOn = new Carbon($response['activated_on']);
             $transfer->billingOn = new Carbon($response['billing_on']);
             $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
@@ -131,7 +131,7 @@ class ActivatePlan
             // Shopify stores a missing trial as 0
             || (int) ($charge['trial_days'] ?? 0) !== (int) ($details->trialDays ?? 0)
             // Annual charges are created through GraphQL without a cap, and Shopify never reads terms back
-            || ($details->interval !== ChargeInterval::ANNUAL->value
+            || ($details->interval !== ChargeInterval::Annual->value
                 && $this->decimalAmount($charge['capped_amount'] ?? 0) !== $this->decimalAmount($details->cappedAmount ?? 0))
         ) {
             throw new HttpException('Charge does not match the requested plan.', Response::HTTP_FORBIDDEN);

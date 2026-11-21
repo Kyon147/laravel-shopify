@@ -121,9 +121,9 @@ class Charge extends Model
     public function getTypeApiString($plural = false): string
     {
         $types = [
-            ChargeType::CREDIT->value => 'application_credit',
-            ChargeType::CHARGE->value => 'application_charge',
-            ChargeType::RECURRING->value => 'recurring_application_charge',
+            ChargeType::Credit->value => 'application_credit',
+            ChargeType::Charge->value => 'application_charge',
+            ChargeType::Recurring->value => 'recurring_application_charge',
         ];
         $type = $types[$this->getType()->value];
 
@@ -179,7 +179,7 @@ class Charge extends Model
      */
     public function getStatus(): ChargeStatus
     {
-        return $this->status ?? ChargeStatus::PENDING;
+        return $this->status ?? ChargeStatus::Pending;
     }
 
     /**
@@ -201,7 +201,7 @@ class Charge extends Model
      */
     public function isActive(): bool
     {
-        return $this->isStatus(ChargeStatus::ACTIVE);
+        return $this->isStatus(ChargeStatus::Active);
     }
 
     /**
@@ -211,7 +211,7 @@ class Charge extends Model
      */
     public function isAccepted(): bool
     {
-        return $this->isStatus(ChargeStatus::ACCEPTED);
+        return $this->isStatus(ChargeStatus::Accepted);
     }
 
     /**
@@ -221,7 +221,7 @@ class Charge extends Model
      */
     public function isDeclined(): bool
     {
-        return $this->isStatus(ChargeStatus::DECLINED);
+        return $this->isStatus(ChargeStatus::Declined);
     }
 
     /**
@@ -231,7 +231,7 @@ class Charge extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->cancelled_on !== null || $this->isStatus(ChargeStatus::CANCELLED);
+        return $this->cancelled_on !== null || $this->isStatus(ChargeStatus::Cancelled);
     }
 
     /**
@@ -241,7 +241,7 @@ class Charge extends Model
      */
     public function isExpired(): bool
     {
-        return $this->isStatus(ChargeStatus::EXPIRED);
+        return $this->isStatus(ChargeStatus::Expired);
     }
 
     /**
@@ -251,7 +251,7 @@ class Charge extends Model
      */
     public function isFrozen(): bool
     {
-        return $this->isStatus(ChargeStatus::FROZEN);
+        return $this->isStatus(ChargeStatus::Frozen);
     }
 
     /**

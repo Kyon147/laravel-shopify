@@ -93,7 +93,7 @@ class ActivatePlanBindingTest extends TestCase
         }
 
         $this->assertSame($oldPlan->id, (int) $shop->fresh()->plan_id);
-        $this->assertSame(ChargeStatus::ACTIVE, $oldCharge->fresh()->status);
+        $this->assertSame(ChargeStatus::Active, $oldCharge->fresh()->status);
         $this->assertNull($oldCharge->fresh()->cancelled_on);
         $this->assertDatabaseCount('charges', 1);
         $this->assertCount(1, BillingApi::$requests);

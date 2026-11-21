@@ -9,8 +9,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum AuthMode: string
 {
-    case OFFLINE = 'OFFLINE';
-    case PERUSER = 'PERUSER';
+    case Offline = 'OFFLINE';
+    case PerUser = 'PERUSER';
 
     /**
      * Create from a stored or API value, ignoring case.

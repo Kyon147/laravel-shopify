@@ -9,21 +9,21 @@ namespace Osiset\ShopifyApp\Objects\Enums;
  */
 enum ChargeStatus: string
 {
-    case ACTIVE = 'ACTIVE';
-    case ACCEPTED = 'ACCEPTED';
-    case DECLINED = 'DECLINED';
-    case CANCELLED = 'CANCELLED';
-    case PENDING = 'PENDING';
+    case Active = 'ACTIVE';
+    case Accepted = 'ACCEPTED';
+    case Declined = 'DECLINED';
+    case Cancelled = 'CANCELLED';
+    case Pending = 'PENDING';
 
     /**
      * Not approved by the merchant within two days of being created.
      */
-    case EXPIRED = 'EXPIRED';
+    case Expired = 'EXPIRED';
 
     /**
      * On hold because the shop has not paid Shopify; it becomes active again once payments resume.
      */
-    case FROZEN = 'FROZEN';
+    case Frozen = 'FROZEN';
 
     /**
      * Create from a stored or API value, ignoring case.

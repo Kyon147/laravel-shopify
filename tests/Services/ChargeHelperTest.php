@@ -89,7 +89,7 @@ class ChargeHelperTest extends TestCase
     {
         // Seed
         $seed = $this->seedData([
-            'status' => ChargeStatus::CANCELLED->value,
+            'status' => ChargeStatus::Cancelled->value,
             'trial_days' => 7,
             'trial_ends_on' => '2020-01-10',
             'cancelled_on' => '2020-01-05',
