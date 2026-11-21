@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * Charge interval with annual support.
  *
- * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ * Backing values are the names the package has always stored.
  */
 enum ChargeInterval: string
 {
@@ -13,7 +13,7 @@ enum ChargeInterval: string
     case ANNUAL = 'ANNUAL';
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored or API value, ignoring case.
      */
     public static function fromNative(string $name): self
     {

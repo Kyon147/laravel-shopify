@@ -5,8 +5,9 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * API types for charges.
  *
- * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
- * {@see self::ONETIME} is not a separate case: use {@see self::CHARGE} (same int as legacy); accept "ONETIME" in {@see fromNative()}.
+ * Backing values are the names the package has always stored.
+ * There is no ONETIME case: {@see fromNative()} maps "ONETIME" to {@see self::CHARGE},
+ * which the package has always stored for one-time charges.
  */
 enum ChargeType: string
 {
@@ -16,7 +17,7 @@ enum ChargeType: string
     case CREDIT = 'CREDIT';
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored or API value, ignoring case.
      */
     public static function fromNative(string $name): self
     {

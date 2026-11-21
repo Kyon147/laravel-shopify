@@ -5,20 +5,20 @@ namespace Osiset\ShopifyApp\Traits;
 use Illuminate\Contracts\View\View as ViewView;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\View;
 use Osiset\ShopifyApp\Actions\ActivatePlan;
 use Osiset\ShopifyApp\Actions\ActivateUsageCharge;
 use Osiset\ShopifyApp\Actions\GetPlanUrl;
+use Osiset\ShopifyApp\Contracts\ShopModel;
 use Osiset\ShopifyApp\Exceptions\ChargeNotRecurringException;
-use Osiset\ShopifyApp\Exceptions\MissingShopDomainException;
+use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Http\Requests\StoreUsageCharge;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
-use Osiset\ShopifyApp\Objects\Values\NullableShopDomain;
 use Osiset\ShopifyApp\Objects\Values\PlanId;
-use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Storage\Queries\Shop as ShopQuery;
 use Osiset\ShopifyApp\Util;
 
@@ -44,7 +44,7 @@ trait BillingController
         ?int       $plan = null
     ): ViewView {
         // Get the shop
-        $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->get('shop')));
+        $shop = $this->authenticatedBillingShop($request);
         $host = urldecode($request->get('host'));
 
         // Get the plan URL for redirect
@@ -61,7 +61,7 @@ trait BillingController
                 'url' => $url,
                 'host' => $host,
                 'locale' => $request->get('locale'),
-                'apiKey' => Util::getShopifyConfig('api_key', ShopDomain::fromNative($request->get('shop'))),
+                'apiKey' => Util::getShopifyConfig('api_key', $shop->getDomain()),
             ]
         );
     }
@@ -83,7 +83,7 @@ trait BillingController
         ActivatePlan $activatePlan
     ): RedirectResponse {
         // Get the shop
-        $shop = $shopQuery->getByDomain(ShopDomain::fromNative($request->query('shop')));
+        $shop = $this->authenticatedBillingShop($request);
         // If we have the host we need to pass it along.
         $host = urldecode($request->get('host'));
         if (!$request->has('charge_id')) {
@@ -93,11 +93,17 @@ trait BillingController
                 'locale' => $request->get('locale'),
             ]);
         }
+
+        $chargeId = filter_var($request->query('charge_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($chargeId === false) {
+            throw new HttpException('Invalid charge ID.', Response::HTTP_BAD_REQUEST);
+        }
+
         // Activate the plan and save
         $result = $activatePlan(
             $shop->getId(),
             PlanId::fromNative($plan),
-            ChargeReference::fromNative((int) $request->query('charge_id')),
+            ChargeReference::fromNative($chargeId),
             $host
         );
 
@@ -128,7 +134,7 @@ trait BillingController
      * @param ActivateUsageCharge $activateUsageCharge The action for activating a usage charge.
      * @param ShopQuery $shopQuery The shop querier.
      *
-     * @throws MissingShopDomainException|ChargeNotRecurringException
+     * @throws HttpException|ChargeNotRecurringException
      *
      * @return RedirectResponse
      */
@@ -137,12 +143,7 @@ trait BillingController
         ActivateUsageCharge $activateUsageCharge,
         ShopQuery           $shopQuery
     ): RedirectResponse {
-        $shopDomain = NullableShopDomain::fromNative($request->get('shop'));
-        // Get the shop from the shop param after it has been validated.
-        if ($shopDomain->isNull()) {
-            throw new MissingShopDomainException('Shop parameter is missing from request');
-        }
-        $shop = $shopQuery->getByDomain($shopDomain);
+        $shop = $this->authenticatedBillingShop($request);
 
         // Valid the request params.
         $validated = $request->validated();
@@ -159,5 +160,18 @@ trait BillingController
         return isset($validated['redirect'])
             ? Redirect::to($validated['redirect'])->with('success', 'usage_charge')
             : Redirect::back()->with('success', 'usage_charge');
+    }
+
+    /**
+     * Billing actions must use the store established by session-token authentication.
+     */
+    protected function authenticatedBillingShop(Request $request): ShopModel
+    {
+        $shop = $request->user();
+        if (!$shop instanceof ShopModel || !$shop->getSessionContext()?->isValid()) {
+            throw new HttpException('A valid shop session is required.', Response::HTTP_FORBIDDEN);
+        }
+
+        return $shop;
     }
 }

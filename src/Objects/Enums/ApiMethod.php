@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * API call method types.
  *
- * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ * Backing values are the names the package has always stored.
  */
 enum ApiMethod: string
 {
@@ -15,7 +15,7 @@ enum ApiMethod: string
     case DELETE = 'DELETE';
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored or API value, ignoring case.
      */
     public static function fromNative(string $name): self
     {

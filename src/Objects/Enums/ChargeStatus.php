@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * API charge status.
  *
- * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ * Backing values are the names the package has always stored.
  */
 enum ChargeStatus: string
 {
@@ -16,15 +16,20 @@ enum ChargeStatus: string
     case PENDING = 'PENDING';
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Not approved by the merchant within two days of being created.
+     */
+    case EXPIRED = 'EXPIRED';
+
+    /**
+     * On hold because the shop has not paid Shopify; it becomes active again once payments resume.
+     */
+    case FROZEN = 'FROZEN';
+
+    /**
+     * Create from a stored or API value, ignoring case.
      */
     public static function fromNative(string $name): self
     {
         return self::from(strtoupper($name));
-    }
-
-    public static function fromShopifyApiStatus(string $status): self
-    {
-        return self::from(strtoupper($status));
     }
 }

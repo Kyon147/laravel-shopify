@@ -21,7 +21,6 @@ class Plan extends Model
      */
     protected $casts = [
         'type' => PlanType::class,
-        'interval' => PlanInterval::class,
         'test' => 'bool',
         'on_install' => 'bool',
         'capped_amount' => 'float',
@@ -75,7 +74,8 @@ class Plan extends Model
      */
     public function getInterval(): PlanInterval
     {
-        return $this->interval ?? PlanInterval::EVERY_30_DAYS;
+        // Not cast: a plan stored with an empty interval is a 30-day plan, as it always has been
+        return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::EVERY_30_DAYS;
     }
 
     /**

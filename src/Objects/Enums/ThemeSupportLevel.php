@@ -5,8 +5,8 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * Online Store 2.0 theme support level.
  *
- * Integer backing matches legacy public int constants on the previous class.
- * There is no enum case for legacy {@see NONE} (null); represent “unknown / skipped” with null in application code.
+ * Backing values are the integers the package has always stored.
+ * There is no case for "none": an unknown or skipped check is null.
  */
 enum ThemeSupportLevel: int
 {
@@ -15,7 +15,7 @@ enum ThemeSupportLevel: int
     case UNSUPPORTED = 2;
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored value.
      */
     public static function fromNative(int $value): self
     {

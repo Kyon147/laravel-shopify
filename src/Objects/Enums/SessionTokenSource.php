@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * Which Shopify session-token shape is in use.
  *
- * Integer backing matches legacy public int constants on the previous class.
+ * Backing values are the integers the package has always stored.
  */
 enum SessionTokenSource: int
 {
@@ -13,7 +13,7 @@ enum SessionTokenSource: int
     case CHECKOUT_EXTENSION = 1;
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored value.
      */
     public static function fromNative(int $value): self
     {

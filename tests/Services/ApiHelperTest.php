@@ -6,6 +6,7 @@ use Exception;
 use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Gnikyt\BasicShopifyAPI\ResponseAccess;
 use Gnikyt\BasicShopifyAPI\Session;
+use Illuminate\Support\Arr;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Exceptions\ApiException;
@@ -209,6 +210,53 @@ class ApiHelperTest extends TestCase
         $this->assertSame('ORDERS_CREATE', $data['data']['webhookSubscriptionCreate']['topic']);
     }
 
+    public function testCreateWebhookThrowsOnUserErrors(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('webhookSubscriptionCreate failed: webhookSubscription.callbackUrl: Address must use a valid domain name');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['post_webhook_user_errors']);
+
+        $shop->apiHelper()->createWebhook([
+            'topic' => 'ORDERS_CREATE',
+            'address' => 'https://shop.test/webhook/orders-create',
+        ]);
+    }
+
+    public function testDeleteWebhookThrowsOnUserErrors(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('webhookSubscriptionDelete failed: id: Access denied for webhookSubscriptionDelete field.');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['delete_webhook_user_errors']);
+
+        $shop->apiHelper()->deleteWebhook('gid://shopify/WebhookSubscription/1');
+    }
+
+    public function testDeleteWebhookIgnoresAlreadyDeletedSubscription(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['delete_webhook_not_found']);
+
+        $data = $shop->apiHelper()->deleteWebhook('gid://shopify/WebhookSubscription/1');
+
+        $this->assertNull($data['data']['webhookSubscriptionDelete']['deletedWebhookSubscriptionId']);
+    }
+
     public function testDeleteWebhook(): void
     {
         // Create a shop
@@ -289,5 +337,90 @@ class ApiHelperTest extends TestCase
 
         $session = new Session($shop->name, $shop->password);
         $this->app->make(IApiHelper::class)->make($session)->refreshOfflineAccessToken('any_refresh_token');
+    }
+
+    /**
+     * Sign params the way Shopify does: sorted key=value pairs joined with "&",
+     * with "%" and "&" escaped in keys and values, and "=" also escaped in keys.
+     */
+    protected function shopifySign(array $params): array
+    {
+        ksort($params);
+        $pairs = [];
+        foreach ($params as $key => $value) {
+            $pairs[] = strtr($key, ['%' => '%25', '&' => '%26', '=' => '%3D']).'='.strtr($value, ['%' => '%25', '&' => '%26']);
+        }
+        $params['hmac'] = hash_hmac('sha256', implode('&', $pairs), $this->app['config']->get('shopify-app.api_secret'));
+
+        return $params;
+    }
+
+    protected function signedParams(array $extra = []): array
+    {
+        return $this->shopifySign(array_merge([
+            'host' => 'YWRtaW4uc2hvcGlmeS5jb20vc3RvcmUvbXlzdG9yZQ',
+            'shop' => 'mystore.myshopify.com',
+            'timestamp' => '1337178173',
+        ], $extra));
+    }
+
+    public function testVerifyRequestWithPlainParams(): void
+    {
+        $this->assertTrue($this->api->make()->verifyRequest($this->signedParams(['code' => 'abc123'])));
+    }
+
+    public function testVerifyRequestWithAmpersandInValue(): void
+    {
+        $params = $this->signedParams(['target' => '/billing/process/1?host=abc&charge_id=111']);
+
+        $this->assertTrue($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestRejectsValueChangedAfterSigning(): void
+    {
+        $params = $this->signedParams(['target' => '/billing/process/1?host=abc&charge_id=111']);
+        $params['target'] = '/billing/process/1?host=abc&charge_id=222';
+
+        $this->assertFalse($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestWithPercentInValue(): void
+    {
+        $params = $this->signedParams(['target' => '/search?q=50%25+off&note=100%']);
+
+        $this->assertTrue($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestWithSpecialCharsInKey(): void
+    {
+        $params = $this->signedParams(['a=b&c%d' => 'value']);
+
+        $this->assertTrue($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestRejectsWrongHmac(): void
+    {
+        $params = $this->signedParams();
+        $params['hmac'] = str_repeat('0', 64);
+
+        $this->assertFalse($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestRequiresShopTimestampAndHmac(): void
+    {
+        $api = $this->api->make();
+        $params = $this->signedParams();
+
+        foreach (['shop', 'timestamp', 'hmac'] as $key) {
+            $this->assertFalse($api->verifyRequest(Arr::except($params, $key)));
+        }
+    }
+
+    public function testVerifyRequestRejectsNonStringHmac(): void
+    {
+        $params = $this->signedParams();
+        $params['hmac'] = [$params['hmac']];
+
+        $this->assertFalse($this->api->make()->verifyRequest($params));
     }
 }

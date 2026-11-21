@@ -5,7 +5,7 @@ namespace Osiset\ShopifyApp\Objects\Enums;
 /**
  * API auth modes.
  *
- * Backing values match legacy Funeralzone {@see EnumTrait} {@see toNative()} (constant name strings).
+ * Backing values are the names the package has always stored.
  */
 enum AuthMode: string
 {
@@ -13,7 +13,7 @@ enum AuthMode: string
     case PERUSER = 'PERUSER';
 
     /**
-     * @deprecated Use {@see self::tryFrom()} or enum cases; kept for backward compatibility with ValueObject API.
+     * Create from a stored or API value, ignoring case.
      */
     public static function fromNative(string $name): self
     {
