@@ -55,6 +55,22 @@ class RemoveScriptTagCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function testFailsWhenIdOptionHasNoValue(): void
+    {
+        $shop = factory($this->model)->create();
+        ApiStub::stubResponses(['get_script_tags', 'empty']);
+
+        $this
+            ->artisan("shopify-app:remove-script-tag {$shop->name} --id")
+            ->expectsOutput('--id requires a value.')
+            ->doesntExpectOutput('  - Removed 421379493 (https://js-aplenty.com/bar.js)')
+            ->doesntExpectOutput('  - Removed 596726825 (https://js-aplenty.com/foo.js)')
+            ->assertExitCode(1);
+
+        // Neither the list nor the delete stub was consumed: no API calls were made
+        $this->assertSame(['get_script_tags', 'empty'], ApiStub::$stubFiles);
+    }
+
     public function testDryRunDoesNotDelete(): void
     {
         $shop = factory($this->model)->create();

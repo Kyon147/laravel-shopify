@@ -20,6 +20,13 @@ class RemoveScriptTagCommand extends Command
     {
         $domain = $this->argument('domain');
 
+        $id = $this->option('id');
+        if ($id === null && $this->input->hasParameterOption('--id')) {
+            $this->error('--id requires a value.');
+
+            return self::FAILURE;
+        }
+
         try {
             $shop = $shopQuery->getByDomain(ShopDomain::fromNative($domain));
         } catch (InvalidShopDomainException $e) {
@@ -34,13 +41,6 @@ class RemoveScriptTagCommand extends Command
 
         $api = $shop->apiHelper();
         $tags = collect($api->getScriptTags()->toArray());
-
-        $id = $this->option('id');
-        if ($id === null && $this->input->hasParameterOption('--id')) {
-            $this->error('--id requires a value.');
-
-            return self::FAILURE;
-        }
 
         if ($id !== null) {
             $tags = $tags->filter(fn (array $tag) => (string) $tag['id'] === (string) $id);
