@@ -1,0 +1,16 @@
+{
+    "data": {
+        "theme": {
+            "files": {
+                "nodes": [
+                    {
+                        "filename": "sections\/main-product.liquid",
+                        "body": {
+                            "content": ""
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
