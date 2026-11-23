@@ -1,0 +1,13 @@
+{
+    "data": {
+        "webhookSubscriptionDelete": {
+            "userErrors": [
+                {
+                    "field": ["id"],
+                    "message": "Access denied for webhookSubscriptionDelete field."
+                }
+            ],
+            "deletedWebhookSubscriptionId": null
+        }
+    }
+}

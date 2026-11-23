@@ -279,6 +279,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application-only offline access (client assertion)
+    |--------------------------------------------------------------------------
+    |
+    | Used to acquire and renew short-lived offline tokens without a refresh
+    | grant. The encrypted refresh column stores application_only_refresh_sentinel.
+    |
+    | @see https://shopify.dev/docs/apps/build/authentication-authorization/application-only-access-tokens
+    |
+    */
+
+    'application_only' => [
+        'key_id' => env('SHOPIFY_APPLICATION_ONLY_KEY_ID', ''),
+        'private_key_b64' => env('SHOPIFY_APPLICATION_ONLY_PRIVATE_KEY_B64', ''),
+        'private_key_path' => env('SHOPIFY_APPLICATION_ONLY_PRIVATE_KEY_PATH', ''),
+    ],
+
+    'application_only_refresh_sentinel' => env(
+        'SHOPIFY_APPLICATION_ONLY_REFRESH_SENTINEL',
+        'shopify-app:application-only-offline-access-v1'
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
     | Shopify API Redirect
     |--------------------------------------------------------------------------
     |
@@ -536,11 +559,14 @@ return [
     |
     | This option can be used to modify what returns when `getConfig('api_*')`
     | is used. A use-case for this is modifying the return of `api_secret`
-    | or something similar.
+    | or something similar. Every `api_*` key is routed through it, including
+    | `api_scopes`, which is resolved per shop both when building the install
+    | URL and when the `verify.scopes` middleware checks granted scopes.
     |
     | A closure/callable is required.
     | The first argument will be the key string.
-    | The second argument will be something to help identify the shop.
+    | The second argument will be something to help identify the shop. It may
+    | be a shop model, a shop domain string, or null, so handle each case.
     |
     */
 

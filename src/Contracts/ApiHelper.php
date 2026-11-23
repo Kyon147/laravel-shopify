@@ -187,6 +187,8 @@ interface ApiHelper
      *
      * @param array $payload The data for the webhook creation.
      *
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When Shopify refuses the mutation (userErrors).
+     *
      * @return ResponseAccess
      */
     public function createWebhook(array $payload): ResponseAccess;
@@ -195,6 +197,8 @@ interface ApiHelper
      * Delete a webhook.
      *
      * @param string $webhookId The webhook ID to delete.
+     *
+     * @throws \Osiset\ShopifyApp\Exceptions\ApiException When Shopify refuses the mutation (userErrors).
      *
      * @return ResponseAccess
      */

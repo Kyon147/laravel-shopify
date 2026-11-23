@@ -23,6 +23,7 @@ use Osiset\ShopifyApp\Services\OfflineAccessTokenRefresher;
 use Osiset\ShopifyApp\Storage\Models\Charge;
 use Osiset\ShopifyApp\Storage\Models\Plan;
 use Osiset\ShopifyApp\Storage\Scopes\Namespacing;
+use Osiset\ShopifyApp\Support\ApplicationOnlyOfflineAccess;
 use Osiset\ShopifyApp\Util;
 
 /**
@@ -157,6 +158,14 @@ trait ShopModel
     public function hasExpiringOfflineAccess(): bool
     {
         return ! empty($this->shopify_offline_refresh_token);
+    }
+
+    /**
+     * Whether offline access is renewed via application-only client assertion.
+     */
+    public function usesApplicationOnlyOfflineAccess(): bool
+    {
+        return ApplicationOnlyOfflineAccess::shopUses($this);
     }
 
     /**

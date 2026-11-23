@@ -35,12 +35,12 @@ class StoreUsageCharge extends FormRequest
         $validator->after(function (Validator $validator) {
             // Get the input values needed
             $data = [
-                'price' => $this->request->get('price'),
-                'description' => $this->request->get('description'),
-                'signature' => $this->request->get('signature'),
+                'price' => $this->input('price'),
+                'description' => $this->input('description'),
+                'signature' => $this->input('signature'),
             ];
-            if ($this->request->has('redirect')) {
-                $data['redirect'] = $this->request->get('redirect');
+            if ($this->has('redirect')) {
+                $data['redirect'] = $this->input('redirect');
             }
 
             $signature = Hmac::fromNative($data['signature']);

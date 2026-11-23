@@ -31,7 +31,7 @@ class VerifyScopes
 
             $hasMissingScopes = filled(
                 array_diff(
-                    explode(',', config('shopify-app.api_scopes')),
+                    explode(',', Util::getShopifyConfig('api_scopes', $shop)),
                     $response['result']
                 )
             );

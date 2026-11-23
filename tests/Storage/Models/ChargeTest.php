@@ -35,8 +35,41 @@ class ChargeTest extends TestCase
         $this->assertTrue($charge->isAccepted());
         $this->assertFalse($charge->isDeclined());
         $this->assertFalse($charge->isCancelled());
+        $this->assertFalse($charge->isExpired());
+        $this->assertFalse($charge->isFrozen());
         $this->assertFalse($charge->isOngoing());
         $this->assertSame('recurring_application_charge', $charge->getTypeApiString());
         $this->assertSame('recurring_application_charges', $charge->getTypeApiString(true));
+    }
+
+    /**
+     * Shopify reports a subscription as FROZEN when the shop stops paying, and as EXPIRED when it
+     * is never approved. A charge stored with either status must still be readable.
+     *
+     * @dataProvider statusProvider
+     */
+    public function testStatusesShopifyReports(string $status, string $check): void
+    {
+        $shop = factory($this->model)->create();
+        $charge = factory(Util::getShopifyConfig('models.charge', Charge::class))->states('type_recurring')->create([
+            'user_id' => $shop->getId()->toNative(),
+            'status' => $status,
+        ]);
+
+        $this->assertTrue($charge->getStatus()->isSame(ChargeStatus::fromNative($status)));
+        $this->assertTrue($charge->{$check}());
+        $this->assertFalse($charge->isActive());
+        $this->assertFalse($charge->isAccepted());
+        $this->assertFalse($charge->isDeclined());
+        $this->assertFalse($charge->isCancelled());
+        $this->assertFalse($charge->isOngoing());
+    }
+
+    public static function statusProvider(): array
+    {
+        return [
+            'frozen' => ['FROZEN', 'isFrozen'],
+            'expired' => ['EXPIRED', 'isExpired'],
+        ];
     }
 }

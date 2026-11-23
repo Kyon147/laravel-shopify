@@ -122,7 +122,7 @@ trait AuthController
             $params['shop'] = $params['shop'] ?? $shopDomain->toNative() ?? '';
             $params['host'] = $request->get('host');
             $params['locale'] = $request->get('locale');
-            unset($params['token']);
+            unset($params['token'], $params['id_token']);
 
             return trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         }
