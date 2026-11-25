@@ -361,7 +361,11 @@ class ShopifyAppProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('verify.scopes', VerifyScopes::class);
 
         $this->app->booted(function () {
-            $this->app['router']->pushMiddlewareToGroup('web', IframeProtection::class);
+            $groups = Util::getShopifyConfig('iframe_protection_middleware_groups') ?? ['web'];
+
+            foreach ((array) $groups as $group) {
+                $this->app['router']->pushMiddlewareToGroup($group, IframeProtection::class);
+            }
         });
     }
 
