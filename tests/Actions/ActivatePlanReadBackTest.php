@@ -111,7 +111,7 @@ class ActivatePlanReadBackTest extends TestCase
         $this->activate($plan);
 
         $this->assertSame($plan->id, (int) $this->shop->fresh()->plan_id);
-        $this->assertTrue((bool) Charge::where('charge_id', 1001)->sole()->test);
+        $this->assertTrue((bool) Charge::query()->where('charge_id', 1001)->sole()->test);
     }
 
     public function testDevelopmentStoreTestChargeStillRequiresMatchingTerms(): void
