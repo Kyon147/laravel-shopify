@@ -96,6 +96,50 @@ class ActivatePlanReadBackTest extends TestCase
         $this->assertSame($plan->id, (int) $this->shop->fresh()->plan_id);
     }
 
+    public function testDevelopmentStoreTestChargeForLivePlanVerifies(): void
+    {
+        $plan = $this->createPlan(['name' => 'Premium', 'price' => 17, 'trial_days' => 7]);
+        // Shopify makes every charge on a development store a test charge, whatever the app requested
+        $this->shopifyCharge($plan, [
+            'name' => 'Premium',
+            'price' => '17.00',
+            'trial_days' => 7,
+            'test' => true,
+            'trial_ends_on' => '2026-10-28',
+        ]);
+
+        $this->activate($plan);
+
+        $this->assertSame($plan->id, (int) $this->shop->fresh()->plan_id);
+        $this->assertTrue((bool) Charge::where('charge_id', 1001)->sole()->test);
+    }
+
+    public function testDevelopmentStoreTestChargeStillRequiresMatchingTerms(): void
+    {
+        $plan = $this->createPlan(['name' => 'Premium', 'price' => 17]);
+        $this->shopifyCharge($plan, [
+            'name' => 'Premium',
+            'price' => '1.70',
+            'trial_days' => 0,
+            'test' => true,
+        ]);
+
+        $this->assertMismatch($plan);
+    }
+
+    public function testLiveChargeForTestPlanStillThrows(): void
+    {
+        $plan = $this->createPlan(['name' => 'Premium', 'price' => 17, 'test' => true]);
+        $this->shopifyCharge($plan, [
+            'name' => 'Premium',
+            'price' => '17.00',
+            'trial_days' => 0,
+            'test' => null,
+        ]);
+
+        $this->assertMismatch($plan);
+    }
+
     public function testPriceMismatchStillThrows(): void
     {
         $plan = $this->createPlan(['name' => 'Growth', 'price' => 49]);
