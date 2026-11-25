@@ -691,6 +691,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Iframe protection middleware groups
+    |--------------------------------------------------------------------------
+    |
+    | The middleware groups the IframeProtection middleware is added to.
+    | Use this when your Shopify routes live in their own group, so the
+    | rest of your web routes are left alone. Set it to an empty array
+    | to add the middleware to your routes yourself.
+    |
+    */
+    'iframe_protection_middleware_groups' => ['web'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Forbidden middleware groups
     |--------------------------------------------------------------------------
     |
