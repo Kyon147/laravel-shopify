@@ -207,8 +207,19 @@ class ChargeHelper
         $transfer->trialDays = $this->determineTrialDaysRemaining($plan, $shop);
         $transfer->cappedAmount = $isCapped ? $plan->capped_amount : null;
         $transfer->terms = $isCapped ? $plan->terms : null;
+        $billingRedirect = (string) Util::getShopifyConfig('billing_redirect');
+        $prefix = trim((string) Util::getShopifyConfig('prefix'), '/');
+
+        if ($prefix !== '' && !URL::isValidUrl($billingRedirect)) {
+            $trimmedRedirect = ltrim($billingRedirect, '/');
+
+            if ($trimmedRedirect !== $prefix && !str_starts_with($trimmedRedirect, $prefix.'/')) {
+                $billingRedirect = '/'.$prefix.($trimmedRedirect !== '' ? '/'.$trimmedRedirect : '');
+            }
+        }
+
         $transfer->returnUrl = URL::secure(
-            Util::getShopifyConfig('billing_redirect'),
+            $billingRedirect,
             ['plan' => $plan->getId()->toNative()]
         ).'?'.http_build_query([
             'shop' => $shop->getDomain()->toNative(),

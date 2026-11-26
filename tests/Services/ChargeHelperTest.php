@@ -169,6 +169,66 @@ class ChargeHelperTest extends TestCase
         $this->assertTrue(Str::contains($result->returnUrl, '&host='.urlencode($hostValue)));
     }
 
+    public function testDetailsIncludesPrefixInReturnUrl(): void
+    {
+        $seed = $this->seedData([], [], 'recurring');
+        $hostValue = base64_encode($seed['shop']->getDomain()->toNative().'/admin');
+
+        $this->app['config']->set('shopify-app.prefix', 'shopify-app');
+        $result = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
+
+        $this->assertSame(
+            'https://localhost/shopify-app/billing/process/'.$seed['plan']->getId()->toNative().'?'.http_build_query([
+                'shop' => $seed['shop']->getDomain()->toNative(),
+                'host' => $hostValue,
+            ]),
+            $result->returnUrl
+        );
+
+        $this->app['config']->set('shopify-app.prefix', '/shopify-app/');
+        $this->app['config']->set('shopify-app.billing_redirect', 'billing/process');
+        $resultWithSlashes = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
+
+        $this->assertSame($result->returnUrl, $resultWithSlashes->returnUrl);
+    }
+
+    public function testDetailsDoesNotDuplicatePrefixOrModifyFullBillingRedirectUrl(): void
+    {
+        $seed = $this->seedData([], [], 'recurring');
+        $hostValue = base64_encode($seed['shop']->getDomain()->toNative().'/admin');
+        $query = http_build_query([
+            'shop' => $seed['shop']->getDomain()->toNative(),
+            'host' => $hostValue,
+        ]);
+
+        // Already-prefixed billing_redirect should not be double-prefixed
+        $this->app['config']->set('shopify-app.prefix', 'shopify-app');
+        $this->app['config']->set('shopify-app.billing_redirect', '/shopify-app/billing/process');
+        $alreadyPrefixed = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
+        $this->assertSame(
+            'https://localhost/shopify-app/billing/process/'.$seed['plan']->getId()->toNative().'?'.$query,
+            $alreadyPrefixed->returnUrl
+        );
+
+        // Similar segment name should still receive the prefix
+        $this->app['config']->set('shopify-app.prefix', 'shopify');
+        $this->app['config']->set('shopify-app.billing_redirect', '/shopify-billing/process');
+        $similarSegment = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
+        $this->assertSame(
+            'https://localhost/shopify/shopify-billing/process/'.$seed['plan']->getId()->toNative().'?'.$query,
+            $similarSegment->returnUrl
+        );
+
+        // Full URL billing_redirect should not receive the prefix
+        $this->app['config']->set('shopify-app.prefix', 'shopify-app');
+        $this->app['config']->set('shopify-app.billing_redirect', 'https://billing.example.com/process');
+        $fullUrl = $this->chargeHelper->details($seed['plan'], $seed['shop'], $hostValue);
+        $this->assertSame(
+            'https://billing.example.com/process?'.$query,
+            $fullUrl->returnUrl
+        );
+    }
+
     protected function seedData($extraCharge = [], $extraPlan = [], $type = 'onetime'): array
     {
         // Create a plan
