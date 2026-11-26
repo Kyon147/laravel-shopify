@@ -63,6 +63,11 @@ class ActivatePlan
         // Shopify's stored return URL binds this charge to the original store and plan.
         // Read it with this store's credentials before activation or local billing changes.
         $response = $shop->apiHelper()->getCharge($chargeType, $chargeRef);
+        // Shopify turns every charge on a development store into a test charge, so record it as one.
+        // The reverse never happens: a live charge for a test plan is still rejected.
+        if (($response['test'] ?? null) === true) {
+            $details->test = true;
+        }
         $this->verifyCharge($response, $chargeRef, $details);
         if (!in_array($response['status'] ?? null, ['accepted', 'active'], true)) {
             throw new HttpException('Charge has not been approved.', Response::HTTP_FORBIDDEN);

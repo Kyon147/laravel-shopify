@@ -113,7 +113,7 @@ class ActivatePlanBindingTest extends TestCase
             'fractional price cannot round up' => [['price' => '9.999999999'], $mismatch],
             'missing price' => [['price' => null], $mismatch],
             'malformed price' => [['price' => ['10']], $mismatch],
-            'test charge for paid plan' => [['test' => true], $mismatch],
+            'test charge for paid plan with different terms' => [['test' => true, 'price' => '1.00'], $mismatch],
             'different name' => [['name' => 'Another plan'], $mismatch],
             'different trial' => [['trial_days' => 30], $mismatch],
             'different usage cap' => [['capped_amount' => '100'], $mismatch],
