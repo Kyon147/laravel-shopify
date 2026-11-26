@@ -186,6 +186,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Shopify API Secret (Old)
+    |--------------------------------------------------------------------------
+    |
+    | This option is for the app's previous API secret while rotating it.
+    | Shopify can keep signing requests and webhooks with the old secret
+    | during the rotation, so signatures that fail with `api_secret` are
+    | checked against this one as well. Leave it empty once the rotation
+    | is complete.
+    |
+    */
+
+    'api_secret_old' => env('SHOPIFY_API_SECRET_OLD', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Shopify API Scopes
     |--------------------------------------------------------------------------
     |

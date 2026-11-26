@@ -28,16 +28,20 @@ class AuthWebhook
         $hmac = Hmac::fromNative($request->header('x-shopify-hmac-sha256', ''));
         $shop = NullableShopDomain::fromNative($request->header('x-shopify-shop-domain'));
         $data = $request->getContent();
-        $hmacLocal = Util::createHmac(
-            [
-                'data' => $data,
-                'raw' => true,
-                'encode' => true,
-            ],
-            Util::getShopifyConfig('api_secret', $shop)
-        );
+        $valid = Util::verifyWithApiSecrets(function ($secret) use ($hmac, $data) {
+            $hmacLocal = Util::createHmac(
+                [
+                    'data' => $data,
+                    'raw' => true,
+                    'encode' => true,
+                ],
+                $secret
+            );
 
-        if (! $hmac->isSame($hmacLocal) || $shop->isNull()) {
+            return $hmac->isSame($hmacLocal);
+        }, $shop);
+
+        if (! $valid || $shop->isNull()) {
             // Issue with HMAC or missing shop header
             return Response::make('Invalid webhook signature.', HttpResponse::HTTP_UNAUTHORIZED);
         }

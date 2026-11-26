@@ -74,4 +74,40 @@ class StoreUsageChargeTest extends TestCase
 
         $this->assertFalse($validator->fails());
     }
+
+    public function testPassesWithOldSecretDuringRotation(): void
+    {
+        $data = [
+            'price' => '1.00',
+            'description' => 'Testing',
+        ];
+        $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $this->app['config']->get('shopify-app.api_secret'));
+        $data['signature'] = $signature->toNative();
+        $this->rotateApiSecret();
+
+        $storeUsage = new StoreUsageCharge([], $data);
+        $storeUsage->setMethod('POST');
+        $validator = Validator::make($data, $storeUsage->rules());
+        $storeUsage->withValidator($validator);
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function testFailsWithOldSecretWhenNotConfigured(): void
+    {
+        $data = [
+            'price' => '1.00',
+            'description' => 'Testing',
+        ];
+        $signature = Util::createHmac(['data' => $data, 'buildQuery' => true], $this->app['config']->get('shopify-app.api_secret'));
+        $data['signature'] = $signature->toNative();
+        $this->rotateApiSecret(false);
+
+        $storeUsage = new StoreUsageCharge([], $data);
+        $storeUsage->setMethod('POST');
+        $validator = Validator::make($data, $storeUsage->rules());
+        $storeUsage->withValidator($validator);
+
+        $this->assertTrue($validator->fails());
+    }
 }

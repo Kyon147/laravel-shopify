@@ -102,4 +102,44 @@ class AuthProxyTest extends TestCase
 
         $this->assertTrue($result[0]);
     }
+
+    public function testRunsWithOldSecretDuringRotation(): void
+    {
+        $this->rotateApiSecret();
+        Request::merge($this->queryParams);
+        Request::instance()->server->set('QUERY_STRING', $this->queryString);
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthProxyMiddleware::class);
+
+        $this->assertTrue($result[0]);
+    }
+
+    public function testDeniesOldSecretWhenNotConfigured(): void
+    {
+        $this->rotateApiSecret(false);
+        Request::merge($this->queryParams);
+        Request::instance()->server->set('QUERY_STRING', $this->queryString);
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthProxyMiddleware::class);
+
+        $this->assertFalse($result[0]);
+        $this->assertSame(Response::HTTP_UNAUTHORIZED, $result[1]->status());
+    }
+
+    public function testDoesNotRunForInvalidSignatureWithOldSecretConfigured(): void
+    {
+        $this->rotateApiSecret();
+        $query = $this->queryParams;
+        $query['oops'] = 'i-did-it-again';
+        Request::merge($query);
+        Request::instance()->server->set('QUERY_STRING', $this->queryString.'&oops=i-did-it-again');
+
+        // Run the middleware
+        $result = $this->runMiddleware(AuthProxyMiddleware::class);
+
+        $this->assertFalse($result[0]);
+        $this->assertSame(Response::HTTP_UNAUTHORIZED, $result[1]->status());
+    }
 }

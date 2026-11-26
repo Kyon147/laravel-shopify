@@ -423,4 +423,46 @@ class ApiHelperTest extends TestCase
 
         $this->assertFalse($this->api->make()->verifyRequest($params));
     }
+
+    public function testVerifyRequestWithOldSecretDuringRotation(): void
+    {
+        $params = $this->signedParams(['code' => 'abc123']);
+        $this->rotateApiSecret();
+
+        $this->assertTrue($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestRejectsOldSecretWhenNotConfigured(): void
+    {
+        $params = $this->signedParams(['code' => 'abc123']);
+        $this->rotateApiSecret(false);
+
+        $this->assertFalse($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestRejectsWrongHmacWithOldSecretConfigured(): void
+    {
+        $params = $this->signedParams();
+        $params['hmac'] = str_repeat('0', 64);
+        $this->rotateApiSecret();
+
+        $this->assertFalse($this->api->make()->verifyRequest($params));
+    }
+
+    public function testVerifyRequestWithArrayParamsAndOldSecret(): void
+    {
+        $params = [
+            'ids' => ['1', '2'],
+            'shop' => 'mystore.myshopify.com',
+            'timestamp' => '1337178173',
+        ];
+        ksort($params);
+        $params['hmac'] = hash_hmac('sha256', urldecode(http_build_query($params)), $this->app['config']->get('shopify-app.api_secret'));
+        $this->rotateApiSecret();
+
+        $this->assertTrue($this->api->make()->verifyRequest($params));
+
+        $this->rotateApiSecret(false);
+        $this->assertFalse($this->api->make()->verifyRequest($params));
+    }
 }

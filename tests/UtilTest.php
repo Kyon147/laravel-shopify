@@ -157,4 +157,45 @@ class UtilTest extends TestCase
             'port mismatch' => ['http://localhost:8080/foo', 'http://localhost', '/'],
         ];
     }
+
+    public function testVerifyWithApiSecrets(): void
+    {
+        $this->app['config']->set('shopify-app.api_secret', 'new-secret');
+        $checked = [];
+        $verify = function ($secret) use (&$checked) {
+            $checked[] = $secret;
+
+            return $secret === 'old-secret';
+        };
+
+        // No old secret, only the primary secret is checked
+        $this->assertFalse(Util::verifyWithApiSecrets($verify));
+        $this->assertSame(['new-secret'], $checked);
+
+        // Old secret is checked after the primary secret fails
+        $checked = [];
+        $this->app['config']->set('shopify-app.api_secret_old', 'old-secret');
+        $this->assertTrue(Util::verifyWithApiSecrets($verify));
+        $this->assertSame(['new-secret', 'old-secret'], $checked);
+
+        // Old secret is not checked when the primary secret matches
+        $checked = [];
+        $this->app['config']->set('shopify-app.api_secret', 'old-secret');
+        $this->assertTrue(Util::verifyWithApiSecrets($verify));
+        $this->assertSame(['old-secret'], $checked);
+    }
+
+    public function testVerifyWithApiSecretsUsesConfigApiCallback(): void
+    {
+        $this->app['config']->set('shopify-app.config_api_callback', function (string $key, $shop) {
+            return $shop === 'shop-a.myshopify.com' ? "{$key}-a" : Config::get("shopify-app.{$key}");
+        });
+
+        $verify = function ($secret) {
+            return $secret === 'api_secret_old-a';
+        };
+
+        $this->assertTrue(Util::verifyWithApiSecrets($verify, 'shop-a.myshopify.com'));
+        $this->assertFalse(Util::verifyWithApiSecrets($verify, 'shop-b.myshopify.com'));
+    }
 }
