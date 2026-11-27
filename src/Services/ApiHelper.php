@@ -457,6 +457,8 @@ class ApiHelper implements IApiHelper
     /**
      * {@inheritdoc}
      *
+     * @deprecated Use createCharge(), which creates every plan's charge and throws when Shopify refuses one.
+     *
      * @throws Exception
      */
     public function createChargeGraphQL(PlanDetailsTransfer $payload): ResponseAccess

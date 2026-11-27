@@ -4,7 +4,6 @@ namespace Osiset\ShopifyApp\Actions;
 
 use Osiset\ShopifyApp\Contracts\Queries\Plan as IPlanQuery;
 use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
-use Osiset\ShopifyApp\Objects\Enums\ChargeInterval;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
 use Osiset\ShopifyApp\Objects\Values\ShopId;
@@ -27,21 +26,13 @@ class GetPlanUrl
         $shop = $this->shopQuery->getById($shopId);
         $plan = $planId->isNull() ? $this->planQuery->getDefault() : $this->planQuery->getById($planId);
 
-        if ($plan->getInterval()->toNative() === ChargeInterval::ANNUAL()->toNative()) {
-            $api = $shop->apiHelper()
-                ->createChargeGraphQL($this->chargeHelper->details($plan, $shop, $host));
+        // Every plan, annual included, goes through createCharge(), which throws when Shopify refuses it
+        $api = $shop->apiHelper()
+            ->createCharge(
+                ChargeType::fromNative($plan->getType()->toNative()),
+                $this->chargeHelper->details($plan, $shop, $host)
+            );
 
-            $confirmationUrl = $api['confirmationUrl'];
-        } else {
-            $api = $shop->apiHelper()
-                ->createCharge(
-                    ChargeType::fromNative($plan->getType()->toNative()),
-                    $this->chargeHelper->details($plan, $shop, $host)
-                );
-
-            $confirmationUrl = $api['confirmation_url'];
-        }
-
-        return $confirmationUrl;
+        return $api['confirmation_url'];
     }
 }

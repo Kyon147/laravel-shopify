@@ -179,6 +179,9 @@ interface ApiHelper
     /**
      * Create a charge using GraphQL.
      *
+     * @deprecated Use createCharge(), which creates every plan's charge and throws when Shopify refuses one.
+     *             This method returns Shopify's userErrors instead of throwing.
+     *
      * @param PlanDetails $payload    The data for the charge creation.
      *
      * @return ResponseAccess
