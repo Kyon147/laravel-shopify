@@ -12,9 +12,17 @@ class Api extends BasicShopifyAPI
 {
     public static $stubFiles = [];
 
+    /**
+     * The GraphQL calls made since the responses were stubbed, as query and variables.
+     *
+     * @var array
+     */
+    public static $graphRequests = [];
+
     public static function stubResponses(array $stubFiles): void
     {
         self::$stubFiles = $stubFiles;
+        self::$graphRequests = [];
     }
 
     public function rest(string $method, string $path, array $params = null, array $headers = [], bool $sync = true): array
@@ -48,6 +56,8 @@ class Api extends BasicShopifyAPI
 
     public function graph(string $query, array $variables = [], bool $sync = true): array
     {
+        self::$graphRequests[] = ['query' => $query, 'variables' => $variables];
+
         try {
             $filename = array_shift(self::$stubFiles);
             $response = json_decode(file_get_contents(__DIR__."/../fixtures/{$filename}.json"), true);

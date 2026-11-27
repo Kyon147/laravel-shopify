@@ -85,7 +85,8 @@ class ActivatePlan
             throw new HttpException('Charge has already been applied.', Response::HTTP_FORBIDDEN);
         }
 
-        // Modern Shopify charges are already active after approval. Support legacy acceptance too.
+        // Modern Shopify charges are already active after approval. A legacy accepted charge is read
+        // back once more and only proceeds once Shopify reports it active.
         if ($response['status'] === 'accepted') {
             $response = $shop->apiHelper()->activateCharge($chargeType, $chargeRef);
             $this->verifyCharge($response, $chargeRef, $details);
@@ -105,9 +106,15 @@ class ActivatePlan
         $transfer->planDetails = $details;
 
         if ($plan->isType(PlanType::RECURRING())) {
-            $transfer->activatedOn = new Carbon($response['activated_on']);
-            $transfer->billingOn = new Carbon($response['billing_on']);
-            $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
+            // The GraphQL Admin API returns no activation or trial end date. The charge was approved
+            // just now, and the trial ends that many days later, as the REST Admin API reported it.
+            $transfer->activatedOn = isset($response['activated_on'])
+                ? new Carbon($response['activated_on'])
+                : Carbon::today();
+            $transfer->billingOn = isset($response['billing_on']) ? new Carbon($response['billing_on']) : null;
+            $transfer->trialEndsOn = isset($response['trial_ends_on'])
+                ? new Carbon($response['trial_ends_on'])
+                : $transfer->activatedOn->copy()->addDays((int) ($response['trial_days'] ?? 0));
         } else {
             $transfer->activatedOn = Carbon::today();
             $transfer->billingOn = null;

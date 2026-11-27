@@ -1,0 +1,14 @@
+{
+    "data": {
+        "appPurchaseOneTimeCreate": {
+            "userErrors": [
+                {
+                    "field": ["returnUrl"],
+                    "message": "Return url is invalid"
+                }
+            ],
+            "confirmationUrl": null,
+            "appPurchaseOneTime": null
+        }
+    }
+}

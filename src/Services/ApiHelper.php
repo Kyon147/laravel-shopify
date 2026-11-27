@@ -12,10 +12,12 @@ use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Objects\Enums\ApiMethod;
 use Osiset\ShopifyApp\Objects\Enums\AuthMode;
+use Osiset\ShopifyApp\Objects\Enums\ChargeInterval;
 use Osiset\ShopifyApp\Objects\Enums\ChargeType;
 use Osiset\ShopifyApp\Objects\Enums\DataSource;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails as PlanDetailsTransfer;
@@ -23,6 +25,7 @@ use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetails
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\NullableShopDomain;
 use Osiset\ShopifyApp\Util;
+use Throwable;
 
 /**
  * Basic helper class for API calls to Shopify.
@@ -334,10 +337,22 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     * TODO: Convert to GraphQL.
+     *
+     * A subscription is read through the GraphQL Admin API and comes back with the keys the REST
+     * Admin API used, so existing callers keep working. GraphQL has no activation, trial end or
+     * cancellation date for it, so those keys are null.
+     *
+     * Other charges are still read through the REST Admin API: GraphQL has no return URL for a
+     * one-time purchase, and ActivatePlan binds a charge to its plan through that URL.
+     *
+     * @throws Exception
      */
     public function getCharge(ChargeType $chargeType, ChargeReference $chargeRef): ResponseAccess
     {
+        if ($chargeType->isSame(ChargeType::RECURRING())) {
+            return new ResponseAccess($this->chargeFromNode($this->getSubscriptionNode($chargeRef)));
+        }
+
         // API path
         $typeString = $this->chargeApiPath($chargeType);
 
@@ -352,95 +367,103 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     * TODO: Convert to GraphQL.
+     *
+     * Shopify activates a charge as soon as the merchant approves it (API version 2021-01 and later),
+     * and the GraphQL Admin API has no activation mutation, so this only reads the charge back.
+     *
+     * @throws Exception
      */
     public function activateCharge(ChargeType $chargeType, ChargeReference $chargeRef): ResponseAccess
     {
-        // API path
-        $typeString = $this->chargeApiPath($chargeType);
-
-        // Fire the request
-        $response = $this->doRequest(
-            ApiMethod::POST(),
-            "/admin/{$typeString}s/{$chargeRef->toNative()}/activate.json"
-        );
-
-        return $response['body'][$typeString];
-    }
-
-    /**
-     * {@inheritdoc}
-     * TODO: Convert to GraphQL (merge createChargeGraphQL).
-     */
-    public function createCharge(ChargeType $chargeType, PlanDetailsTransfer $payload): ResponseAccess
-    {
-        // API path
-        $typeString = $this->chargeApiPath($chargeType);
-
-        // Fire the request
-        $response = $this->doRequest(
-            ApiMethod::POST(),
-            "/admin/{$typeString}s.json",
-            [$typeString => $payload->toArray()]
-        );
-
-        return $response['body'][$typeString];
+        return $this->getCharge($chargeType, $chargeRef);
     }
 
     /**
      * {@inheritdoc}
      *
+     * Recurring charges use appSubscriptionCreate and one-time charges use appPurchaseOneTimeCreate.
+     * The result has the keys the REST Admin API returned: the charge details sent, plus `id`,
+     * `status` and `confirmation_url`.
+     *
+     * @throws Exception
+     */
+    public function createCharge(ChargeType $chargeType, PlanDetailsTransfer $payload): ResponseAccess
+    {
+        if ($chargeType->isSame(ChargeType::RECURRING())) {
+            $lineItems = [$this->recurringLineItem($payload)];
+            // Shopify bills usage only on 30-day subscriptions
+            if ($payload->cappedAmount > 0 && $payload->interval !== ChargeInterval::ANNUAL()->toNative()) {
+                $lineItems[] = [
+                    'plan' => [
+                        'appUsagePricingDetails' => [
+                            'cappedAmount' => $this->money($payload->cappedAmount),
+                            'terms' => (string) $payload->terms,
+                        ],
+                    ],
+                ];
+            }
+
+            $mutation = 'appSubscriptionCreate';
+            $chargeField = 'appSubscription';
+            $response = $this->requestAppSubscriptionCreate($payload, $lineItems);
+        } elseif ($chargeType->isSame(ChargeType::CHARGE())) {
+            $query = '
+            mutation appPurchaseOneTimeCreate(
+                $name: String!,
+                $price: MoneyInput!,
+                $returnUrl: URL!,
+                $test: Boolean
+            ) {
+                appPurchaseOneTimeCreate(
+                    name: $name,
+                    price: $price,
+                    returnUrl: $returnUrl,
+                    test: $test
+                ) {
+                    appPurchaseOneTime {
+                        id
+                        status
+                    }
+                    confirmationUrl
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+            ';
+
+            $mutation = 'appPurchaseOneTimeCreate';
+            $chargeField = 'appPurchaseOneTime';
+            $response = $this->doRequestGraphQL($query, [
+                'name' => $payload->name,
+                'price' => $this->money($payload->price),
+                'returnUrl' => $payload->returnUrl,
+                'test' => $payload->test,
+            ]);
+        } else {
+            throw new ApiException('Only recurring and one-time charges can be created.');
+        }
+
+        $this->throwOnUserErrors($response['body'], $mutation);
+
+        return new ResponseAccess(array_merge($payload->toArray(), [
+            'id' => $this->idFromGid((string) data_get($response['body'], "data.{$mutation}.{$chargeField}.id")),
+            'status' => strtolower((string) data_get($response['body'], "data.{$mutation}.{$chargeField}.status")),
+            'confirmation_url' => data_get($response['body'], "data.{$mutation}.confirmationUrl"),
+        ]));
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @deprecated Use createCharge(), which creates every plan's charge and throws when Shopify refuses one.
+     *
      * @throws Exception
      */
     public function createChargeGraphQL(PlanDetailsTransfer $payload): ResponseAccess
     {
-        $query = '
-        mutation appSubscriptionCreate(
-            $name: String!,
-            $returnUrl: URL!,
-            $trialDays: Int,
-            $test: Boolean,
-            $lineItems: [AppSubscriptionLineItemInput!]!
-        ) {
-            appSubscriptionCreate(
-                name: $name,
-                returnUrl: $returnUrl,
-                trialDays: $trialDays,
-                test: $test,
-                lineItems: $lineItems
-            ) {
-                appSubscription {
-                    id
-                }
-                confirmationUrl
-                userErrors {
-                    field
-                    message
-                }
-            }
-        }
-        ';
-        $variables = [
-            'name' => $payload->name,
-            'returnUrl' => $payload->returnUrl,
-            'trialDays' => $payload->trialDays,
-            'test' => $payload->test,
-            'lineItems' => [
-                [
-                    'plan' => [
-                        'appRecurringPricingDetails' => [
-                            'price' => [
-                                'amount' => $payload->price,
-                                'currencyCode' => 'USD',
-                            ],
-                            'interval' => $payload->interval,
-                        ],
-                    ],
-                ],
-            ],
-        ];
-
-        $response = $this->doRequestGraphQL($query, $variables);
+        $response = $this->requestAppSubscriptionCreate($payload, [$this->recurringLineItem($payload)]);
 
         return $response['body']['data']['appSubscriptionCreate'];
     }
@@ -561,24 +584,283 @@ class ApiHelper implements IApiHelper
 
     /**
      * {@inheritdoc}
-     * TODO: Convert to GraphQL.
+     *
+     * A usage record belongs to the subscription's usage line item, so the subscription is read first.
+     *
+     * @throws Exception
      */
     public function createUsageCharge(UsageChargeDetailsTransfer $payload)
     {
-        // Fire the request
-        $response = $this->doRequest(
-            ApiMethod::POST(),
-            "/admin/recurring_application_charges/{$payload->chargeReference->toNative()}/usage_charges.json",
-            [
-                'usage_charge' => [
-                    'price' => $payload->price,
-                    'description' => $payload->description,
-                ],
-            ]
+        $subscription = $this->getSubscriptionNode($payload->chargeReference);
+        $usageLineItem = Arr::first(
+            (array) ($subscription['lineItems'] ?? []),
+            static fn ($lineItem): bool => data_get($lineItem, 'plan.pricingDetails.__typename') === 'AppUsagePricing'
         );
+        if ($usageLineItem === null) {
+            throw new ApiException('The subscription has no usage pricing to charge against.');
+        }
 
-        return isset($response['body']) && isset($response['body']['usage_charge'])
-            ? $response['body']['usage_charge'] : false;
+        $query = '
+        mutation appUsageRecordCreate(
+            $subscriptionLineItemId: ID!,
+            $price: MoneyInput!,
+            $description: String!
+        ) {
+            appUsageRecordCreate(
+                subscriptionLineItemId: $subscriptionLineItemId,
+                price: $price,
+                description: $description
+            ) {
+                appUsageRecord {
+                    id
+                    createdAt
+                    subscriptionLineItem {
+                        plan {
+                            pricingDetails {
+                                ... on AppUsagePricing {
+                                    balanceUsed {
+                                        amount
+                                    }
+                                    cappedAmount {
+                                        amount
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                userErrors {
+                    field
+                    message
+                }
+            }
+        }
+        ';
+
+        $response = $this->doRequestGraphQL($query, [
+            'subscriptionLineItemId' => $usageLineItem['id'],
+            'price' => $this->money(
+                $payload->price,
+                data_get($usageLineItem, 'plan.pricingDetails.cappedAmount.currencyCode', 'USD')
+            ),
+            'description' => $payload->description,
+        ]);
+        $this->throwOnUserErrors($response['body'], 'appUsageRecordCreate');
+
+        $record = data_get($response['body'], 'data.appUsageRecordCreate.appUsageRecord');
+        if (data_get($record, 'id') === null) {
+            return false;
+        }
+
+        // The usage balance after this record, as the REST Admin API returned it
+        $usage = data_get($record, 'subscriptionLineItem.plan.pricingDetails');
+        $balanceUsed = data_get($usage, 'balanceUsed.amount');
+        $cappedAmount = data_get($usage, 'cappedAmount.amount');
+
+        return new ResponseAccess([
+            'id' => $this->idFromGid((string) data_get($record, 'id')),
+            'description' => $payload->description,
+            'price' => $payload->price,
+            'created_at' => data_get($record, 'createdAt'),
+            'balance_used' => is_numeric($balanceUsed) ? (float) $balanceUsed : null,
+            'balance_remaining' => is_numeric($balanceUsed) && is_numeric($cappedAmount)
+                ? round((float) $cappedAmount - (float) $balanceUsed, 2)
+                : null,
+        ]);
+    }
+
+    /**
+     * Read a subscription through the GraphQL Admin API.
+     *
+     * Shopify returns the node only to the app and store it belongs to.
+     *
+     * @param ChargeReference $chargeRef The subscription's charge ID.
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    protected function getSubscriptionNode(ChargeReference $chargeRef): array
+    {
+        $query = '
+        query appSubscription($id: ID!) {
+            node(id: $id) {
+                __typename
+                id
+                ... on AppSubscription {
+                    name
+                    returnUrl
+                    status
+                    test
+                    trialDays
+                    createdAt
+                    currentPeriodEnd
+                    lineItems {
+                        id
+                        plan {
+                            pricingDetails {
+                                __typename
+                                ... on AppRecurringPricing {
+                                    interval
+                                    price {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                                ... on AppUsagePricing {
+                                    terms
+                                    cappedAmount {
+                                        amount
+                                        currencyCode
+                                    }
+                                    balanceUsed {
+                                        amount
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ';
+
+        $id = "gid://shopify/AppSubscription/{$chargeRef->toNative()}";
+        $response = $this->doRequestGraphQL($query, ['id' => $id]);
+        $node = data_get($response['body'], 'data.node');
+        if ($node === null || data_get($node, '__typename') !== 'AppSubscription') {
+            throw new ApiException("Charge {$id} was not found.");
+        }
+
+        return $node instanceof ResponseAccess ? $node->toArray() : (array) $node;
+    }
+
+    /**
+     * Turn a subscription node into the keys the REST Admin API used for the same charge.
+     *
+     * @param array $node The node from getSubscriptionNode().
+     *
+     * @return array
+     */
+    protected function chargeFromNode(array $node): array
+    {
+        $charge = [
+            'id' => $this->idFromGid((string) ($node['id'] ?? '')),
+            'name' => $node['name'] ?? null,
+            'status' => strtolower((string) ($node['status'] ?? '')),
+            'test' => $node['test'] ?? null,
+            'trial_days' => $node['trialDays'] ?? null,
+            'return_url' => $node['returnUrl'] ?? null,
+            'created_at' => $node['createdAt'] ?? null,
+            'billing_on' => $node['currentPeriodEnd'] ?? null,
+            // Not in the GraphQL Admin API
+            'activated_on' => null,
+            'trial_ends_on' => null,
+            'cancelled_on' => null,
+        ];
+
+        foreach ((array) ($node['lineItems'] ?? []) as $lineItem) {
+            $pricing = data_get($lineItem, 'plan.pricingDetails', []);
+            if (data_get($pricing, '__typename') === 'AppRecurringPricing') {
+                $charge['price'] = data_get($pricing, 'price.amount');
+                $charge['currency'] = data_get($pricing, 'price.currencyCode');
+            } elseif (data_get($pricing, '__typename') === 'AppUsagePricing') {
+                $cappedAmount = data_get($pricing, 'cappedAmount.amount');
+                $balanceUsed = data_get($pricing, 'balanceUsed.amount');
+                $charge['capped_amount'] = $cappedAmount;
+                $charge['terms'] = data_get($pricing, 'terms');
+                $charge['balance_used'] = is_numeric($balanceUsed) ? (float) $balanceUsed : null;
+                $charge['balance_remaining'] = is_numeric($balanceUsed) && is_numeric($cappedAmount)
+                    ? round((float) $cappedAmount - (float) $balanceUsed, 2)
+                    : null;
+            }
+        }
+
+        return $charge;
+    }
+
+    /**
+     * Send appSubscriptionCreate for a plan.
+     *
+     * @param PlanDetailsTransfer $payload   The plan details.
+     * @param array               $lineItems The subscription's line items.
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    protected function requestAppSubscriptionCreate(PlanDetailsTransfer $payload, array $lineItems): array
+    {
+        $query = '
+        mutation appSubscriptionCreate(
+            $name: String!,
+            $returnUrl: URL!,
+            $trialDays: Int,
+            $test: Boolean,
+            $lineItems: [AppSubscriptionLineItemInput!]!
+        ) {
+            appSubscriptionCreate(
+                name: $name,
+                returnUrl: $returnUrl,
+                trialDays: $trialDays,
+                test: $test,
+                lineItems: $lineItems
+            ) {
+                appSubscription {
+                    id
+                    status
+                }
+                confirmationUrl
+                userErrors {
+                    field
+                    message
+                }
+            }
+        }
+        ';
+
+        return $this->doRequestGraphQL($query, [
+            'name' => $payload->name,
+            'returnUrl' => $payload->returnUrl,
+            'trialDays' => $payload->trialDays,
+            'test' => $payload->test,
+            'lineItems' => $lineItems,
+        ]);
+    }
+
+    /**
+     * The recurring line item of a plan's subscription.
+     *
+     * @param PlanDetailsTransfer $payload The plan details.
+     *
+     * @return array
+     */
+    protected function recurringLineItem(PlanDetailsTransfer $payload): array
+    {
+        return [
+            'plan' => [
+                'appRecurringPricingDetails' => [
+                    'price' => $this->money($payload->price),
+                    'interval' => $payload->interval ?? ChargeInterval::EVERY_30_DAYS()->toNative(),
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * A MoneyInput value.
+     *
+     * @param mixed  $amount       The amount.
+     * @param string $currencyCode The currency, USD unless the charge already has one.
+     *
+     * @return array
+     */
+    protected function money($amount, string $currencyCode = 'USD'): array
+    {
+        return [
+            'amount' => $amount,
+            'currencyCode' => $currencyCode,
+        ];
     }
 
     /**
@@ -600,6 +882,18 @@ class ApiHelper implements IApiHelper
         }
 
         return sprintf($format, strtolower($chargeType->toNative()));
+    }
+
+    /**
+     * The numeric ID at the end of a GraphQL ID, which is the ID the REST Admin API used.
+     *
+     * @param string $gid The GraphQL ID, for example gid://shopify/AppSubscription/1029266947.
+     *
+     * @return int
+     */
+    protected function idFromGid(string $gid): int
+    {
+        return (int) Str::afterLast(Str::before($gid, '?'), '/');
     }
 
     /**
@@ -688,14 +982,40 @@ class ApiHelper implements IApiHelper
     {
         $response = $this->api->graph($query, $payload);
         if ($response['errors'] !== false) {
-            $message = is_array($response['errors'])
-                ? $response['errors'][0]['message'] : $response['errors'];
+            // A failed request (network or HTTP status) sets `errors` to true and puts Shopify's errors in the body
+            $errors = $response['errors'] === true ? ($response['body'] ?? null) : $response['errors'];
+            $previous = ($response['exception'] ?? null) instanceof Throwable ? $response['exception'] : null;
 
             // Request error somewhere, throw the exception
-            throw new Exception($message);
+            throw new ApiException($this->graphErrorMessage($errors, $previous), 0, $previous);
         }
 
         return $response;
+    }
+
+    /**
+     * The first error message from a failed GraphQL request.
+     *
+     * @param mixed          $errors   Shopify's errors: a list of errors, a message, or nothing.
+     * @param Throwable|null $previous The request's exception, if any.
+     *
+     * @return string
+     */
+    protected function graphErrorMessage($errors, ?Throwable $previous): string
+    {
+        if ($errors instanceof ResponseAccess) {
+            $errors = $errors->toArray();
+        }
+
+        if (is_array($errors) && isset($errors[0]['message']) && is_string($errors[0]['message'])) {
+            return $errors[0]['message'];
+        }
+
+        if (is_string($errors) && $errors !== '') {
+            return $errors;
+        }
+
+        return $previous !== null && $previous->getMessage() !== '' ? $previous->getMessage() : 'Unknown error';
     }
 
     /**

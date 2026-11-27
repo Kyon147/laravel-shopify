@@ -7,6 +7,7 @@ use Gnikyt\BasicShopifyAPI\BasicShopifyAPI;
 use Gnikyt\BasicShopifyAPI\ResponseAccess;
 use Gnikyt\BasicShopifyAPI\Session;
 use Illuminate\Support\Arr;
+use Mockery;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Contracts\ShopModel as IShopModel;
 use Osiset\ShopifyApp\Exceptions\ApiException;
@@ -16,6 +17,7 @@ use Osiset\ShopifyApp\Objects\Enums\PlanInterval;
 use Osiset\ShopifyApp\Objects\Transfers\PlanDetails as PlanDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Transfers\UsageChargeDetails as UsageChargeDetailsTransfer;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
+use Osiset\ShopifyApp\Services\ApiHelper;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 use Osiset\ShopifyApp\Util;
@@ -133,10 +135,68 @@ class ApiHelperTest extends TestCase
         $this->setApiStub();
         ApiStub::stubResponses(['get_application_charge']);
 
+        // A one-time charge is read over REST, the only API that returns its return URL
         $data = $shop->apiHelper()->getCharge(ChargeType::CHARGE(), ChargeReference::fromNative(1234));
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('iPod Cleaning', $data->name);
         $this->assertSame('accepted', $data['status']);
+        $this->assertSame('http://google.com', $data['return_url']);
+        $this->assertSame([], ApiStub::$graphRequests);
+    }
+
+    public function testGetRecurringCharge(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_node']);
+
+        $data = $shop->apiHelper()->getCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1029266947));
+        $this->assertSame(
+            [
+                'id' => 1029266947,
+                'name' => 'Super Mega Plan',
+                'status' => 'active',
+                'test' => false,
+                'trial_days' => 7,
+                'return_url' => 'https://example-app.com/billing/process/1?shop=example.myshopify.com',
+                'created_at' => '2026-11-16T10:00:00Z',
+                'billing_on' => '2026-12-23T10:00:00Z',
+                'activated_on' => null,
+                'trial_ends_on' => null,
+                'cancelled_on' => null,
+                'price' => '15.0',
+                'currency' => 'USD',
+                'capped_amount' => '100.0',
+                'terms' => 'One email',
+                'balance_used' => 11.0,
+                'balance_remaining' => 89.0,
+            ],
+            $data->toArray()
+        );
+        // REST-era callers reading these keys directly get null instead of an error
+        $this->assertNull($data['activated_on']);
+        $this->assertSame(
+            'gid://shopify/AppSubscription/1029266947',
+            ApiStub::$graphRequests[0]['variables']['id']
+        );
+    }
+
+    public function testGetChargeThatDoesNotExistThrows(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Charge gid://shopify/AppSubscription/1 was not found.');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_node_not_found']);
+
+        $shop->apiHelper()->getCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1));
     }
 
     public function testActivateCharge(): void
@@ -146,11 +206,53 @@ class ApiHelperTest extends TestCase
 
         // Response stubbing
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges_activate']);
+        ApiStub::stubResponses(['graphql_app_subscription_node']);
 
-        $data = $shop->apiHelper()->activateCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1234));
+        $data = $shop->apiHelper()->activateCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1029266947));
         $this->assertInstanceOf(ResponseAccess::class, $data);
         $this->assertSame('Super Mega Plan', $data['name']);
+        $this->assertSame('active', $data['status']);
+        // Only a read: the GraphQL Admin API has no activation mutation
+        $this->assertCount(1, ApiStub::$graphRequests);
+        $this->assertStringContainsString('query appSubscription', ApiStub::$graphRequests[0]['query']);
+    }
+
+    public function testGraphQLRequestFailureThrowsApiExceptionWithTheCause(): void
+    {
+        $cause = new Exception('cURL error 28: Operation timed out');
+        $api = Mockery::mock(BasicShopifyAPI::class);
+        $api->shouldReceive('graph')->once()->andReturn([
+            'errors' => true,
+            'response' => null,
+            'status' => null,
+            'body' => null,
+            'exception' => $cause,
+        ]);
+
+        try {
+            (new ApiHelper())->setApi($api)->getCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1));
+            $this->fail('A failed GraphQL request must throw.');
+        } catch (ApiException $exception) {
+            $this->assertSame('cURL error 28: Operation timed out', $exception->getMessage());
+            $this->assertSame($cause, $exception->getPrevious());
+        }
+    }
+
+    public function testGraphQLRequestFailureUsesShopifysErrorMessage(): void
+    {
+        $api = Mockery::mock(BasicShopifyAPI::class);
+        $api->shouldReceive('graph')->once()->andReturn([
+            'errors' => true,
+            'response' => null,
+            'status' => 429,
+            'body' => [['message' => 'Throttled']],
+            'exception' => new Exception('Client error: 429 Too Many Requests'),
+        ]);
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Throttled');
+
+        (new ApiHelper())->setApi($api)->getCharge(ChargeType::RECURRING(), ChargeReference::fromNative(1));
     }
 
     public function testCreateCharge(): void
@@ -160,7 +262,7 @@ class ApiHelperTest extends TestCase
 
         // Response stubbing
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
 
         // Build the details object
         $transfer = new PlanDetailsTransfer();
@@ -169,13 +271,148 @@ class ApiHelperTest extends TestCase
         $transfer->interval = PlanInterval::EVERY_30_DAYS()->toNative();
         $transfer->test = true;
         $transfer->trialDays = 7;
+        $transfer->cappedAmount = 100.00;
+        $transfer->terms = 'One email';
+        $transfer->returnUrl = 'https://example-app.com/billing/process/1';
 
         $data = $shop->apiHelper()->createCharge(
             ChargeType::RECURRING(),
             $transfer
         );
         $this->assertInstanceOf(ResponseAccess::class, $data);
-        $this->assertSame('Basic Plan', $data['name']);
+        $this->assertSame(4019552312, $data['id']);
+        $this->assertSame('pending', $data['status']);
+        $this->assertSame('Test', $data['name']);
+        $this->assertStringContainsString('/admin/charges/4019552312/', $data['confirmation_url']);
+
+        $this->assertStringContainsString('mutation appSubscriptionCreate', ApiStub::$graphRequests[0]['query']);
+        $this->assertSame(
+            [
+                'name' => 'Test',
+                'returnUrl' => 'https://example-app.com/billing/process/1',
+                'trialDays' => 7,
+                'test' => true,
+                'lineItems' => [
+                    ['plan' => ['appRecurringPricingDetails' => [
+                        'price' => ['amount' => 12.00, 'currencyCode' => 'USD'],
+                        'interval' => 'EVERY_30_DAYS',
+                    ]]],
+                    ['plan' => ['appUsagePricingDetails' => [
+                        'cappedAmount' => ['amount' => 100.00, 'currencyCode' => 'USD'],
+                        'terms' => 'One email',
+                    ]]],
+                ],
+            ],
+            ApiStub::$graphRequests[0]['variables']
+        );
+    }
+
+    public function testCreateAnnualChargeHasNoUsagePricing(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
+
+        // Build the details object
+        $transfer = new PlanDetailsTransfer();
+        $transfer->name = 'Test';
+        $transfer->price = 120.00;
+        $transfer->interval = PlanInterval::ANNUAL()->toNative();
+        $transfer->test = false;
+        $transfer->trialDays = 0;
+        $transfer->cappedAmount = 100.00;
+        $transfer->terms = 'One email';
+        $transfer->returnUrl = 'https://example-app.com/billing/process/1';
+
+        $shop->apiHelper()->createCharge(ChargeType::RECURRING(), $transfer);
+
+        $this->assertSame(
+            [['plan' => ['appRecurringPricingDetails' => [
+                'price' => ['amount' => 120.00, 'currencyCode' => 'USD'],
+                'interval' => 'ANNUAL',
+            ]]]],
+            ApiStub::$graphRequests[0]['variables']['lineItems']
+        );
+    }
+
+    public function testCreateOneTimeCharge(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_purchase_one_time_create']);
+
+        // Build the details object
+        $transfer = new PlanDetailsTransfer();
+        $transfer->name = 'Test';
+        $transfer->price = 25.00;
+        $transfer->test = false;
+        $transfer->returnUrl = 'https://example-app.com/billing/process/2';
+
+        $data = $shop->apiHelper()->createCharge(ChargeType::CHARGE(), $transfer);
+        $this->assertSame(1017262351, $data['id']);
+        $this->assertStringContainsString('/admin/charges/1017262351/', $data['confirmation_url']);
+
+        $this->assertStringContainsString('mutation appPurchaseOneTimeCreate', ApiStub::$graphRequests[0]['query']);
+        $this->assertSame(
+            [
+                'name' => 'Test',
+                'price' => ['amount' => 25.00, 'currencyCode' => 'USD'],
+                'returnUrl' => 'https://example-app.com/billing/process/2',
+                'test' => false,
+            ],
+            ApiStub::$graphRequests[0]['variables']
+        );
+    }
+
+    public function testCreateChargeThrowsWhenShopifyRefusesIt(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('appSubscriptionCreate failed: returnUrl: Return url is invalid');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_create_user_errors']);
+
+        // Build the details object
+        $transfer = new PlanDetailsTransfer();
+        $transfer->name = 'Test';
+        $transfer->price = 12.00;
+        $transfer->interval = PlanInterval::EVERY_30_DAYS()->toNative();
+        $transfer->test = true;
+        $transfer->returnUrl = 'not-a-url';
+
+        $shop->apiHelper()->createCharge(ChargeType::RECURRING(), $transfer);
+    }
+
+    public function testCreateChargeGraphQLKeepsItsPayload(): void
+    {
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_create']);
+
+        // Build the details object
+        $transfer = new PlanDetailsTransfer();
+        $transfer->name = 'Test';
+        $transfer->price = 120.00;
+        $transfer->interval = PlanInterval::ANNUAL()->toNative();
+        $transfer->test = false;
+        $transfer->returnUrl = 'https://example-app.com/billing/process/1';
+
+        $data = $shop->apiHelper()->createChargeGraphQL($transfer);
+        $this->assertSame('gid://shopify/AppSubscription/4019552312', $data['appSubscription']['id']);
+        $this->assertStringContainsString('/admin/charges/4019552312/', $data['confirmationUrl']);
     }
 
     public function testGetWebhooks(): void
@@ -279,15 +516,73 @@ class ApiHelperTest extends TestCase
 
         // Response stubbing
         $this->setApiStub();
-        ApiStub::stubResponses(['post_recurring_application_charges_usage_charges']);
+        ApiStub::stubResponses(['graphql_app_subscription_node', 'graphql_app_usage_record_create']);
 
         $transfer = new UsageChargeDetailsTransfer();
-        $transfer->chargeReference = ChargeReference::fromNative(1);
+        $transfer->chargeReference = ChargeReference::fromNative(1029266947);
         $transfer->price = 12.00;
         $transfer->description = 'Hello!';
 
         $data = $shop->apiHelper()->createUsageCharge($transfer);
         $this->assertInstanceOf(ResponseAccess::class, $data);
+        $this->assertSame(1034618208, $data['id']);
+        $this->assertSame(23.0, $data['balance_used']);
+        $this->assertSame(77.0, $data['balance_remaining']);
+
+        // The record belongs to the subscription's usage line item, in the cap's currency
+        $this->assertSame(
+            'gid://shopify/AppSubscription/1029266947',
+            ApiStub::$graphRequests[0]['variables']['id']
+        );
+        $this->assertStringContainsString('mutation appUsageRecordCreate', ApiStub::$graphRequests[1]['query']);
+        $this->assertSame(
+            [
+                'subscriptionLineItemId' => 'gid://shopify/AppSubscriptionLineItem/1029266947?v=1&index=1',
+                'price' => ['amount' => 12.00, 'currencyCode' => 'USD'],
+                'description' => 'Hello!',
+            ],
+            ApiStub::$graphRequests[1]['variables']
+        );
+    }
+
+    public function testCreateUsageChargeThrowsWhenShopifyRefusesIt(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('appUsageRecordCreate failed: price: Total price exceeds balance remaining');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_node', 'graphql_app_usage_record_create_user_errors']);
+
+        $transfer = new UsageChargeDetailsTransfer();
+        $transfer->chargeReference = ChargeReference::fromNative(1029266947);
+        $transfer->price = 500.00;
+        $transfer->description = 'Hello!';
+
+        $shop->apiHelper()->createUsageCharge($transfer);
+    }
+
+    public function testCreateUsageChargeWithoutUsagePricingThrows(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('The subscription has no usage pricing to charge against.');
+
+        // Create a shop
+        $shop = factory($this->model)->create();
+
+        // Response stubbing
+        $this->setApiStub();
+        ApiStub::stubResponses(['graphql_app_subscription_node_without_usage']);
+
+        $transfer = new UsageChargeDetailsTransfer();
+        $transfer->chargeReference = ChargeReference::fromNative(1029266948);
+        $transfer->price = 1.00;
+        $transfer->description = 'Hello!';
+
+        $shop->apiHelper()->createUsageCharge($transfer);
     }
 
     public function testErrors(): void
