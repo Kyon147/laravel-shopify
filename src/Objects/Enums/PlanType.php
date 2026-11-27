@@ -2,30 +2,21 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * API types for plans.
  *
- * @method static PlanType RECURRING()
- * @method static PlanType ONETIME()
+ * Backing values are the names the package has always stored.
  */
-final class PlanType implements ValueObject
+enum PlanType: string
 {
-    use EnumTrait;
+    case Recurring = 'RECURRING';
+    case OneTime = 'ONETIME';
 
     /**
-     * Plan: Recurring.
-     *
-     * @var int
+     * Create from a stored or API value, ignoring case.
      */
-    public const RECURRING = 0;
-
-    /**
-     * Plan: One-time.
-     *
-     * @var int
-     */
-    public const ONETIME = 1;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

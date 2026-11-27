@@ -133,10 +133,8 @@ final class SessionToken implements SessionTokenValue
 
     /**
      * Shopify has multiple session tokens, slightly differing in format.
-     *
-     * @var string
      */
-    protected $tokenSource = SessionTokenSource::APP;
+    protected SessionTokenSource $tokenSource = SessionTokenSource::App;
 
     /**
      * Constructor.
@@ -186,7 +184,7 @@ final class SessionToken implements SessionTokenValue
             $body['nbf'],
             $body['iat'],
             $body['jti'],
-            ... $this->tokenSource === SessionTokenSource::APP
+            ... $this->tokenSource === SessionTokenSource::App
                 ? [
                     $body['iss'] ?? '',
                     $body['sub'] ?? '',
@@ -372,7 +370,7 @@ final class SessionToken implements SessionTokenValue
      */
     protected function verifyValidity(): void
     {
-        if ($this->tokenSource === SessionTokenSource::APP) {
+        if ($this->tokenSource === SessionTokenSource::App) {
             Assert::that($this->iss)->contains($this->dest, self::EXCEPTION_INVALID);
         }
 
@@ -396,13 +394,13 @@ final class SessionToken implements SessionTokenValue
         ])->false(self::EXCEPTION_EXPIRED);
     }
 
-    protected function determineTokenSource(array $body): int
+    protected function determineTokenSource(array $body): SessionTokenSource
     {
-        if (!isset($body['sid'])) {
-            return SessionTokenSource::CHECKOUT_EXTENSION;
+        if (! isset($body['sid'])) {
+            return SessionTokenSource::CheckoutExtension;
         }
 
-        return SessionTokenSource::APP;
+        return SessionTokenSource::App;
     }
 
     protected function findHost(string $destination): ?string

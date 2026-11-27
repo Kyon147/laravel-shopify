@@ -4,10 +4,15 @@ namespace Osiset\ShopifyApp\Test\Actions;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
+use Osiset\ShopifyApp\Actions\AfterAuthorize;
 use Osiset\ShopifyApp\Actions\AuthenticateShop;
+use Osiset\ShopifyApp\Actions\DispatchScripts;
 use Osiset\ShopifyApp\Actions\DispatchWebhooks;
+use Osiset\ShopifyApp\Actions\InstallShop;
 use Osiset\ShopifyApp\Exceptions\ApiException;
 use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
+use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
+use Osiset\ShopifyApp\Objects\Values\ShopId;
 use Osiset\ShopifyApp\Test\Stubs\Api as ApiStub;
 use Osiset\ShopifyApp\Test\TestCase;
 
@@ -173,6 +178,51 @@ class AuthenticateShopTest extends TestCase
 
         $this->assertTrue($status);
         Event::assertDispatched(AppInstalledEvent::class);
+    }
+
+    /**
+     * A published config may list the levels as enum cases (as the shipped config did before
+     * native enums) or as their integer values. Both must still dispatch the script tags.
+     *
+     * @dataProvider unacceptableLevelsProvider
+     */
+    public function testDispatchesScriptsForUnacceptableThemeLevel(array $unacceptableLevels): void
+    {
+        Event::fake();
+        $this->app['config']->set('shopify-app.theme_support.unacceptable_levels', $unacceptableLevels);
+
+        $this->mock(InstallShop::class, function ($mock) {
+            $mock->shouldReceive('__invoke')->once()->andReturn([
+                'completed' => true,
+                'url' => null,
+                'shop_id' => ShopId::fromNative(1),
+                'theme_support_level' => ThemeSupportLevel::Unsupported->value,
+            ]);
+        });
+        $this->mock(DispatchScripts::class, function ($mock) {
+            $mock->shouldReceive('__invoke')->once();
+        });
+        $this->mock(DispatchWebhooks::class, function ($mock) {
+            $mock->shouldReceive('__invoke')->once();
+        });
+        $this->mock(AfterAuthorize::class, function ($mock) {
+            $mock->shouldReceive('__invoke')->once();
+        });
+        $this->action = $this->app->make(AuthenticateShop::class);
+
+        $request = Request::instance()->duplicate(['shop' => 'mystore123.myshopify.com']);
+
+        [, $status] = call_user_func($this->action, $request);
+
+        $this->assertTrue($status);
+    }
+
+    public static function unacceptableLevelsProvider(): array
+    {
+        return [
+            'enum case' => [[ThemeSupportLevel::Unsupported]],
+            'integer value' => [[ThemeSupportLevel::Unsupported->value]],
+        ];
     }
 
     public function testManagedAppInstall(): void

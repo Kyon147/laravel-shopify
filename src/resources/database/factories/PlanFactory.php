@@ -37,14 +37,14 @@ $factory->state($planModel, 'installable', [
 ]);
 
 $factory->state($planModel, 'type_recurring', [
-    'type' => PlanType::RECURRING()->toNative(),
-    'interval' => PlanInterval::EVERY_30_DAYS()->toNative(),
+    'type' => PlanType::Recurring->value,
+    'interval' => PlanInterval::Every30Days->value,
 ]);
 
 $factory->state($planModel, 'type_onetime', [
-    'type' => PlanType::ONETIME()->toNative(),
+    'type' => PlanType::OneTime->value,
 ]);
 
 $factory->state($planModel, 'interval_annual', [
-    'interval' => PlanInterval::ANNUAL()->toNative(),
+    'interval' => PlanInterval::Annual->value,
 ]);

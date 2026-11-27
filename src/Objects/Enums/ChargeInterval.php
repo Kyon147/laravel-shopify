@@ -2,30 +2,21 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * Charge interval with annual support.
  *
- * @method static ChargeInterval EVERY_30_DAYS()
- * @method static ChargeInterval ANNUAL()
+ * Backing values are the names the package has always stored.
  */
-class ChargeInterval implements ValueObject
+enum ChargeInterval: string
 {
-    use EnumTrait;
+    case Every30Days = 'EVERY_30_DAYS';
+    case Annual = 'ANNUAL';
 
     /**
-     * Interval: Monthly.
-     *
-     * @var int
+     * Create from a stored or API value, ignoring case.
      */
-    public const EVERY_30_DAYS = 1;
-
-    /**
-     * Interval: Annual.
-     *
-     * @var int
-     */
-    public const ANNUAL = 2;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

@@ -49,10 +49,10 @@ class ActivatePlan
             throw new HttpException('Shop or plan is unavailable.', Response::HTTP_FORBIDDEN);
         }
 
-        $chargeType = ChargeType::fromNative($plan->getType()->toNative());
+        $chargeType = ChargeType::fromNative($plan->getType()->value);
         $existing = $shop->charges()->withTrashed()
             ->where('charge_id', $chargeRef->toNative())
-            ->where('type', $chargeType->toNative())
+            ->where('type', $chargeType->value)
             ->latest('id')->first();
         $details = $this->chargeHelper->details($plan, $shop, $host);
         if ($existing && (int) $existing->plan_id === $planId->toNative()) {
@@ -101,10 +101,10 @@ class ActivatePlan
         $transfer->planId = $planId;
         $transfer->chargeReference = $chargeRef;
         $transfer->chargeType = $chargeType;
-        $transfer->chargeStatus = ChargeStatus::fromNative(strtoupper($response['status']));
+        $transfer->chargeStatus = ChargeStatus::fromNative($response['status']);
         $transfer->planDetails = $details;
 
-        if ($plan->isType(PlanType::RECURRING())) {
+        if ($plan->isType(PlanType::Recurring)) {
             $transfer->activatedOn = new Carbon($response['activated_on']);
             $transfer->billingOn = new Carbon($response['billing_on']);
             $transfer->trialEndsOn = new Carbon($response['trial_ends_on']);
@@ -136,7 +136,7 @@ class ActivatePlan
             // Shopify stores a missing trial as 0
             || (int) ($charge['trial_days'] ?? 0) !== (int) ($details->trialDays ?? 0)
             // Annual charges are created through GraphQL without a cap, and Shopify never reads terms back
-            || ($details->interval !== ChargeInterval::ANNUAL()->toNative()
+            || ($details->interval !== ChargeInterval::Annual->value
                 && $this->decimalAmount($charge['capped_amount'] ?? 0) !== $this->decimalAmount($details->cappedAmount ?? 0))
         ) {
             throw new HttpException('Charge does not match the requested plan.', Response::HTTP_FORBIDDEN);

@@ -20,6 +20,7 @@ class Plan extends Model
      * @var array
      */
     protected $casts = [
+        'type' => PlanType::class,
         'test' => 'bool',
         'on_install' => 'bool',
         'capped_amount' => 'float',
@@ -63,7 +64,7 @@ class Plan extends Model
      */
     public function getType(): PlanType
     {
-        return PlanType::fromNative($this->type);
+        return $this->type;
     }
 
     /**
@@ -73,7 +74,8 @@ class Plan extends Model
      */
     public function getInterval(): PlanInterval
     {
-        return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::EVERY_30_DAYS();
+        // Not cast: a plan stored with an empty interval is a 30-day plan, as it always has been
+        return $this->interval ? PlanInterval::fromNative($this->interval) : PlanInterval::Every30Days;
     }
 
     /**
@@ -85,7 +87,7 @@ class Plan extends Model
      */
     public function isType(PlanType $type): bool
     {
-        return $this->getType()->isSame($type);
+        return $this->getType() === $type;
     }
 
     /**
@@ -98,10 +100,10 @@ class Plan extends Model
     public function getTypeApiString($plural = false): string
     {
         $types = [
-            PlanType::ONETIME()->toNative() => 'application_charge',
-            PlanType::RECURRING()->toNative() => 'recurring_application_charge',
+            PlanType::OneTime->value => 'application_charge',
+            PlanType::Recurring->value => 'recurring_application_charge',
         ];
-        $type = $types[$this->getType()->toNative()];
+        $type = $types[$this->getType()->value];
 
         return $plural ? "{$type}s" : $type;
     }

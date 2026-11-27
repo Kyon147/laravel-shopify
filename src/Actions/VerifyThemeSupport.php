@@ -15,7 +15,7 @@ class VerifyThemeSupport
     ) {
     }
 
-    public function __invoke(ShopId $shopId): int
+    public function __invoke(ShopId $shopId): ThemeSupportLevel
     {
         $this->themeHelper->extractStoreMainTheme($shopId);
 
@@ -30,16 +30,16 @@ class VerifyThemeSupport
 
             switch (true) {
                 case $hasTemplates && $allTemplatesHasRightType:
-                    return ThemeSupportLevel::FULL;
+                    return ThemeSupportLevel::Full;
 
                 case $templatesСountWithRightType:
-                    return ThemeSupportLevel::PARTIAL;
+                    return ThemeSupportLevel::Partial;
 
                 default:
-                    return ThemeSupportLevel::UNSUPPORTED;
+                    return ThemeSupportLevel::Unsupported;
             }
         }
 
-        return ThemeSupportLevel::UNSUPPORTED;
+        return ThemeSupportLevel::Unsupported;
     }
 }

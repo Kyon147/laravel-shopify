@@ -2,38 +2,22 @@
 
 namespace Osiset\ShopifyApp\Objects\Enums;
 
-use Funeralzone\ValueObjects\Enums\EnumTrait;
-use Funeralzone\ValueObjects\ValueObject;
-
 /**
  * Source of data for Shopify requests.
  *
- * @method static DataSource INPUT()
- * @method static DataSource HEADER()
- * @method static DataSource REFERER()
+ * Backing values are the names the package has always stored.
  */
-final class DataSource implements ValueObject
+enum DataSource: string
 {
-    use EnumTrait;
+    case Input = 'INPUT';
+    case Header = 'HEADER';
+    case Referer = 'REFERER';
 
     /**
-     * Input (GET/POST).
-     *
-     * @var int
+     * Create from a stored or API value, ignoring case.
      */
-    public const INPUT = 0;
-
-    /**
-     * Header (X-Shopify).
-     *
-     * @var int
-     */
-    public const HEADER = 1;
-
-    /**
-     * Referer (Header).
-     *
-     * @var int
-     */
-    public const REFERER = 2;
+    public static function fromNative(string $name): self
+    {
+        return self::from(strtoupper($name));
+    }
 }

@@ -27,13 +27,13 @@ class VerifyThemeSupportTest extends TestCase
         );
 
         $this->assertNotNull($result);
-        $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);
+        $this->assertEquals(ThemeSupportLevel::Unsupported, $result);
     }
 
     public function testStoreWithFullExtensionSupport(): void
     {
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::FULL);
+        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::Full);
         $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
 
         $result = call_user_func(
@@ -42,13 +42,13 @@ class VerifyThemeSupportTest extends TestCase
         );
 
         $this->assertNotNull($result);
-        $this->assertEquals(ThemeSupportLevel::FULL, $result);
+        $this->assertEquals(ThemeSupportLevel::Full, $result);
     }
 
     public function testStoreWithPartialExtensionSupport(): void
     {
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::PARTIAL);
+        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::Partial);
         $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
 
         $result = call_user_func(
@@ -57,13 +57,13 @@ class VerifyThemeSupportTest extends TestCase
         );
 
         $this->assertNotNull($result);
-        $this->assertEquals(ThemeSupportLevel::PARTIAL, $result);
+        $this->assertEquals(ThemeSupportLevel::Partial, $result);
     }
 
     public function testStoreWithoutExtensionSupport(): void
     {
         $shop = factory($this->model)->create();
-        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::UNSUPPORTED);
+        $themeHelperStub = $this->createThemeHelperStub(ThemeSupportLevel::Unsupported);
         $action = new VerifyThemeSupport($this->app->make(IShopQuery::class), $themeHelperStub);
 
         $result = call_user_func(
@@ -72,23 +72,21 @@ class VerifyThemeSupportTest extends TestCase
         );
 
         $this->assertNotNull($result);
-        $this->assertEquals(ThemeSupportLevel::UNSUPPORTED, $result);
+        $this->assertEquals(ThemeSupportLevel::Unsupported, $result);
     }
 
     /**
      * Create ThemeHelper stub
      *
-     * @param int $level
-     *
      * @return ThemeHelper
      */
-    protected function createThemeHelperStub(int $level): ThemeHelper
+    protected function createThemeHelperStub(ThemeSupportLevel $level): ThemeHelper
     {
         $themeHelperStub = $this->createStub(ThemeHelper::class);
 
         $defaultThemeResponse = [];
 
-        if ($level === ThemeSupportLevel::FULL) {
+        if ($level === ThemeSupportLevel::Full) {
             $defaultThemeResponse = [0, 1, 2, 3];
         }
 
@@ -96,7 +94,7 @@ class VerifyThemeSupportTest extends TestCase
         $themeHelperStub->method('templateJSONFiles')->willReturn($defaultThemeResponse);
         $themeHelperStub->method('mainSections')->willReturn($defaultThemeResponse);
         $themeHelperStub->method('sectionsWithAppBlock')->willReturn(
-            $level === ThemeSupportLevel::PARTIAL
+            $level === ThemeSupportLevel::Partial
             ? array_merge($defaultThemeResponse, [random_int(1, 99)])
             : $defaultThemeResponse
         );

@@ -5,6 +5,7 @@ namespace Osiset\ShopifyApp\Actions;
 use Illuminate\Http\Request;
 use Osiset\ShopifyApp\Contracts\ApiHelper as IApiHelper;
 use Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent;
+use Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel;
 use Osiset\ShopifyApp\Objects\Values\ShopDomain;
 use Osiset\ShopifyApp\Util;
 use Throwable;
@@ -41,7 +42,13 @@ class AuthenticateShop
             }
         }
 
-        if (in_array($result['theme_support_level'], Util::getShopifyConfig('theme_support.unacceptable_levels'))) {
+        // Published configs may list the levels as enum cases or as their integer values
+        $unacceptableLevels = array_map(
+            static fn ($level) => $level instanceof ThemeSupportLevel ? $level->value : $level,
+            (array) Util::getShopifyConfig('theme_support.unacceptable_levels')
+        );
+
+        if (in_array($result['theme_support_level'], $unacceptableLevels)) {
             call_user_func($this->dispatchScriptsAction, $result['shop_id'], false);
         }
 

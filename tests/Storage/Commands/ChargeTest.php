@@ -94,8 +94,8 @@ class ChargeTest extends TestCase
         $charge = new ChargeTransfer();
         $charge->shopId = ShopId::fromNative(1);
         $charge->chargeReference = ChargeReference::fromNative(123456);
-        $charge->chargeType = ChargeType::RECURRING();
-        $charge->chargeStatus = ChargeStatus::ACCEPTED();
+        $charge->chargeType = ChargeType::Recurring;
+        $charge->chargeStatus = ChargeStatus::Accepted;
         $charge->planDetails = $planDetails;
         $charge->planId = PlanId::fromNative(1);
 

@@ -7,6 +7,7 @@ use Osiset\ShopifyApp\Actions\ActivatePlan;
 use Osiset\ShopifyApp\Actions\GetPlanUrl;
 use Osiset\ShopifyApp\Exceptions\HttpException;
 use Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent;
+use Osiset\ShopifyApp\Objects\Enums\ChargeStatus;
 use Osiset\ShopifyApp\Objects\Values\ChargeReference;
 use Osiset\ShopifyApp\Objects\Values\NullablePlanId;
 use Osiset\ShopifyApp\Storage\Models\Charge;
@@ -92,7 +93,7 @@ class ActivatePlanBindingTest extends TestCase
         }
 
         $this->assertSame($oldPlan->id, (int) $shop->fresh()->plan_id);
-        $this->assertSame('ACTIVE', $oldCharge->fresh()->status);
+        $this->assertSame(ChargeStatus::Active, $oldCharge->fresh()->status);
         $this->assertNull($oldCharge->fresh()->cancelled_on);
         $this->assertDatabaseCount('charges', 1);
         $this->assertCount(1, BillingApi::$requests);

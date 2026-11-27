@@ -29,8 +29,8 @@ class ChargeTest extends TestCase
         $this->assertNull($charge->plan);
         $this->assertFalse($charge->isTest());
         $this->assertFalse($charge->isTrial());
-        $this->assertTrue($charge->isType(ChargeType::RECURRING()));
-        $this->assertTrue($charge->isStatus(ChargeStatus::ACCEPTED()));
+        $this->assertTrue($charge->isType(ChargeType::Recurring));
+        $this->assertTrue($charge->isStatus(ChargeStatus::Accepted));
         $this->assertFalse($charge->isActive());
         $this->assertTrue($charge->isAccepted());
         $this->assertFalse($charge->isDeclined());
@@ -56,7 +56,7 @@ class ChargeTest extends TestCase
             'status' => $status,
         ]);
 
-        $this->assertTrue($charge->getStatus()->isSame(ChargeStatus::fromNative($status)));
+        $this->assertSame(ChargeStatus::fromNative($status), $charge->getStatus());
         $this->assertTrue($charge->{$check}());
         $this->assertFalse($charge->isActive());
         $this->assertFalse($charge->isAccepted());

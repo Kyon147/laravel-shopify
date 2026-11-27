@@ -127,7 +127,7 @@ class ApiHelper implements IApiHelper
     public function buildAuthUrl(AuthMode $mode, string $scopes): string
     {
         // Fix for peruser => per-user
-        $mode = $mode->isSame(AuthMode::PERUSER()) ? 'PER-USER' : $mode->toNative();
+        $mode = $mode === AuthMode::PerUser ? 'PER-USER' : $mode->value;
 
         return $this->api->getAuthUrl(
             $scopes,
@@ -198,10 +198,10 @@ class ApiHelper implements IApiHelper
      */
     public function getAccessData(string $code, ?AuthMode $grantMode = null): ResponseAccess
     {
-        $grantMode = $grantMode ?? AuthMode::OFFLINE();
+        $grantMode = $grantMode ?? AuthMode::Offline;
         $shop = $this->getShopDomain($this->api->getSession())->toNative();
         $useExpiringOffline = Util::getShopifyConfig('expiring_offline_tokens', $shop)
-            && $grantMode->isSame(AuthMode::OFFLINE());
+            && $grantMode === AuthMode::Offline;
 
         if ($useExpiringOffline) {
             return $this->oauthAccessTokenPost([
@@ -293,7 +293,7 @@ class ApiHelper implements IApiHelper
 
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::GET(),
+            ApiMethod::Get,
             '/admin/script_tags.json',
             $reqParams
         );
@@ -309,7 +309,7 @@ class ApiHelper implements IApiHelper
     {
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::POST(),
+            ApiMethod::Post,
             '/admin/script_tags.json',
             ['script_tag' => $payload]
         );
@@ -325,7 +325,7 @@ class ApiHelper implements IApiHelper
     {
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::DELETE(),
+            ApiMethod::Delete,
             "/admin/script_tags/{$scriptTagId}.json"
         );
 
@@ -343,7 +343,7 @@ class ApiHelper implements IApiHelper
 
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::GET(),
+            ApiMethod::Get,
             "/admin/{$typeString}s/{$chargeRef->toNative()}.json"
         );
 
@@ -361,7 +361,7 @@ class ApiHelper implements IApiHelper
 
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::POST(),
+            ApiMethod::Post,
             "/admin/{$typeString}s/{$chargeRef->toNative()}/activate.json"
         );
 
@@ -379,7 +379,7 @@ class ApiHelper implements IApiHelper
 
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::POST(),
+            ApiMethod::Post,
             "/admin/{$typeString}s.json",
             [$typeString => $payload->toArray()]
         );
@@ -567,7 +567,7 @@ class ApiHelper implements IApiHelper
     {
         // Fire the request
         $response = $this->doRequest(
-            ApiMethod::POST(),
+            ApiMethod::Post,
             "/admin/recurring_application_charges/{$payload->chargeReference->toNative()}/usage_charges.json",
             [
                 'usage_charge' => [
@@ -591,15 +591,15 @@ class ApiHelper implements IApiHelper
     protected function chargeApiPath(ChargeType $chargeType): string
     {
         // Convert to API path
-        if ($chargeType->isSame(ChargeType::RECURRING())) {
+        if ($chargeType === ChargeType::Recurring) {
             $format = '%s_application_charge';
-        } elseif ($chargeType->isSame(ChargeType::CHARGE())) {
+        } elseif ($chargeType === ChargeType::Charge) {
             $format = 'application_charge';
         } else {
             $format = 'application_%s';
         }
 
-        return sprintf($format, strtolower($chargeType->toNative()));
+        return sprintf($format, strtolower($chargeType->value));
     }
 
     /**
@@ -615,7 +615,7 @@ class ApiHelper implements IApiHelper
      */
     protected function doRequest(ApiMethod $method, string $path, ?array $payload = null)
     {
-        $response = $this->api->rest($method->toNative(), $path, $payload);
+        $response = $this->api->rest($method->value, $path, $payload);
         if ($response['errors'] === true) {
             // Request error somewhere, throw the exception
             throw new ApiException(
@@ -714,15 +714,15 @@ class ApiHelper implements IApiHelper
 
         $options = [
             // Input
-            DataSource::INPUT()->toNative() => function (): ?string {
+            DataSource::Input->value => function (): ?string {
                 return Arr::get(Request::all(), 'shop');
             },
             // Headers
-            DataSource::HEADER()->toNative() => function (): ?string {
+            DataSource::Header->value => function (): ?string {
                 return Request::header('X-Shop-Domain');
             },
             // Headers: Referer
-            DataSource::REFERER()->toNative() => function (): ?string {
+            DataSource::Referer->value => function (): ?string {
                 $url = parse_url(Request::server('HTTP_REFERER', ''), PHP_URL_QUERY);
                 parse_str($url ?? '', $refererQueryParams);
 
