@@ -226,7 +226,7 @@ class ActivatePlanBindingTest extends TestCase
         $this->assertSame('GET', BillingApi::$requests[0][1]);
     }
 
-    public function testReturnUrlMatchesWhenShopifyEncodesItDifferently(): void
+    public function testReturnUrlMustMatchExactly(): void
     {
         [$shop, $plan, $host] = $this->createCharge();
         $returnUrl = BillingApi::$charges[$shop->name][1001]['return_url'];
@@ -234,9 +234,16 @@ class ActivatePlanBindingTest extends TestCase
         BillingApi::$charges[$shop->name][1001]['return_url'] = str_replace('%3D', '=', $returnUrl);
         BillingApi::approve($shop->name, 1001);
 
-        ($this->app->make(ActivatePlan::class))($shop->getId(), $plan->getId(), ChargeReference::fromNative(1001), $host);
+        try {
+            ($this->app->make(ActivatePlan::class))($shop->getId(), $plan->getId(), ChargeReference::fromNative(1001), $host);
+            $this->fail('A return URL that differs from the one built for the plan must be rejected.');
+        } catch (HttpException $exception) {
+            $this->assertSame(403, $exception->getCode());
+            $this->assertSame('Charge does not match the requested plan.', $exception->getMessage());
+        }
 
-        $this->assertSame($plan->id, (int) $shop->fresh()->plan_id);
+        $this->assertNull($shop->fresh()->plan_id);
+        $this->assertDatabaseCount('charges', 0);
     }
 
     public function testChargeFromAnotherStoreIsNotFound(): void

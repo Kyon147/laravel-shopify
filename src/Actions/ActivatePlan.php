@@ -130,7 +130,7 @@ class ActivatePlan
     protected function verifyCharge(ResponseAccess $charge, ChargeReference $reference, PlanDetails $details): void
     {
         if ((string) ($charge['id'] ?? '') !== (string) $reference->toNative()
-            || !$this->sameUrl($charge['return_url'] ?? null, $details->returnUrl)
+            || ($charge['return_url'] ?? null) !== $details->returnUrl
             || ($charge['name'] ?? null) !== $details->name
             || $this->decimalAmount($charge['price'] ?? null) === null
             || $this->decimalAmount($charge['price']) !== $this->decimalAmount($details->price)
@@ -143,46 +143,6 @@ class ActivatePlan
         ) {
             throw new HttpException('Charge does not match the requested plan.', Response::HTTP_FORBIDDEN);
         }
-    }
-
-    /**
-     * Compare the return URL Shopify stored with the one built for the plan, part by part, since the
-     * GraphQL and REST Admin APIs may encode the same stored URL differently.
-     */
-    protected function sameUrl(mixed $actual, ?string $expected): bool
-    {
-        if (!is_string($actual) || !is_string($expected)) {
-            return false;
-        }
-
-        if ($actual === $expected) {
-            return true;
-        }
-
-        $parts = static function (string $url): ?array {
-            $parsed = parse_url($url);
-            if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
-                return null;
-            }
-
-            parse_str($parsed['query'] ?? '', $query);
-            ksort($query);
-
-            return [
-                strtolower($parsed['scheme']),
-                strtolower($parsed['host']),
-                $parsed['port'] ?? null,
-                $parsed['user'] ?? null,
-                $parsed['pass'] ?? null,
-                rawurldecode($parsed['path'] ?? ''),
-                $query,
-                $parsed['fragment'] ?? null,
-            ];
-        };
-
-        $actualParts = $parts($actual);
-
-        return $actualParts !== null && $actualParts === $parts($expected);
     }
 
     /**
